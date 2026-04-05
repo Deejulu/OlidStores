@@ -162,7 +162,8 @@
         border-bottom: 1px solid var(--gray-200);
         position: sticky;
         top: 0;
-        z-index: 1000;
+        z-index: 10005;
+        overflow: visible;
         transition: var(--transition-base);
     }
     .main-header::after {
@@ -186,6 +187,7 @@
         padding: 0.5rem var(--space-sm);
         gap: 0.5rem;
         min-height: 70px;
+        overflow: visible;
     }
 
     /* ===== BEAUTIFUL LOGO SYSTEM - PERFECT ON ALL DEVICES ===== */
@@ -1352,8 +1354,22 @@
     }
 
     /* Desktop Dropdowns */
+    .user-actions .dropdown {
+        position: relative;
+        z-index: 100001 !important;
+        overflow: visible;
+    }
+
     .user-actions .dropdown-menu {
-        margin-top: 0.5rem;
+        position: fixed !important;
+        top: 5.5rem !important;
+        right: 1rem !important;
+        left: auto !important;
+        z-index: 100002 !important;
+        min-width: 260px;
+        margin-top: 0;
+        overflow: visible !important;
+        transform: none !important;
     }
 
     @media (max-width: 991.98px) {
@@ -1937,20 +1953,96 @@
     body.dark-mode .dropdown-menu,
     body.dark-mode .floating-cart,
     body.dark-mode .back-to-top,
-    body.dark-mode .messages-container {
-        background: #1f2937 !important;
-        border-color: #334155 !important;
+    body.dark-mode .messages-container,
+    body.dark-mode .btn,
+    body.dark-mode .btn-primary,
+    body.dark-mode .btn-secondary,
+    body.dark-mode .btn-add-product,
+    body.dark-mode .card,
+    body.dark-mode .product-card,
+    body.dark-mode .product-card-body,
+    body.dark-mode .section-card,
+    body.dark-mode .panel,
+    body.dark-mode .dashboard-card,
+    body.dark-mode .dashboard-card-body,
+    body.dark-mode .card-body,
+    body.dark-mode .panel-body,
+    body.dark-mode .filter-sidebar,
+    body.dark-mode .search-bar,
+    body.dark-mode .category-card,
+    body.dark-mode .products-loading-overlay,
+    body.dark-mode .product-image-placeholder,
+    body.dark-mode .toolbar-search,
+    body.dark-mode .toolbar-sort,
+    body.dark-mode .toolbar-results,
+    body.dark-mode .pagination,
+    body.dark-mode .page-link {
+        background: #111827 !important;
+        border-color: rgba(148, 163, 184, 0.16) !important;
         color: #e2e8f0 !important;
     }
     body.dark-mode .search-input::placeholder,
     body.dark-mode .dropdown-item,
     body.dark-mode .dropdown-item span,
     body.dark-mode .dropdown-header-section,
-    body.dark-mode .dropdown-section-title {
+    body.dark-mode .dropdown-section-title,
+    body.dark-mode .page-link {
         color: #cbd5e1 !important;
     }
+    body.dark-mode .hero-badge,
+    body.dark-mode .trust-badge,
+    body.dark-mode .toolbar-results,
+    body.dark-mode .mcat-count,
+    body.dark-mode .category-count {
+        color: #111827 !important;
+    }
+    body.dark-mode .hero-badge,
+    body.dark-mode .toolbar-results,
+    body.dark-mode .mcat-count,
+    body.dark-mode .category-count {
+        background: #ffffff !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
+    }
+    body.dark-mode .hero-badge {
+        border-color: #d1d5db !important;
+    }
+    body.dark-mode .shop-hero {
+        background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.95));
+    }
+    body.dark-mode .announcement-bar {
+        background: #f8fafc !important;
+    }
+    body.dark-mode .announcement-item,
+    body.dark-mode .announcement-item span,
+    body.dark-mode .announcement-item i {
+        color: #111827 !important;
+    }
+    body.dark-mode .logo-olid,
+    body.dark-mode .logo-stores {
+        filter: none !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+        color: transparent !important;
+        -webkit-text-fill-color: transparent !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+    }
+    body.dark-mode [style*="background: #fff" i],
+    body.dark-mode [style*="background: white" i],
+    body.dark-mode [style*="background: #ffffff" i],
+    body.dark-mode [style*="background: rgba(255,255,255" i],
+    body.dark-mode .bg-white,
+    body.dark-mode .white-bg {
+        color: #111827 !important;
+    }
+    body.dark-mode .logo-olid {
+        background: linear-gradient(135deg, #f59e0b 20%, #facc15 50%, #f59e0b 80%) !important;
+    }
+    body.dark-mode .logo-stores {
+        background: linear-gradient(135deg, #fef08a 20%, #f59e0b 60%, #fde047 100%) !important;
+    }
     body.dark-mode .logo-tagline {
-        color: #94a3b8;
+        color: #f8fafc;
     }
     body.dark-mode .main-footer {
         background: #0f172a;
@@ -1989,6 +2081,20 @@
         background: #0f172a !important;
         color: #e2e8f0 !important;
         border-color: #334155 !important;
+    }
+
+    body.dark-mode,
+    body.dark-mode :not(svg):not(path):not(circle):not(rect):not(polygon):not(line):not(polyline):not(ellipse) {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode ::placeholder,
+    body.dark-mode ::-webkit-input-placeholder,
+    body.dark-mode ::-moz-placeholder,
+    body.dark-mode :-ms-input-placeholder,
+    body.dark-mode :-moz-placeholder {
+        color: #94a3b8 !important;
+        opacity: 1 !important;
     }
 
     @media (prefers-color-scheme: dark) {

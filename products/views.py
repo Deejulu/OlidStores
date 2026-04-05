@@ -5,18 +5,19 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
+from django.core.paginator import Page
 
 class ShopListView(ListView):
 	model = Product
 	template_name = 'products/shop.html'
 	context_object_name = 'products'
-	paginate_by = 12
+	paginate_by = 24
 
 	def get_queryset(self):
 		queryset = Product.objects.all()
 		category_slug = self.request.GET.get('category')
 		stock = self.request.GET.get('stock')
-		price = self.request.GET.get('price')
+		sort = self.request.GET.get('sort')
 		search = self.request.GET.get('search')
 		
 		if search:
@@ -30,20 +31,28 @@ class ShopListView(ListView):
 		if category_slug:
 			category = get_object_or_404(Category, slug=category_slug)
 			queryset = queryset.filter(category=category)
-		if stock == 'in':
+		if stock in ('in', 'in_stock'):
 			queryset = queryset.filter(stock__gt=0)
-		elif stock == 'out':
+		elif stock in ('out', 'out_of_stock'):
 			queryset = queryset.filter(stock__lte=0)
-		if price == 'asc':
+		if sort in ('asc', 'price_asc'):
 			queryset = queryset.order_by('price')
-		elif price == 'desc':
+		elif sort in ('desc', 'price_desc'):
 			queryset = queryset.order_by('-price')
+		elif sort == 'newest':
+			queryset = queryset.order_by('-created_at')
+		elif sort == 'popular':
+			queryset = queryset.order_by('-created_at')
 		else:
 			queryset = queryset.order_by('-created_at')
 		return queryset
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
+		# Ensure the template receives a paginated page object for products
+		page_obj = context.get('page_obj')
+		if page_obj is not None and isinstance(page_obj, Page):
+			context['products'] = page_obj
 		# Show canonical categories list (limit to 11 for the sidebar)
 		cats = list(Category.objects.all())
 		# Take up to 11, and if fewer exist, repeat existing ones to pad to 11 (keeps UI stable in tests)
@@ -72,19 +81,23 @@ class ShopListView(ListView):
 		else:
 			context['total_products'] = self.get_queryset().count()
 		
-		# Add wishlist product IDs for the current user
+		# Add wishlist product IDs and wishlist object for the current user
 		if self.request.user.is_authenticated:
 			try:
 				from users.models import Wishlist
 				wishlist = Wishlist.objects.filter(user=self.request.user).first()
 				if wishlist:
 					context['wishlist_product_ids'] = list(wishlist.products.values_list('id', flat=True))
+					context['user_wishlist'] = list(wishlist.products.all())
 				else:
 					context['wishlist_product_ids'] = []
+					context['user_wishlist'] = []
 			except:
 				context['wishlist_product_ids'] = []
+				context['user_wishlist'] = []
 		else:
 			context['wishlist_product_ids'] = []
+			context['user_wishlist'] = []
 
 		# Ensure each product has a display_stock attribute which accounts for variants
 		products_page = context.get('products')

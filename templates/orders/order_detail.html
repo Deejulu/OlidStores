@@ -582,7 +582,7 @@
                 <div class="od-card-body">
                     <div class="od-info-row">
                         <div class="od-info-icon" style="background:rgba(102,126,234,0.1);color:#667eea;">
-                            {% if order.paymenttransaction_set.first %}
+                            {% if order.payment_method == 'paystack' %}
                                 <i class="bi bi-wallet2"></i>
                             {% else %}
                                 <i class="bi bi-bank"></i>
@@ -591,7 +591,7 @@
                         <div>
                             <div class="od-info-label">Method</div>
                             <div class="od-info-value">
-                                {% if order.paymenttransaction_set.first %}Paystack{% else %}Manual Transfer{% endif %}
+                                {% if order.payment_method == 'paystack' %}Paystack{% elif order.payment_method == 'pay_on_delivery' %}Pay on Delivery{% else %}Manual Transfer{% endif %}
                             </div>
                         </div>
                     </div>

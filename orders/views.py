@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Order, OrderItem, PaymentTransaction, CheckoutSettings
+from .models import Order, OrderItem, PaymentTransaction, CheckoutSettings, PaymentSettings
 
 from .utils import verify_paystack_reference as _verify_paystack_reference
 # Replaced inline verifier with shared utils.verify_paystack_reference
@@ -28,6 +28,13 @@ def checkout_view(request):
 		print('DEBUG cs.fees', cs.delivery_fee_24h, cs.delivery_fee_2d)
 	delivery_fee_24h = cs.delivery_fee_24h if cs else getattr(settings, 'DELIVERY_FEE_24H', 0)
 	delivery_fee_2d = cs.delivery_fee_2d if cs else getattr(settings, 'DELIVERY_FEE_2D', 0)
+
+	# load admin-managed payment options
+	payment_settings = PaymentSettings.objects.first()
+	enable_paystack = bool(settings.PAYSTACK_PUBLIC) and (payment_settings.enable_paystack if payment_settings else True)
+	enable_manual = payment_settings.enable_manual_transfer if payment_settings else True
+	enable_pay_on_delivery = payment_settings.enable_pay_on_delivery if payment_settings else False
+	pay_on_delivery_max = payment_settings.pay_on_delivery_max if payment_settings else 100000.00
 	# Prefer SiteContent values if present (Manage Site Content integration)
 	try:
 		from core.models import SiteContent
@@ -85,6 +92,9 @@ def checkout_view(request):
 			total = base_total + (delivery_fee or Decimal('0.00'))
 
 		if payment_method == 'manual':
+			if not enable_manual:
+				messages.error(request, 'Manual bank transfer is not available right now.')
+				return redirect('orders:checkout')
 			# Manual payment: check and reserve stock, then create order as pending, save receipt
 			print('DEBUG manual payment delivery_option', delivery_option, 'delivery_fee', delivery_fee, 'delivery_fee_24h', delivery_fee_24h, 'delivery_fee_2d', delivery_fee_2d)
 			from django.db import transaction
@@ -115,7 +125,8 @@ def checkout_view(request):
 					delivery_option=delivery_option or '2d',
 					status='Pending',
 					notes=notes or '',
-					receipt=receipt_file
+					receipt=receipt_file,
+					payment_method='manual'
 				)
 				for item in items:
 					OrderItem.objects.create(
@@ -135,6 +146,63 @@ def checkout_view(request):
 					pass
 			cart.items.all().delete()
 			messages.success(request, 'Manual payment submitted. Your order will be confirmed within 24 hours.')
+			return redirect('orders:cart')
+		elif payment_method == 'pay_on_delivery':
+			if not enable_pay_on_delivery:
+				messages.error(request, 'Pay on Delivery is not enabled.')
+				return redirect('orders:checkout')
+			if total > pay_on_delivery_max:
+				messages.error(request, f'Pay on Delivery is only available for orders up to ₦{pay_on_delivery_max:.2f}.')
+				return redirect('orders:checkout')
+			# Reserve stock and create the order as pending
+			from django.db import transaction
+			with transaction.atomic():
+				for item in items:
+					if item.variant:
+						pv = ProductVariant.objects.select_for_update().get(id=item.variant.id)
+						if pv.stock < item.quantity:
+							messages.error(request, f'Insufficient stock for {pv.name}.')
+							return redirect('orders:checkout')
+						pv.stock -= item.quantity
+						pv.save()
+					else:
+						p = Product.objects.select_for_update().get(id=item.product.id)
+						if p.stock < item.quantity:
+							messages.error(request, f'Insufficient stock for {p.name}.')
+							return redirect('orders:checkout')
+						p.stock -= item.quantity
+						p.save()
+				order = Order.objects.create(
+					user=request.user if request.user.is_authenticated else None,
+					full_name=full_name,
+					phone=phone,
+					email=email,
+					delivery_address=delivery_address,
+					total=total,
+					delivery_fee=delivery_fee,
+					delivery_option=delivery_option or '2d',
+					status='Pending',
+					notes=notes,
+					payment_method='pay_on_delivery'
+				)
+				for item in items:
+					OrderItem.objects.create(
+						order=order,
+						product=item.product,
+						variant=item.variant,
+						quantity=item.quantity,
+						price=item.price
+					)
+			# Track order placement activity
+			user = request.user
+			if user.is_authenticated:
+				try:
+					from users.models_activity import Activity
+					Activity.objects.create(user=user, activity_type='order', order_id=order.id)
+				except Exception:
+					pass
+			cart.items.all().delete()
+			messages.success(request, 'Pay on Delivery order submitted. Our team will contact you shortly.')
 			return redirect('orders:cart')
 		elif payment_method == 'paystack' and paystack_reference:
 			# Final backend stock check before payment
@@ -202,12 +270,14 @@ def checkout_view(request):
 						price=item.price
 					)
 				# record transaction
+				payment_channel = data.get('channel') or (data.get('authorization') or {}).get('channel') or ''
 				pt = PaymentTransaction.objects.create(
 					reference=paystack_reference,
 					order=order,
 					amount=float(data.get('amount', 0)) / 100.0,
 					currency=data.get('currency', 'NGN'),
 					status=data.get('status', ''),
+					payment_method=payment_channel,
 					raw_response=data
 				)
 				print('DEBUG created order', order.id, 'pt', pt.reference)
@@ -254,6 +324,10 @@ def checkout_view(request):
 		'base_total': total,
 		'total': total,  # may be adjusted on the client when delivery is selected
 		'PAYSTACK_PUBLIC': settings.PAYSTACK_PUBLIC,
+		'enable_paystack': enable_paystack,
+		'enable_manual': enable_manual,
+		'enable_pay_on_delivery': enable_pay_on_delivery,
+		'pay_on_delivery_max': pay_on_delivery_max,
 		'delivery_fee_24h': delivery_fee_24h,
 		'delivery_fee_2d': delivery_fee_2d,
 		'selected_delivery_option': '2d',

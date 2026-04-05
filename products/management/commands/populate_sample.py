@@ -8,10 +8,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         categories = [
-            'Men', 'Women', 'Kids', 'Accessories', 'Shoes', 'Bags', 'Watches', 'Sportswear', 'Electronics'
+            'Electronics', 'Fashion', 'Home Appliances', 'Cosmetics', 'Books', 'Sports', 'Toys', 'Furniture', 'Gaming'
         ]
-        # Remove any old 'Honda Electronics' category if it exists
-        Category.objects.filter(name='Honda Electronics').delete()
         created_cats = []
         for cat_name in categories:
             cat, created = Category.objects.get_or_create(name=cat_name)
@@ -29,10 +27,21 @@ class Command(BaseCommand):
             ('Running Shoes', 'Lightweight running shoes for athletes.'),
             ('Kids Hoodie', 'Warm hoodie for kids.'),
             ('Sunglasses', 'UV-protected stylish sunglasses.'),
-            # Electronics products
-            ('Rechargeable Fan', 'Electronics rechargeable fan with long-lasting battery.'),
-            ('Powerpoint', 'Electronics Powerpoint for reliable power distribution.'),
-            ('Solar Charger', 'Electronics solar charger for eco-friendly charging.'),
+            ('Rechargeable Fan', 'Rechargeable fan with long-lasting battery.'),
+            ('Solar Charger', 'Solar charger for eco-friendly phone charging.'),
+            ('Gaming Keyboard', 'Mechanical keyboard with RGB lighting.'),
+            ('Office Chair', 'Ergonomic office chair with lumbar support.'),
+            ('Water Bottle', 'Insulated stainless steel water bottle.'),
+            ('Blender', 'Multi-speed kitchen blender.'),
+            ('Cookbook', 'Recipe book for healthy meals.'),
+            ('Face Serum', 'Brightening vitamin C serum.'),
+            ('Desk Lamp', 'Adjustable LED desk lamp.'),
+            ('Board Game', 'Fun family board game for 2-6 players.'),
+            ('Novel', 'Enjoyable bestselling novel.'),
+            ('Bike Helmet', 'Durable safety helmet for cycling.'),
+            ('Play Tent', 'Kids play tent with removable cover.'),
+            ('Bluetooth Speaker', 'Portable Bluetooth speaker with rich bass.'),
+            ('Laptop Stand', 'Adjustable laptop stand for desk use.'),
         ]
         for name, desc in sample_products:
             # Assign Electronics products to the correct category

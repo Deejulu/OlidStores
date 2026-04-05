@@ -51,6 +51,7 @@ class Order(models.Model):
 	delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 	delivery_option = models.CharField(max_length=10, choices=(('24h', '24-hour'), ('2d', '2-day')), default='2d')
 	total = models.DecimalField(max_digits=10, decimal_places=2)
+	payment_method = models.CharField(max_length=50, blank=True, null=True, help_text='Selected payment method for this order (paystack, manual, pay_on_delivery)')
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 	notes = models.TextField(blank=True, default='')
 	receipt = models.FileField(upload_to='receipts/', blank=True, null=True, help_text='Upload payment receipt for manual bank transfer')
@@ -129,4 +130,18 @@ class CheckoutSettings(models.Model):
     class Meta:
         verbose_name = "Checkout Setting"
         verbose_name_plural = "Checkout Settings"
+
+class PaymentSettings(models.Model):
+    enable_paystack = models.BooleanField(default=True, help_text='Allow Paystack checkout when the public key is configured.')
+    enable_manual_transfer = models.BooleanField(default=True, help_text='Allow manual bank transfer checkout.')
+    enable_pay_on_delivery = models.BooleanField(default=False, help_text='Allow pay-on-delivery checkout option.')
+    pay_on_delivery_max = models.DecimalField(max_digits=12, decimal_places=2, default=100000.00, help_text='Maximum order total eligible for pay on delivery.')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Payment Settings"
+
+    class Meta:
+        verbose_name = "Payment Setting"
+        verbose_name_plural = "Payment Settings"
 

@@ -459,6 +459,22 @@ def product_list(request):
     return render(request, 'admin_dashboard/products/product_list.html', {'products': products, 'search_query': search_query})
 
 @admin_role_required
+def product_populate_sample(request):
+    from django.core.management import call_command
+    from django.db import transaction
+    if Product.objects.exists():
+        messages.warning(request, 'Sample products already exist. Delete existing products first if you want to regenerate sample inventory.')
+        return redirect('admin_dashboard:product_list')
+
+    try:
+        with transaction.atomic():
+            call_command('populate_sample')
+        messages.success(request, 'Sample categories and products created successfully.')
+    except Exception as e:
+        messages.error(request, f'Failed to populate sample products: {e}')
+    return redirect('admin_dashboard:product_list')
+
+@admin_role_required
 def product_create(request):
     from products.models import ProductImage
     if request.method == 'POST':

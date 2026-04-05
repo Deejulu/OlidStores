@@ -1,9 +1,12 @@
 from django.contrib import admin
-from .models import Order, OrderItem, Cart, CartItem, CheckoutSettings
+from .models import Order, OrderItem, Cart, CartItem, CheckoutSettings, PaymentSettings, PaymentTransaction, WebhookEvent
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-	list_display = ('id', 'user', 'status', 'created_at', 'receipt_link')
+	list_display = ('id', 'user', 'payment_method', 'status', 'created_at', 'receipt_link')
+	list_filter = ('status', 'payment_method', 'created_at')
+	search_fields = ('user__email', 'id')
+	actions = ['approve_manual_payments']
 	list_filter = ('status', 'created_at')
 	search_fields = ('user__email', 'id')
 	actions = ['approve_manual_payments']
@@ -49,3 +52,32 @@ class CheckoutSettingsAdmin(admin.ModelAdmin):
 		}),
 	)
 	list_display_links = None
+
+@admin.register(PaymentSettings)
+class PaymentSettingsAdmin(admin.ModelAdmin):
+	list_display = ('enable_paystack', 'enable_manual_transfer', 'enable_pay_on_delivery', 'pay_on_delivery_max', 'updated_at')
+	list_editable = ('enable_paystack', 'enable_manual_transfer', 'enable_pay_on_delivery', 'pay_on_delivery_max')
+	readonly_fields = ('updated_at',)
+	fieldsets = (
+		("Payment Options", {
+			'fields': ('enable_paystack', 'enable_manual_transfer', 'enable_pay_on_delivery', 'pay_on_delivery_max')
+		}),
+		("Metadata", {
+			'fields': ('updated_at',),
+		}),
+	)
+	list_display_links = None
+
+@admin.register(PaymentTransaction)
+class PaymentTransactionAdmin(admin.ModelAdmin):
+	list_display = ('reference', 'order', 'payment_method', 'amount', 'currency', 'status', 'created_at')
+	list_filter = ('status', 'currency', 'created_at')
+	search_fields = ('reference', 'order__id', 'order__full_name')
+	readonly_fields = ('created_at', 'raw_response')
+
+@admin.register(WebhookEvent)
+class WebhookEventAdmin(admin.ModelAdmin):
+	list_display = ('provider', 'event_type', 'reference', 'processed', 'created_at')
+	list_filter = ('provider', 'processed', 'created_at')
+	search_fields = ('reference', 'event_type')
+	readonly_fields = ('created_at', 'headers', 'payload', 'response_text')

@@ -2759,46 +2759,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize product interactions
     initProductInteractions();
     
-    // Infinite scroll
-    let loadingMore = false;
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !loadingMore && {{ products.has_next|yesno:"true,false" }}) {
-                loadingMore = true;
-                const nextPage = {{ products.next_page_number|default:"0" }};
-                
-                fetch(`?${query_string({page: nextPage})}&ajax=1`)
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newProducts = doc.querySelector('.products-grid');
+    // Infinite scroll only when manual pagination is not being used
+    const pagination = document.querySelector('.pagination');
+    if (!pagination) {
+        let loadingMore = false;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !loadingMore && {{ products.has_next|yesno:"true,false" }}) {
+                    loadingMore = true;
+                    const nextPage = {{ products.next_page_number|default:"0" }};
                     
-                    if (newProducts) {
-                        document.querySelector('.products-grid').insertAdjacentHTML('beforeend', newProducts.innerHTML);
-                        initProductInteractions();
-                    }
-                    
-                    // Update pagination
-                    const newPagination = doc.querySelector('.pagination');
-                    if (newPagination) {
-                        document.querySelector('.pagination').outerHTML = newPagination.outerHTML;
-                    }
-                    
-                    loadingMore = false;
-                })
-                .catch(() => {
-                    loadingMore = false;
-                });
-            }
+                    fetch(`?${query_string({page: nextPage})}&ajax=1`)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newProducts = doc.querySelector('.products-grid');
+                        
+                        if (newProducts) {
+                            document.querySelector('.products-grid').insertAdjacentHTML('beforeend', newProducts.innerHTML);
+                            initProductInteractions();
+                        }
+                        
+                        // Update pagination
+                        const newPagination = doc.querySelector('.pagination');
+                        if (newPagination) {
+                            document.querySelector('.pagination').outerHTML = newPagination.outerHTML;
+                        }
+                        
+                        loadingMore = false;
+                    })
+                    .catch(() => {
+                        loadingMore = false;
+                    });
+                }
+            });
         });
-    });
-    
-    const sentinel = document.createElement('div');
-    sentinel.id = 'scroll-sentinel';
-    sentinel.style.height = '1px';
-    document.querySelector('.shop-main').appendChild(sentinel);
-    observer.observe(sentinel);
+        
+        const sentinel = document.createElement('div');
+        sentinel.id = 'scroll-sentinel';
+        sentinel.style.height = '1px';
+        document.querySelector('.shop-main').appendChild(sentinel);
+        observer.observe(sentinel);
+    }
 });
 
 // Filter by category with AJAX
