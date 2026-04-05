@@ -1,0 +1,13 @@
+# Normalize line endings for the repository
+* text=auto
+
+# Explicitly set file types to use LF in repo
+*.py text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=lf
