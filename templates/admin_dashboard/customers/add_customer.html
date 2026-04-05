@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .add-customer-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2.5rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        color: white;
+        border-radius: 0;
+    }
+    
+    .add-customer-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white !important;
+    }
+    
+    .add-customer-header h1 i {
+        font-size: 2.5rem;
+        opacity: 0.9;
+    }
+    
+    .add-customer-header p {
+        margin: 0;
+        opacity: 0.95;
+        font-size: 1.05rem;
+        color: white !important;
+    }
+    
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .form-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .form-card h3 i {
+        color: #667eea;
+        font-size: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-group label .required {
+        color: #ef4444;
+        margin-left: 0.25rem;
+    }
+    
+    .form-group .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.375rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .form-group .help-text i {
+        color: #9ca3af;
+    }
+    
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: white;
+        color: #1f2937;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 2px solid #f3f4f6;
+        margin-top: 2rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #6b7280;
+        padding: 0.875rem 2rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+    
+    .error-list {
+        background: #fef2f2;
+        border-left: 4px solid #ef4444;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .error-list ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: #dc2626;
+    }
+    
+    .error-list p {
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+        color: #991b1b;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Dark mode overrides */
+    @media (prefers-color-scheme: dark) {
+        .add-customer-header h1,
+        .add-customer-header p {
+            color: #e2e8f0 !important;
+        }
+        
+        .form-card {
+            background: #111827 !important;
+            border-color: #334155 !important;
+        }
+        
+        .form-card h3 {
+            color: #e2e8f0 !important;
+        }
+        
+        .form-group label {
+            color: #cbd5e1 !important;
+        }
+        
+        .form-control,
+        .form-select {
+            background-color: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+        
+        .form-group .help-text {
+            color: #94a3b8 !important;
+        }
+    }
+
+    body.dark-mode .add-customer-header h1,
+    body.dark-mode .add-customer-header p {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .form-card {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .form-card h3 {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .form-group label {
+        color: #cbd5e1 !important;
+    }
+
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .form-group .help-text {
+        color: #94a3b8 !important;
+    }
+</style>
+
+<div class="add-customer-header">
+    <div class="container">
+        <h1>
+            <i class="bi bi-person-plus-fill"></i>
+            Add New Customer
+        </h1>
+        <p>Create a new customer account</p>
+    </div>
+</div>
+
+<div class="container form-container">
+    {% if form.errors %}
+    <div class="error-list">
+        <p><i class="bi bi-exclamation-triangle-fill"></i> Please correct the following errors:</p>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ field|capfirst }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        
+        <h3>
+            <i class="bi bi-person-badge"></i>
+            Account Information
+        </h3>
+        
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">
+                Username
+                <span class="required">*</span>
+            </label>
+            {{ form.username }}
+            {% if form.username.help_text %}
+            <div class="help-text">
+                <i class="bi bi-info-circle"></i>
+                {{ form.username.help_text }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">
+                Email Address
+                <span class="required">*</span>
+            </label>
+            {{ form.email }}
+            {% if form.email.help_text %}
+            <div class="help-text">
+                <i class="bi bi-info-circle"></i>
+                {{ form.email.help_text }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">
+                    First Name
+                </label>
+                {{ form.first_name }}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">
+                    Last Name
+                </label>
+                {{ form.last_name }}
+            </div>
+        </div>
+        
+        <h3 style="margin-top: 2rem;">
+            <i class="bi bi-shield-lock"></i>
+            Security
+        </h3>
+        
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">
+                Password
+                <span class="required">*</span>
+            </label>
+            {{ form.password }}
+            {% if form.password.help_text %}
+            <div class="help-text">
+                <i class="bi bi-info-circle"></i>
+                {{ form.password.help_text }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password_confirm.id_for_label }}">
+                Confirm Password
+                <span class="required">*</span>
+            </label>
+            {{ form.password_confirm }}
+            {% if form.password_confirm.help_text %}
+            <div class="help-text">
+                <i class="bi bi-info-circle"></i>
+                {{ form.password_confirm.help_text }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <h3 style="margin-top: 2rem;">
+            <i class="bi bi-sliders"></i>
+            Settings
+        </h3>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.role.id_for_label }}">
+                    Role
+                    <span class="required">*</span>
+                </label>
+                {{ form.role }}
+                {% if form.role.help_text %}
+                <div class="help-text">
+                    <i class="bi bi-info-circle"></i>
+                    {{ form.role.help_text }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.is_active.id_for_label }}">
+                    Account Status
+                </label>
+                <div style="display: flex; align-items: center; gap: 0.5rem; padding-top: 0.5rem;">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" style="margin: 0; font-weight: 400;">
+                        Active Account
+                    </label>
+                </div>
+                {% if form.is_active.help_text %}
+                <div class="help-text">
+                    <i class="bi bi-info-circle"></i>
+                    {{ form.is_active.help_text }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <i class="bi bi-check-circle"></i>
+                Create Customer
+            </button>
+            <a href="{% url 'customer_list' %}" class="btn-secondary">
+                <i class="bi bi-x-circle"></i>
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

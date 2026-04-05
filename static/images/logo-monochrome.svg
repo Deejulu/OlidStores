@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">Olid Stores</title>
+  <desc id="desc">Monochrome wordmark: Olid (serif) and Stores (sans) — for print and merchandise.</desc>
+
+  <!-- Monochrome wordmark suitable for print -->
+  <g fill="#000" font-family="Playfair Display, Georgia, serif" font-weight="700" text-anchor="start">
+    <text x="60" y="180" font-size="170">Olid</text>
+  </g>
+  <g fill="#000" font-family="Poppins, Arial, sans-serif" font-weight="900" text-anchor="start">
+    <text x="520" y="180" font-size="80">STORES</text>
+  </g>
+</svg>

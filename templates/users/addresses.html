@@ -1,0 +1,431 @@
+{% extends 'base_customer.html' %}
+{% load static %}
+
+{% block title %}My Addresses - E-Stores{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --gradient-primary: linear-gradient(135deg, #8b7355 0%, #a08060 100%);
+        --accent-brown: #8b7355;
+        --accent-brown-light: #a08060;
+        --border-radius-lg: 20px;
+        --border-radius: 12px;
+        --shadow-sm:  0 1px 3px rgba(0,0,0,.06);
+        --shadow-md:  0 4px 12px rgba(0,0,0,.08);
+        --shadow-lg:  0 8px 24px rgba(0,0,0,.10);
+        --shadow-xl:  0 16px 40px rgba(0,0,0,.12);
+        --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .addr-page { padding-top: 1.5rem; padding-bottom: 4rem; }
+
+    /* ── Page header ── */
+    .addr-header {
+        background: var(--gradient-primary);
+        border-radius: var(--border-radius-lg);
+        padding: 2.25rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-xl);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .addr-header::before {
+        content: '';
+        position: absolute;
+        top: -40%; right: -10%;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.06);
+        pointer-events: none;
+    }
+    .addr-header-icon {
+        width: 64px; height: 64px;
+        background: rgba(255,255,255,.18);
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.75rem; flex-shrink: 0;
+        border: 2px solid rgba(255,255,255,.25);
+    }
+    .addr-header-text h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 .25rem; color: white; }
+    .addr-header-text p  { margin: 0; opacity: .85; font-size: .95rem; }
+
+    /* ── Card ── */
+    .addr-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        border: 2px solid #f3f4f6;
+        overflow: hidden;
+        animation: fadeInUp .55s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes fadeInUp {
+        from { opacity:0; transform:translateY(20px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .addr-card-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+    }
+    .addr-card-header-left { display: flex; align-items: center; gap: .75rem; }
+    .addr-card-header-icon {
+        width: 44px; height: 44px;
+        background: var(--gradient-primary);
+        color: white; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(139,115,85,.3);
+    }
+    .addr-card-header h3 { font-size: 1.2rem; font-weight: 800; color: #1a1a1a; margin: 0; }
+    .addr-card-body { padding: 1.75rem 2rem; }
+
+    /* ── Address items ── */
+    .addr-item {
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        transition: var(--transition-base);
+        position: relative;
+    }
+    .addr-item:last-child { margin-bottom: 0; }
+    .addr-item:hover {
+        border-color: var(--accent-brown-light);
+        background: white;
+        box-shadow: var(--shadow-md);
+    }
+    .addr-item.is-default {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+    .addr-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
+    .addr-item-name {
+        font-size: 1rem; font-weight: 700; color: #1a1a1a;
+        display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    }
+    .addr-default-badge {
+        font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; padding: .2rem .55rem;
+        background: #10b981; color: white; border-radius: 99px;
+    }
+    .addr-item-actions { display: flex; gap: .5rem; flex-shrink: 0; }
+    .addr-btn-icon {
+        width: 34px; height: 34px;
+        border-radius: 8px; border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .9rem; transition: var(--transition-base);
+    }
+    .addr-btn-edit   { background: #eff6ff; color: #3b82f6; }
+    .addr-btn-edit:hover   { background: #3b82f6; color: white; }
+    .addr-btn-delete { background: #fff5f5; color: #ef4444; }
+    .addr-btn-delete:hover { background: #ef4444; color: white; }
+    .addr-item-phone { font-size: .875rem; color: #6b7280; margin-bottom: .5rem; }
+    .addr-item-phone i { margin-right: .3rem; }
+    .addr-item-line  { font-size: .9rem; color: #374151; line-height: 1.5; white-space: pre-line; }
+
+    /* ── Empty state ── */
+    .addr-empty {
+        text-align: center; padding: 2.5rem 1rem;
+    }
+    .addr-empty-icon {
+        width: 80px; height: 80px;
+        background: #f3f4f6; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2rem; color: #9ca3af; margin: 0 auto 1rem;
+    }
+    .addr-empty h5 { font-weight: 700; color: #374151; margin-bottom: .4rem; }
+    .addr-empty p  { color: #9ca3af; font-size: .9rem; margin: 0; }
+
+    /* ── Form card ── */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        border: 2px solid #f3f4f6;
+        overflow: hidden;
+        animation: fadeInUp .65s cubic-bezier(.16,1,.3,1) .1s both;
+    }
+    .form-card-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex; align-items: center; gap: .75rem;
+    }
+    .form-card-header-icon {
+        width: 44px; height: 44px;
+        background: var(--gradient-primary);
+        color: white; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(139,115,85,.3);
+    }
+    .form-card-header h3 { font-size: 1.2rem; font-weight: 800; color: #1a1a1a; margin: 0; }
+    .form-card-body { padding: 1.75rem 2rem; }
+
+    /* ── Form fields ── */
+    .af-label {
+        display: block; font-size: .78rem; font-weight: 700;
+        color: #374151; text-transform: uppercase;
+        letter-spacing: .6px; margin-bottom: .45rem;
+    }
+    .af-input {
+        width: 100%; padding: .8rem 1rem;
+        border: 2px solid #e5e7eb; border-radius: var(--border-radius);
+        font-size: .95rem; color: #1a1a1a; background: #f9fafb;
+        transition: var(--transition-base);
+    }
+    .af-input:focus {
+        outline: none; border-color: var(--accent-brown);
+        background: white; box-shadow: 0 0 0 4px rgba(139,115,85,.1);
+    }
+    .af-input.is-invalid { border-color: #ef4444; background: #fff5f5; }
+    .af-error { margin-top: .35rem; font-size: .83rem; color: #ef4444; }
+    .af-check-row {
+        display: flex; align-items: center; gap: .6rem;
+        padding: .9rem 1rem;
+        background: #f0fdf4; border: 1.5px solid #bbf7d0;
+        border-radius: var(--border-radius);
+    }
+    .af-check-row label { font-size: .9rem; font-weight: 600; color: #065f46; cursor: pointer; margin: 0; }
+
+    /* ── Submit ── */
+    .af-btn-submit {
+        width: 100%; padding: .9rem;
+        background: var(--gradient-primary); color: white;
+        border: none; border-radius: 50px; font-size: .95rem;
+        font-weight: 700; letter-spacing: .3px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: .6rem;
+        transition: var(--transition-base);
+        box-shadow: 0 4px 14px rgba(139,115,85,.35);
+    }
+    .af-btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,115,85,.4); }
+    .af-btn-cancel {
+        width: 100%; padding: .9rem; margin-top: .75rem;
+        background: white; color: var(--accent-brown);
+        border: 2px solid var(--accent-brown); border-radius: 50px;
+        font-size: .95rem; font-weight: 700; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: .6rem;
+        transition: var(--transition-base); text-decoration: none;
+    }
+    .af-btn-cancel:hover { background: var(--accent-brown); color: white; }
+
+    /* ── Back link ── */
+    .addr-back {
+        display: inline-flex; align-items: center; gap: .4rem;
+        color: var(--accent-brown); font-weight: 600; font-size: .9rem;
+        text-decoration: none; margin-top: 1.25rem; transition: gap .2s;
+    }
+    .addr-back:hover { color: var(--accent-brown-light); gap: .6rem; }
+
+    /* ── Delete confirm modal ── */
+    .del-modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.55); z-index: 1050;
+        align-items: center; justify-content: center;
+    }
+    .del-modal-overlay.show { display: flex; }
+    .del-modal {
+        background: white; border-radius: 20px;
+        padding: 2rem; max-width: 420px; width: 90%;
+        box-shadow: 0 24px 64px rgba(0,0,0,.25);
+        animation: fadeInUp .3s both;
+    }
+    .del-modal h5 { font-weight: 800; font-size: 1.15rem; margin-bottom: .5rem; }
+    .del-modal p  { color: #6b7280; font-size: .9rem; margin-bottom: 1.5rem; }
+    .del-modal-btns { display: flex; gap: .75rem; }
+    .del-modal-btns .btn-cancel {
+        flex: 1; padding: .75rem; background: #f3f4f6; border: none;
+        border-radius: 99px; font-weight: 700; cursor: pointer;
+    }
+    .del-modal-btns .btn-delete {
+        flex: 1; padding: .75rem; background: #ef4444; color: white;
+        border: none; border-radius: 99px; font-weight: 700; cursor: pointer;
+    }
+
+    @media (max-width: 575.98px) {
+        .addr-header { padding: 1.5rem 1.25rem; gap: 1rem; }
+        .addr-header-icon { width: 50px; height: 50px; font-size: 1.4rem; }
+        .addr-header-text h1 { font-size: 1.3rem; }
+        .addr-card-body, .form-card-body { padding: 1.25rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+<div class="container addr-page">
+
+    <!-- Header -->
+    <div class="addr-header">
+        <div class="addr-header-icon"><i class="bi bi-geo-alt-fill"></i></div>
+        <div class="addr-header-text">
+            <h1>My Addresses</h1>
+            <p>Save delivery addresses for faster checkout.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Left: address list -->
+        <div class="col-lg-7">
+            <div class="addr-card">
+                <div class="addr-card-header">
+                    <div class="addr-card-header-left">
+                        <div class="addr-card-header-icon"><i class="bi bi-house-door-fill"></i></div>
+                        <h3>Saved Addresses</h3>
+                    </div>
+                    <span class="badge rounded-pill" style="background:var(--gradient-primary);color:white;font-size:.8rem;padding:.3rem .75rem;">
+                        {{ addresses|length }}
+                    </span>
+                </div>
+                <div class="addr-card-body">
+                    {% if addresses %}
+                        {% for addr in addresses %}
+                        <div class="addr-item {% if addr.is_default %}is-default{% endif %}">
+                            <div class="addr-item-top">
+                                <div class="addr-item-name">
+                                    {{ addr.full_name }}
+                                    {% if addr.is_default %}
+                                    <span class="addr-default-badge"><i class="bi bi-check-circle-fill me-1"></i>Default</span>
+                                    {% endif %}
+                                </div>
+                                <div class="addr-item-actions">
+                                    <a href="{% url 'users:address_edit' addr.pk %}" class="addr-btn-icon addr-btn-edit" title="Edit">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <button class="addr-btn-icon addr-btn-delete" title="Delete"
+                                        onclick="confirmDelete('{% url 'users:address_delete' addr.pk %}', '{{ addr.full_name|escapejs }}')">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="addr-item-phone"><i class="bi bi-telephone-fill"></i>{{ addr.phone }}</div>
+                            <div class="addr-item-line">{{ addr.address_line }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="addr-empty">
+                            <div class="addr-empty-icon"><i class="bi bi-geo-alt"></i></div>
+                            <h5>No addresses yet</h5>
+                            <p>Add your first delivery address using the form.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <a href="{% url 'users:dashboard' %}" class="addr-back">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Right: add / edit form -->
+        <div class="col-lg-5">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <div class="form-card-header-icon">
+                        <i class="bi bi-{% if editing %}pencil-fill{% else %}plus-lg{% endif %}"></i>
+                    </div>
+                    <h3>{% if editing %}Edit Address{% else %}Add New Address{% endif %}</h3>
+                </div>
+                <div class="form-card-body">
+                    <form method="post" action="{% if editing %}{% url 'users:address_edit' editing.pk %}{% else %}{% url 'users:addresses' %}{% endif %}" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Full name -->
+                        <div class="mb-3">
+                            <label class="af-label" for="id_full_name">Full Name</label>
+                            <input type="text" name="full_name" id="id_full_name"
+                                class="af-input {% if form.full_name.errors %}is-invalid{% endif %}"
+                                value="{{ form.full_name.value|default:'' }}"
+                                placeholder="Full name for delivery" required>
+                            {% if form.full_name.errors %}
+                            <div class="af-error"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ form.full_name.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-3">
+                            <label class="af-label" for="id_phone">Phone Number</label>
+                            <input type="text" name="phone" id="id_phone"
+                                class="af-input {% if form.phone.errors %}is-invalid{% endif %}"
+                                value="{{ form.phone.value|default:'' }}"
+                                placeholder="e.g. +2348012345678" required>
+                            {% if form.phone.errors %}
+                            <div class="af-error"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ form.phone.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Address line -->
+                        <div class="mb-3">
+                            <label class="af-label" for="id_address_line">Address</label>
+                            <textarea name="address_line" id="id_address_line" rows="3"
+                                class="af-input {% if form.address_line.errors %}is-invalid{% endif %}"
+                                placeholder="Street address, city, state" required>{{ form.address_line.value|default:'' }}</textarea>
+                            {% if form.address_line.errors %}
+                            <div class="af-error"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ form.address_line.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Default checkbox -->
+                        <div class="mb-4">
+                            <div class="af-check-row">
+                                <input type="checkbox" name="is_default" id="id_is_default" class="form-check-input mt-0"
+                                    {% if form.is_default.value %}checked{% endif %}>
+                                <label for="id_is_default">Set as default delivery address</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="af-btn-submit">
+                            <i class="bi bi-{% if editing %}check-circle-fill{% else %}plus-circle-fill{% endif %}"></i>
+                            {% if editing %}Save Changes{% else %}Add Address{% endif %}
+                        </button>
+
+                        {% if editing %}
+                        <a href="{% url 'users:addresses' %}" class="af-btn-cancel">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="del-modal-overlay" id="delModalOverlay">
+    <div class="del-modal">
+        <h5><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Delete Address?</h5>
+        <p id="delModalMsg">Are you sure you want to remove this address?</p>
+        <div class="del-modal-btns">
+            <button class="btn-cancel" onclick="closeDelModal()">Cancel</button>
+            <form id="delForm" method="post" style="flex:1;">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete" style="width:100%;">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url, name) {
+    document.getElementById('delForm').action = url;
+    document.getElementById('delModalMsg').textContent = 'Remove the address for "' + name + '"? This cannot be undone.';
+    document.getElementById('delModalOverlay').classList.add('show');
+}
+function closeDelModal() {
+    document.getElementById('delModalOverlay').classList.remove('show');
+}
+document.getElementById('delModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDelModal();
+});
+</script>
+{% endblock %}

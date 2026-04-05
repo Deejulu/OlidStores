@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Admin-specific navigation bar with same styling as main site -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="adminNavbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/admin-dashboard/' %}active{% endif %}" href="/admin-dashboard/">
+                        <i class="fas fa-tachometer-alt me-1 d-none d-md-inline"></i>Dashboard Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:'0:22' == '/admin-dashboard/products/' %}active{% endif %}" href="/admin-dashboard/products/">
+                        <i class="fas fa-box me-1 d-none d-md-inline"></i>Products
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:'0:23' == '/admin-dashboard/categories/' %}active{% endif %}" href="/admin-dashboard/categories/">
+                        <i class="fas fa-list me-1 d-none d-md-inline"></i>Categories
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin-dashboard/orders/">
+                        <i class="fas fa-shopping-cart me-1 d-none d-md-inline"></i>Orders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:'0:23' == '/admin-dashboard/customers/' %}active{% endif %}" href="/admin-dashboard/customers/">
+                        <i class="fas fa-users me-1 d-none d-md-inline"></i>Customers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:'0:21' == '/admin-dashboard/feedback/' %}active{% endif %}" href="/admin-dashboard/feedback/">
+                        <i class="fas fa-comments me-1 d-none d-md-inline"></i>Feedback
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:'0:28' == '/admin-dashboard/contact-messages/' %}active{% endif %}" href="/admin-dashboard/contact-messages/">
+                        <i class="fas fa-envelope me-1 d-none d-md-inline"></i>Contact Messages
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:'0:22' == '/admin-dashboard/content/' %}active{% endif %}" href="/admin-dashboard/content/">
+                        <i class="fas fa-image me-1 d-none d-md-inline"></i>Content
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/">
+                        <i class="fas fa-cogs me-1 d-none d-md-inline"></i>Django Admin
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Order Alerts Banner -->
+{% if admin_order_alerts %}
+<style>
+    .order-alerts-banner {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-bottom: 2px solid #f59e0b;
+        padding: 0;
+        position: relative;
+    }
+    .alerts-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+        user-select: none;
+        gap: 0.75rem;
+    }
+    .alerts-toggle:hover {
+        background: rgba(245, 158, 11, 0.1);
+    }
+    .alerts-toggle-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #92400e;
+    }
+    .alerts-badge {
+        background: #dc2626;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 0.15rem 0.5rem;
+        border-radius: 10px;
+        min-width: 20px;
+        text-align: center;
+    }
+    .alerts-badge.warning-only {
+        background: #f59e0b;
+    }
+    .alerts-chevron {
+        transition: transform 0.2s ease;
+        color: #92400e;
+        font-size: 0.8rem;
+    }
+    .alerts-chevron.open {
+        transform: rotate(180deg);
+    }
+    .alerts-list {
+        display: none;
+        padding: 0 0.75rem 0.75rem;
+    }
+    .alerts-list.open {
+        display: block;
+    }
+    .alert-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 0.35rem;
+        font-size: 0.8rem;
+        color: #1f2937;
+        border-left: 3px solid #f59e0b;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+    .alert-item:hover {
+        transform: translateX(2px);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        color: #1f2937;
+    }
+    .alert-item.danger {
+        border-left-color: #dc2626;
+        background: #fef2f2;
+    }
+    .alert-item .alert-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .alert-item.danger .alert-icon {
+        color: #dc2626;
+    }
+    .alert-item.warning .alert-icon {
+        color: #d97706;
+    }
+    .alert-item .alert-text {
+        flex: 1;
+        min-width: 0;
+    }
+    .alert-item .alert-action {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #6b7280;
+        white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+        .alerts-toggle {
+            padding: 0.5rem 0.75rem;
+        }
+        .alert-item {
+            font-size: 0.75rem;
+            padding: 0.45rem 0.6rem;
+        }
+    }
+</style>
+<div class="order-alerts-banner">
+    <div class="alerts-toggle" onclick="document.getElementById('alertsList').classList.toggle('open'); document.getElementById('alertsChevron').classList.toggle('open');">
+        <div class="alerts-toggle-left">
+            <i class="bi bi-bell-fill" style="font-size: 1rem;"></i>
+            <span>{{ admin_order_alerts_count }} Order Alert{{ admin_order_alerts_count|pluralize }}</span>
+            {% with has_danger=False %}
+            <span class="alerts-badge {% if not has_danger %}warning-only{% endif %}">{{ admin_order_alerts_count }}</span>
+            {% endwith %}
+        </div>
+        <i class="bi bi-chevron-down alerts-chevron" id="alertsChevron"></i>
+    </div>
+    <div class="alerts-list" id="alertsList">
+        {% for alert in admin_order_alerts %}
+        <a href="{% url 'admin_dashboard:order_detail' alert.order_id %}" class="alert-item {{ alert.severity }}">
+            <i class="bi {{ alert.icon }} alert-icon"></i>
+            <span class="alert-text">{{ alert.message }}</span>
+            <span class="alert-action">View <i class="bi bi-chevron-right"></i></span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Admin content area -->
+<div class="admin-content">
+    {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}

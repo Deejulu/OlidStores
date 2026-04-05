@@ -1,0 +1,703 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<style>
+    /* ========================================
+       CUSTOMER DASHBOARD - PREMIUM DESIGN
+       ======================================== */
+    
+    /* CSS Variables */
+    :root {
+        --accent-brown: {{ theme_colors.primary }};
+        --accent-brown-light: {{ theme_colors.primary_light }};
+        --accent-brown-dark: {{ theme_colors.primary_dark }};
+        --gradient-primary: linear-gradient(135deg, {{ theme_colors.primary }} 0%, {{ theme_colors.primary_dark }} 100%);
+        --gradient-bg: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%);
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --border-radius: 12px;
+        --border-radius-lg: 16px;
+    }
+    
+    /* Main Container */
+    .dashboard-container {
+        background: var(--gradient-bg);
+        min-height: 100vh;
+        padding: 3rem 0 5rem;
+        position: relative;
+    }
+    
+    /* Animated Background */
+    .dashboard-container::before,
+    .dashboard-container::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(139, 115, 85, 0.08) 0%, transparent 70%);
+        animation: floatBackground 20s ease-in-out infinite;
+        pointer-events: none;
+    }
+    
+    .dashboard-container::before {
+        width: 600px;
+        height: 600px;
+        top: -200px;
+        right: -100px;
+    }
+    
+    .dashboard-container::after {
+        width: 500px;
+        height: 500px;
+        bottom: -150px;
+        left: -75px;
+        animation-delay: -10s;
+    }
+    
+    @keyframes floatBackground {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    
+    /* Dashboard Header */
+    .dashboard-header {
+        background: var(--gradient-primary);
+        padding: 3rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow-2xl);
+        position: relative;
+        overflow: hidden;
+        animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Pattern Overlay */
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 1;
+    }
+    
+    /* Floating Accent Orb */
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(139, 115, 85, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.3; }
+    }
+    
+    .dashboard-header-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-header h2 {
+        color: white;
+        font-weight: 800;
+        font-size: 2.75rem;
+        margin-bottom: 0.75rem;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.8s ease-out 0.2s both;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .dashboard-welcome-emoji {
+        display: inline-block;
+        animation: wave 2s ease-in-out infinite;
+        transform-origin: 70% 70%;
+    }
+    
+    @keyframes wave {
+        0%, 100% { transform: rotate(0deg); }
+        10%, 30% { transform: rotate(14deg); }
+        20% { transform: rotate(-8deg); }
+        40%, 60% { transform: rotate(0deg); }
+    }
+    
+    .dashboard-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.15rem;
+        line-height: 1.6;
+        animation: fadeIn 0.8s ease-out 0.4s both;
+    }
+    
+    /* User Badge */
+    .user-badge {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 0.625rem 1.5rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        box-shadow: 0 4px 12px rgba(139, 115, 85, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.8s ease-out 0.6s both;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .user-badge i {
+        font-size: 1rem;
+    }
+    
+    /* Dashboard Cards Grid */
+    .dashboard-grid {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Dashboard Card */
+    .dashboard-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        transition: var(--transition-base);
+        border: 2px solid #f3f4f6;
+        height: 100%;
+        position: relative;
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        animation-fill-mode: both;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+    .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+    .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+    .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
+    .dashboard-card:nth-child(5) { animation-delay: 0.5s; }
+    .dashboard-card:nth-child(6) { animation-delay: 0.6s; }
+    
+    /* Gradient Accent Border on Hover */
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: var(--gradient-primary);
+        border-radius: var(--border-radius-lg);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: -1;
+    }
+    
+    .dashboard-card:hover::before {
+        opacity: 1;
+    }
+    
+    .dashboard-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(139, 115, 85, 0.03), transparent);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-2xl);
+        border-color: transparent;
+    }
+    
+    .dashboard-card:hover::after {
+        opacity: 1;
+    }
+    
+    /* Card Body */
+    .dashboard-card-body {
+        padding: 2.5rem;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Card Icon */
+    .card-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.75rem;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.25rem;
+        color: white;
+        box-shadow: var(--shadow-lg);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+    }
+    
+    .card-icon::before {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 22px;
+        background: inherit;
+        opacity: 0.3;
+        filter: blur(8px);
+        transition: all 0.4s ease;
+    }
+    
+    .dashboard-card:hover .card-icon {
+        transform: scale(1.15) rotate(10deg);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .dashboard-card:hover .card-icon::before {
+        opacity: 0.5;
+        filter: blur(12px);
+    }
+    
+    .card-icon.icon-primary {
+        background: var(--gradient-primary);
+    }
+    
+    .card-icon.icon-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .card-icon.icon-info {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    }
+    
+    .card-icon.icon-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .card-icon.icon-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .card-icon.icon-purple {
+        background: var(--gradient-primary);
+    }
+    
+    /* Card Title */
+    .dashboard-card h5 {
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+    }
+    
+    /* Card Description */
+    .dashboard-card p {
+        color: #6b7280;
+        font-size: 0.975rem;
+        line-height: 1.6;
+        margin-bottom: 1.75rem;
+    }
+    
+    /* Dashboard Button */
+    .dashboard-btn {
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.875rem;
+        transition: var(--transition-base);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .dashboard-btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .dashboard-btn i,
+    .dashboard-btn span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
+        color: white;
+    }
+    
+    .dashboard-btn:active {
+        transform: translateY(0);
+    }
+    
+    .dashboard-btn.btn-primary {
+        background: var(--gradient-primary);
+    }
+    
+    .dashboard-btn.btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .dashboard-btn.btn-info {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    }
+    
+    .dashboard-btn.btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .dashboard-btn.btn-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .dashboard-btn.btn-purple {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+    
+    /* ========================================
+       RESPONSIVE DESIGN — handled below in mobile-first block
+       ======================================== */
+
+    /* ========================================
+       MOBILE-FIRST RESPONSIVE IMPROVEMENTS
+       ======================================== */
+
+    /* --- Phones (< 576px): 2 cards per row, compact layout --- */
+    @media (max-width: 575.98px) {
+        .dashboard-container { padding: 1rem 0 3rem; }
+
+        .dashboard-header {
+            padding: 1.25rem 1rem;
+            margin-bottom: 1.25rem;
+            border-radius: 14px;
+        }
+        .dashboard-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .dashboard-subtitle {
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+        .user-badge {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .dashboard-card-body {
+            padding: 1rem 0.75rem;
+            text-align: center;
+        }
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.35rem;
+            margin: 0 auto 0.75rem;
+            border-radius: 12px;
+        }
+        .card-icon::before { border-radius: 14px; }
+        .dashboard-card h5 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            line-height: 1.25;
+        }
+        .dashboard-card p {
+            font-size: 0.75rem;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+            color: #6b7280;
+        }
+        .dashboard-btn {
+            padding: 0.6rem 0.75rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.2px;
+            gap: 0.3rem;
+            width: 100%;
+            justify-content: center;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-3px) scale(1.01);
+        }
+    }
+
+    /* Very small phones (< 360px): tighten even more */
+    @media (max-width: 359.98px) {
+        .dashboard-header h2 { font-size: 1.1rem; }
+        .dashboard-card-body { padding: 0.75rem 0.5rem; }
+        .card-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+        .dashboard-card h5 { font-size: 0.82rem; }
+        .dashboard-card p { display: none; } /* hide description on tiny screens */
+        .dashboard-btn { font-size: 0.68rem; padding: 0.5rem 0.5rem; }
+    }
+
+    /* --- Small tablets (576–767px): 2 cards per row, medium padding --- */
+    @media (min-width: 576px) and (max-width: 767.98px) {
+        .dashboard-container { padding: 1.5rem 0 3rem; }
+        .dashboard-header { padding: 1.75rem 1.5rem; margin-bottom: 1.75rem; }
+        .dashboard-header h2 { font-size: 1.6rem; }
+        .dashboard-subtitle { font-size: 0.9rem; }
+        .dashboard-card-body { padding: 1.5rem 1.25rem; }
+        .card-icon { width: 56px; height: 56px; font-size: 1.6rem; margin-bottom: 1rem; }
+        .dashboard-card h5 { font-size: 1.1rem; }
+        .dashboard-card p { font-size: 0.875rem; margin-bottom: 1.25rem; }
+        .dashboard-btn { padding: 0.7rem 1.25rem; font-size: 0.8rem; }
+    }
+
+    /* --- Tablet portrait (768–991px): 2 cols --- */
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .dashboard-header { padding: 2.25rem 2rem; }
+        .dashboard-header h2 { font-size: 2.1rem; }
+        .dashboard-card-body { padding: 2rem 1.75rem; }
+        .card-icon { width: 68px; height: 68px; font-size: 1.9rem; }
+        .dashboard-card h5 { font-size: 1.3rem; }
+    }
+
+    /* --- Landscape phone fix --- */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .dashboard-container { padding: 0.75rem 0 2rem; }
+        .dashboard-header { padding: 1rem; margin-bottom: 1rem; }
+        .dashboard-header h2 { font-size: 1.25rem; }
+        .dashboard-card-body { padding: 0.75rem; }
+        .card-icon { width: 40px; height: 40px; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .dashboard-card p { display: none; }
+    }
+
+    /* --- Remove conflicting grid override (was forcing 1-col on mobile) --- */
+    /* No grid-template-columns override; Bootstrap row handles layout */
+
+</style>
+
+<div class="dashboard-container">
+    <div class="container py-4">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div>
+                        <h2 class="mb-2">
+                            Welcome back, {{ user.username }}! 
+                            <span class="dashboard-welcome-emoji">👋</span>
+                        </h2>
+                        <p class="dashboard-subtitle mb-0">
+                            Manage your orders, wishlist, and account from here
+                        </p>
+                    </div>
+                    <div>
+                        <span class="user-badge">
+                            <i class="bi bi-person-circle"></i>
+                            <span>{{ user.role|capfirst }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Summary Strip -->
+        <div class="row g-2 g-sm-3 mb-3 mb-md-4">
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-box-seam-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ order_count }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Orders</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-heart-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ wishlist_count }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Saved Items</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-bell-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ unread_notifications }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Unread</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ address_count }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Addresses</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Cards Grid -->
+        <div class="row g-2 g-sm-3 g-md-4 dashboard-grid">
+            <!-- My Orders Card -->
+            <div class="col-6 col-md-6 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-primary">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <h5>My Orders <span class="badge" style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ order_count }}</span></h5>
+                        <p>Track your orders, view delivery status, and manage returns</p>
+                        <a href="{% url 'orders:order_history' %}" class="dashboard-btn btn-primary">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>View Orders</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Items Card -->
+            <div class="col-6 col-md-6 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-danger">
+                            <i class="bi bi-heart-fill"></i>
+                        </div>
+                        <h5>Saved Items <span class="badge" style="background:rgba(239,68,68,.15);color:#ef4444;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ wishlist_count }}</span></h5>
+                        <p>Save your favorite products for quick access later</p>
+                        <a href="{% url 'users:wishlist' %}" class="dashboard-btn btn-danger">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>View Wishlist</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Addresses Card -->
+            <div class="col-6 col-md-6 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-success">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h5>My Addresses <span class="badge" style="background:rgba(16,185,129,.15);color:#10b981;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ address_count }}</span></h5>
+                        <p>Manage your saved delivery addresses for faster checkout</p>
+                        <a href="{% url 'users:addresses' %}" class="dashboard-btn btn-success">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>Manage</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Card -->
+            <div class="col-6 col-md-6 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-info">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h5>Recent Activity</h5>
+                        <p>Review your browsing history and recent actions</p>
+                        <a href="{% url 'users:activity' %}" class="dashboard-btn btn-info">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>View Activity</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Feedback Card -->
+            <div class="col-6 col-md-6 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-warning">
+                            <i class="bi bi-chat-square-text-fill"></i>
+                        </div>
+                        <h5>Feedback</h5>
+                        <p>Share your experience and help us improve</p>
+                        <a href="{% url 'users:feedback' %}" class="dashboard-btn btn-warning">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>Give Feedback</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notifications Card -->
+            <div class="col-6 col-md-6 col-lg-6">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-purple">
+                            <i class="bi bi-bell-fill"></i>
+                        </div>
+                        <h5>Notifications {% if unread_notifications %}<span class="badge" style="background:#ef4444;color:white;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ unread_notifications }}</span>{% endif %}</h5>
+                        <p>Stay updated with order status and promotions</p>
+                        <a href="{% url 'users:notifications' %}" class="dashboard-btn btn-purple">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>View Notifications</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

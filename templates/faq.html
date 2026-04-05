@@ -1,0 +1,335 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<style>
+    .faq-page {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .faq-page::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, #28a745, #218838);
+        border-radius: 50%;
+        opacity: 0.06;
+        z-index: 0;
+    }
+    
+    .faq-page::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 600px;
+        height: 600px;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+        border-radius: 50%;
+        opacity: 0.06;
+        z-index: 0;
+    }
+    
+    .faq-container {
+        position: relative;
+        z-index: 1;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .faq-header {
+        background: linear-gradient(135deg, #28a745, #218838);
+        padding: 3rem;
+        border-radius: 24px;
+        text-align: center;
+        margin-bottom: 3rem;
+        box-shadow: 0 15px 40px rgba(40, 167, 69, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .faq-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    
+    .faq-header h2 {
+        color: white;
+        font-weight: 900;
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .faq-header .icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .faq-header p {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 1.15rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .accordion {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .accordion-item {
+        background: white;
+        border: none;
+        border-bottom: 2px solid rgba(40, 167, 69, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .accordion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .accordion-item:hover {
+        background: rgba(40, 167, 69, 0.02);
+    }
+    
+    .accordion-header {
+        margin: 0;
+    }
+    
+    .accordion-button {
+        background: transparent;
+        color: #2c3e50;
+        font-weight: 700;
+        font-size: 1.15rem;
+        padding: 1.5rem 2rem;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        box-shadow: none;
+    }
+    
+    .accordion-button:not(.collapsed)::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    }
+    
+    .accordion-button::after {
+        width: 1.5rem;
+        height: 1.5rem;
+        background-size: 1.5rem;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: transparent;
+    }
+    
+    .accordion-button:hover {
+        background: rgba(40, 167, 69, 0.08);
+    }
+    
+    .accordion-body {
+        padding: 1.5rem 2rem 2rem 2rem;
+        background: white;
+        color: #4a5568;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        border-top: 2px solid rgba(40, 167, 69, 0.1);
+    }
+    
+    .faq-footer {
+        margin-top: 3rem;
+        text-align: center;
+        background: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    
+    .faq-footer h4 {
+        color: #2c3e50;
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    
+    .faq-footer p {
+        color: #4a5568;
+        margin-bottom: 1.5rem;
+    }
+    
+    .faq-footer .contact-btn {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 100px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(139, 115, 85, 0.25);
+    }
+    
+    .faq-footer .contact-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(139, 115, 85, 0.4);
+        color: white;
+    }
+</style>
+
+<div class="faq-page">
+    <div class="container">
+        <div class="faq-container">
+            <div class="faq-header">
+                <div class="icon">💡</div>
+                <h2>{{ faq_title|default:"Frequently Asked Questions" }}</h2>
+                <p>Find answers to common questions about shopping, orders, and delivery</p>
+                {% if faq_updated %}<small class="text-light">Last updated: {{ faq_updated|date:"F d, Y" }}</small>{% endif %}
+            </div>
+            
+            {% if faq_content %}
+            <!-- Dynamic FAQ Content from Content Management -->
+            <div class="faq-content-dynamic" style="background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); margin-bottom: 2rem; line-height: 1.8; color: #4a5568;">
+                {{ faq_content|linebreaks }}
+            </div>
+            {% else %}
+            <!-- Default FAQ Items -->
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                            🛍️ How do I place an order?
+                        </button>
+                    </h2>
+                    <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Browse our product catalog, select items you wish to purchase, and add them to your cart. Once you're ready, proceed to checkout, fill in your shipping details, choose your payment method, and complete your order. You'll receive a confirmation email with your order details.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                            💳 What payment methods are accepted?
+                        </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept multiple payment methods including <strong>Paystack</strong> (credit/debit cards and bank transfers), <strong>Manual Bank Transfer</strong> with receipt upload, and <strong>Pay on Delivery</strong> for eligible orders. All online payments are secured with SSL encryption.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                            📦 How do I track my order?
+                        </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Log into your account and visit your <strong>Dashboard</strong>. Navigate to the <strong>Orders</strong> section to view your complete order history, current status, and tracking information. You'll also receive email updates at each stage of your order's journey.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq4">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                            🚚 What are the delivery times?
+                        </button>
+                    </h2>
+                    <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <strong>Standard Delivery:</strong> 3-7 business days within Lagos<br>
+                            <strong>24-Hour Express:</strong> Next-day delivery for select products (additional fee applies)<br>
+                            <strong>Nationwide:</strong> 5-14 business days depending on your location<br>
+                            <em>Free delivery on orders above ₦50,000!</em>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq5">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                            ↩️ What is your return policy?
+                        </button>
+                    </h2>
+                    <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            You can return items within <strong>14 days</strong> of delivery. Items must be unused, in original packaging with tags attached. Refunds are processed within 7-14 business days after return approval. Please note that return shipping costs are the customer's responsibility unless the product is defective.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq6">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
+                            📧 How do I contact support?
+                        </button>
+                    </h2>
+                    <div id="collapse6" class="accordion-collapse collapse" aria-labelledby="faq6" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            You can reach our customer support team through multiple channels: Use our <strong>Contact Page</strong> for inquiries, email us at <strong>support@e-stores.com</strong>, or call our hotline during business hours. We typically respond within 24 hours.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq7">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7" aria-expanded="false" aria-controls="collapse7">
+                            💰 Is Pay on Delivery available?
+                        </button>
+                    </h2>
+                    <div id="collapse7" class="accordion-collapse collapse" aria-labelledby="faq7" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! Pay on Delivery is available for orders under <strong>₦100,000</strong> within Lagos. You can inspect your items before making payment. Please note that additional delivery fees may apply for POD orders, and repeated order rejections may result in service restrictions.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq8">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8" aria-expanded="false" aria-controls="collapse8">
+                            🔐 Is my payment information secure?
+                        </button>
+                    </h2>
+                    <div id="collapse8" class="accordion-collapse collapse" aria-labelledby="faq8" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Absolutely! We use industry-standard <strong>SSL encryption</strong> to protect all transactions. We never store your complete card details on our servers. All payments are processed through secure, PCI-compliant payment gateways like Paystack.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="faq-footer">
+                <h4>Still have questions?</h4>
+                <p>Can't find what you're looking for? Our support team is here to help!</p>
+                <a href="/contact/" class="contact-btn">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

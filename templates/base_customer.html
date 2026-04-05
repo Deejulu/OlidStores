@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+/* Account / Customer pages — unified styling to match dashboard/main site */
+.account-page { padding-top: 1rem; padding-bottom: 3rem; }
+.account-header {
+  background: var(--gradient-primary);
+  color: #fff;
+  padding: 1.75rem 1.25rem;
+  border-radius: 14px;
+  box-shadow: var(--shadow-xl);
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.account-header h1, .account-header h2 { color: #fff; margin:0; }
+.account-panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+.account-btn {
+  border-radius: 999px;
+  padding: .55rem 1rem;
+  font-weight: 700;
+  transition: transform 180ms var(--transition-fast), box-shadow 180ms var(--transition-fast);
+}
+.account-btn:active { transform: translateY(1px); }
+.orders-table .table { border-collapse: separate; border-spacing: 0 0.6rem; }
+.orders-table .table thead th { background: transparent; border-bottom: none; color: var(--gray-700); font-weight:700; }
+.orders-table .table tbody tr { background: #fff; border-radius: .75rem; box-shadow: var(--shadow-sm); transition: transform .18s ease, box-shadow .18s ease; }
+.orders-table .table tbody tr:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.activity-row { background: #fff; border-radius: 12px; padding: .75rem; box-shadow: var(--shadow-sm); margin-bottom: .6rem; display:flex; gap:.75rem; align-items:flex-start; }
+.notification-item.unread { border-left: 4px solid var(--primary-color); background: linear-gradient(90deg, rgba(13,110,253,0.03), #fff); }
+.btn-outline-primary:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+@media (max-width: 575.98px) {
+  .account-header { padding: 1rem; gap:.75rem; flex-direction:column; align-items:flex-start; }
+  .account-panel { padding: 1rem; }
+}
+</style>
+<!-- Customer-specific navbar or content can be added here -->
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>Notifications</h2>
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Send Notification</button>
+  </form>
+  <table class="table table-bordered table-hover">
+    <thead><tr><th>To</th><th>Title</th><th>Message</th><th>Date</th><th>Important</th></tr></thead>
+    <tbody>
+    {% for n in notifications %}
+      <tr>
+        <td>{% if n.user %}{{ n.user.username }}{% else %}<span class="text-muted">All</span>{% endif %}</td>
+        <td>{{ n.title }}</td>
+        <td>{{ n.message }}</td>
+        <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
+        <td>{% if n.is_important %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No notifications yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .about-hero {
+        background: var(--gradient-primary);
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .about-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
+    }
+    
+    .about-hero .container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .about-hero h1 {
+        font-size: 3rem;
+        font-weight: 900;
+        margin-bottom: 1rem;
+        color: #ffffff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .about-hero .lead {
+        font-size: 1.25rem;
+        color: #f0f0f0;
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    .about-content-card {
+        background: linear-gradient(180deg, #ffffff, #fbfbfb);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 12px 40px rgba(2,6,23,0.06);
+        padding: 2.25rem;
+        margin-bottom: 2.5rem;
+        border-left: 6px solid var(--accent-color);
+        transition: transform 200ms ease, box-shadow 200ms ease;
+    }
+
+    .about-content-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 48px rgba(2,6,23,0.08);
+    }
+
+    .about-content-card h2 {
+        font-family: var(--font-elegant, 'Cormorant Garamond'), serif;
+        font-weight: 900;
+        color: var(--gray-900);
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 2.1rem;
+        letter-spacing: -0.01em;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .about-content-card h2 i {
+        color: var(--accent-color);
+        font-size: 1.75rem;
+    }
+
+    .about-content-card .content {
+        color: var(--gray-800);
+        font-family: var(--font-serif, 'Lora'), serif;
+        font-size: 1.18rem;
+        line-height: 2.1;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Improved typography for "Our Story" content */
+    .about-content-card .content {
+        font-family: var(--font-serif, 'Lora'), serif;
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--gray-700);
+        hyphens: auto;
+        -webkit-font-smoothing: antialiased;
+        text-wrap: balance;
+    }
+
+    .about-content-card h2 {
+        font-family: var(--font-elegant, 'Cormorant Garamond'), serif;
+        font-size: 1.75rem;
+        letter-spacing: -0.02em;
+        color: var(--gray-900);
+        font-weight: 900;
+    }
+
+    .about-content-card .content p {
+        margin-bottom: 1rem;
+    }
+
+    .about-content-card .content strong {
+        color: var(--gray-900);
+    }
+
+    @media (max-width: 767.98px) {
+        .about-content-card { padding: 1.25rem; border-left-width: 4px; }
+        .about-hero h1 { font-size: 2rem; }
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+        padding: 3rem 0;
+        margin: 3rem 0;
+        border-radius: var(--radius-lg);
+        border: 2px solid var(--gray-200);
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    
+    .stat-card .icon {
+        width: 80px;
+        height: 80px;
+        background: var(--gradient-primary);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .stat-card h3 {
+        font-size: 2.75rem;
+        font-weight: 900;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card p {
+        color: #4a4a4a;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.875rem;
+    }
+    
+    .team-section {
+        padding: 3rem 0;
+    }
+    
+    .team-section h2 {
+        font-weight: 900;
+        font-size: 2.75rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        color: #1a1a1a;
+    }
+    
+    .team-section .subtitle {
+        text-align: center;
+        color: #4a4a4a;
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .team-member-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition);
+        height: 100%;
+        border: 2px solid var(--gray-100);
+    }
+    
+    .team-member-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--accent-color);
+    }
+    
+    .team-member-card .image-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 280px;
+        background: var(--gray-200);
+    }
+    
+    .team-member-card .image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition);
+    }
+    
+    .team-member-card:hover .image-wrapper img {
+        transform: scale(1.1);
+    }
+    
+    .team-member-card .image-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    }
+    
+    .team-member-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .team-member-card h5 {
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .team-member-card .position {
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+    }
+    
+    .team-member-card .bio {
+        color: #4a4a4a;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+    
+    .values-section {
+        background: linear-gradient(135deg, var(--accent-dark), var(--accent-color));
+        color: #ffffff;
+        padding: 4rem 0;
+        margin: 3rem 0;
+        border-radius: var(--radius-lg);
+    }
+    
+    .values-section h2 {
+        color: #ffffff;
+        text-align: center;
+        margin-bottom: 3rem;
+        font-weight: 900;
+        font-size: 2.5rem;
+    }
+    
+    .value-card {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    
+    .value-card .icon {
+        font-size: 3rem;
+        color: var(--theme-accent);
+        margin-bottom: 1rem;
+    }
+    
+    .value-card h4 {
+        color: #ffffff;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .value-card p {
+        color: #e0e0e0;
+        line-height: 1.6;
+    }
+    
+    @media (max-width: 767.98px) {
+        .about-hero {
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .about-hero h1 {
+            font-size: 2rem;
+            font-weight: 900;
+        }
+        
+        .about-hero .lead {
+            font-size: 1rem;
+        }
+        
+        .about-content-card {
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .about-content-card h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+        
+        .about-content-card .content {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .stats-section,
+        .values-section {
+            padding: 2rem 0;
+            margin: 2rem 0;
+        }
+        
+        .team-section h2,
+        .values-section h2 {
+            font-size: 1.75rem;
+        }
+        
+        .stat-card,
+        .value-card {
+            padding: 1.5rem 1rem;
+        }
+        
+        .stat-card .icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        
+        .team-member-card .image-wrapper {
+            height: 240px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-hero">
+    <div class="container text-center">
+        <h1><i class="bi bi-building me-3"></i>{{ about_title|default:"About OD" }}</h1>
+        <p class="lead">Discover our story, mission, and the passionate team behind your favorite online shopping destination.</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- About Content -->
+    <div class="about-content-card">
+        <h2><i class="bi bi-info-circle-fill"></i>Our Story</h2>
+        <div class="content">
+            {% if about_content %}
+                {{ about_content|safe }}
+            {% else %}
+                <p>Welcome to <strong>OD</strong>. We launched as a small, local online boutique with a simple goal: make thoughtfully curated products accessible and affordable.</p>
+                <p>We're a lean team focused on fast, friendly service — hand-packing each order and working directly with a small group of trusted makers and suppliers.</p>
+                <p>As a growing business, we prioritize product quality, clear communication, and listening to early customers so we can improve quickly.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Section removed as requested -->
+
+    <!-- Values Section -->
+    <div class="values-section">
+        <div class="container">
+            <h2><i class="bi bi-heart-fill me-3"></i>Our Core Values</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h4>Quality Assurance</h4>
+                        <p>Every product is carefully selected and verified to meet our high standards of quality.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="icon">
+                            <i class="bi bi-lightning-charge"></i>
+                        </div>
+                        <h4>Fast Delivery</h4>
+                        <p>We pride ourselves on quick processing and reliable shipping to get your orders to you fast.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="icon">
+                            <i class="bi bi-emoji-smile"></i>
+                        </div>
+                        <h4>Customer First</h4>
+                        <p>Your satisfaction is our priority. We're here to help with exceptional customer service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Section -->
+    {% if team_members %}
+    <div class="team-section">
+        <h2><i class="bi bi-people-fill me-3"></i>Meet Our Team</h2>
+        <p class="subtitle">The talented individuals who make OD the best shopping experience.</p>
+        <div class="row g-4">
+            {% for member in team_members %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="team-member-card">
+                        <div class="image-wrapper">
+                            {% if member.image %}
+                                <img src="{{ member.image.url }}" alt="{{ member.name }}">
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100" style="background: var(--gradient-primary);">
+                                    <i class="bi bi-person-circle" style="font-size: 5rem; color: white; opacity: 0.5;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h5>{{ member.name }}</h5>
+                            <div class="position">{{ member.title }}</div>
+                            <p class="bio">{{ member.bio|truncatechars:150 }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script type="application/ld+json">
+{{ about_structured_data_json|safe }}
+</script>
+{% endblock %}

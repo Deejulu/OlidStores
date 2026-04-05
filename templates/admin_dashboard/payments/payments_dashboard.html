@@ -1,0 +1,1836 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .payments-page {
+        background: #f0f2f5;
+        min-height: 100vh;
+        padding: 2rem 0 4rem;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .payments-page .container {
+        max-width: 1400px;
+    }
+
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        padding: 2.5rem 3rem;
+        border-radius: 24px;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.35);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -5%;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h1 {
+        color: white;
+        font-weight: 800;
+        font-size: 2.25rem;
+        margin: 0 0 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        letter-spacing: -0.5px;
+    }
+
+    .page-header p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 0.65rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background: white;
+        color: #10b981;
+        border-color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.75rem 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        text-align: center;
+        color: #111827 !important;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .stat-icon i {
+        color: inherit !important;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #111827 !important;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6b7280 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        display: block;
+    }
+
+    .stat-total .stat-icon { background: #ecfdf5; color: #059669; }
+    .stat-success .stat-icon { background: #d1fae5; color: #047857; }
+    .stat-failed .stat-icon { background: #fee2e2; color: #dc2626; }
+    .stat-amount .stat-icon { background: #fef3c7; color: #d97706; }
+    .stat-recent .stat-icon { background: #dbeafe; color: #2563eb; }
+    .stat-unreconciled .stat-icon { background: #fef3c7; color: #f59e0b; }
+
+    /* Filters */
+    .filters-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem 1.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.75rem;
+    }
+
+    .filters-form {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6b7280 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.35rem;
+        display: block;
+    }
+
+    .filter-input {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        background: white !important;
+        color: #1f2937 !important;
+    }
+
+    .filter-input:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .btn-filter {
+        padding: 0.65rem 1.5rem;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 1.5rem;
+    }
+
+    .btn-filter:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    /* Transactions Table */
+    .transactions-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+    }
+
+    .table-header {
+        padding: 1.25rem 1.75rem;
+        background: white;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #1f2937 !important;
+    }
+
+    .table-icon {
+        width: 36px;
+        height: 36px;
+        background: #ecfdf5;
+        color: #059669;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .transactions-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .transactions-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .transactions-table thead th {
+        padding: 0.85rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #9ca3af !important;
+        background: #fafafa;
+        border-bottom: 1px solid #f3f4f6;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    .transactions-table tbody tr {
+        transition: all 0.15s ease;
+    }
+
+    .transactions-table tbody tr:not(:last-child) td {
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .transactions-table tbody tr:hover {
+        background: #fafbff;
+    }
+
+    .transactions-table tbody td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+        color: #4b5563 !important;
+        font-size: 0.9rem;
+    }
+
+    .tx-label {
+        font-weight: 600;
+        color: #1f2937 !important;
+        font-size: 0.85rem;
+    }
+
+    .tx-order-link {
+        font-weight: 700;
+        color: #2563eb !important;
+        text-decoration: none;
+    }
+
+    .tx-order-link:hover {
+        color: #1d4ed8 !important;
+        text-decoration: underline;
+    }
+
+    .tx-amount {
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: #059669 !important;
+    }
+
+    /* Desktop: Show desktop rows, hide mobile rows */
+    @media (min-width: 769px) {
+        .desktop-row {
+            display: table-row !important;
+            transition: all 0.15s ease;
+        }
+
+        .desktop-row:hover {
+            background: #fafbff;
+        }
+
+        .mobile-row {
+            display: none !important;
+        }
+
+        .tx-card-header,
+        .tx-card-row,
+        .tx-customer-name,
+        .tx-customer-contact,
+        .tx-card-label,
+        .tx-card-value,
+        .tx-status-badge {
+            display: none !important;
+        }
+
+        .transactions-table tbody td {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            color: #4b5563 !important;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .transactions-table thead th {
+            padding: 0.85rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #9ca3af !important;
+            background: #fafafa;
+            border-bottom: 1px solid #f3f4f6;
+            white-space: nowrap;
+            text-align: left;
+        }
+    }
+
+    /* Mobile: Hide desktop rows, show mobile rows */
+    @media (max-width: 768px) {
+        .desktop-row {
+            display: none !important;
+        }
+
+        .mobile-row {
+            display: block !important;
+        }
+
+        .transactions-table thead {
+            display: none !important;
+        }
+
+        .transactions-table tbody {
+            display: block !important;
+        }
+    }
+
+    .tx-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    .status-success {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .status-failed {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .status-pending {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .tx-date {
+        color: #9ca3af;
+        font-size: 0.85rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.25rem;
+        background: #f9fafb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e5e7eb;
+    }
+
+    .empty-icon i {
+        font-size: 2rem;
+        color: #d1d5db;
+    }
+
+    .empty-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #6b7280;
+        margin: 0 0 0.35rem;
+    }
+
+    /* Unreconciled Section */
+    .unreconciled-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+        border-left: 4px solid #f59e0b;
+    }
+
+    .unreconciled-header {
+        padding: 1.25rem 1.75rem;
+        background: #fffbeb;
+        border-bottom: 1px solid #fef3c7;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .unreconciled-icon {
+        width: 36px;
+        height: 36px;
+        background: #fef3c7;
+        color: #d97706;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .unreconciled-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #92400e;
+    }
+
+    .unreconciled-list {
+        padding: 1rem 1.75rem;
+    }
+
+    .unreconciled-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem;
+        background: #fafafa;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+    }
+
+    .unreconciled-item:last-child {
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 1400px) {
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .payments-page {
+            padding: 1rem 0 3rem;
+        }
+
+        .page-header {
+            padding: 1.5rem;
+            margin: 0 1rem 1.25rem;
+            border-radius: 16px;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.35rem;
+            font-weight: 800;
+        }
+
+        .page-header p {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .page-header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .btn-back {
+            width: 100%;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 0 1rem;
+        }
+        
+        .stat-card {
+            padding: 1.5rem 1.25rem;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:active {
+            transform: scale(0.98);
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+        }
+
+        .stat-icon {
+            margin-bottom: 1rem;
+            width: 48px;
+            height: 48px;
+        }
+
+        .filters-card {
+            padding: 1.25rem;
+            margin: 0 1rem 1.5rem;
+            border-radius: 14px;
+        }
+
+        .filters-form {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .filter-group {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-input {
+            padding: 0.8rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            min-height: 44px;
+        }
+
+        .filter-input:focus {
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .btn-filter {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            margin-top: 1rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            min-height: 48px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-filter:active {
+            transform: scale(0.98);
+        }
+
+        /* Show transactions as mobile-friendly list */
+        .transactions-table {
+            display: block;
+            overflow: visible;
+        }
+
+        .transactions-table thead {
+            display: none;
+        }
+
+        .transactions-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0.75rem;
+        }
+
+        /* Reset tr styling - let .tx-card handle the visuals */
+        .transactions-table tbody tr.mobile-row {
+            display: block;
+            background: none;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+            position: static;
+        }
+
+        .transactions-table tbody tr.mobile-row::before {
+            display: none;
+        }
+
+        .mobile-card-cell {
+            display: block !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* The actual card wrapper */
+        .tx-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-left: 5px solid #10b981;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .tx-card:active {
+            transform: scale(0.99);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .tx-card-body {
+            padding: 0 1.25rem 0.5rem;
+        }
+
+        /* Card header with customer name */
+        .tx-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border-bottom: 2px solid #d1fae5;
+            gap: 0.75rem;
+        }
+
+        .tx-customer-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tx-customer-name {
+            display: block;
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: #059669;
+            margin-bottom: 0.35rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .tx-customer-contact {
+            display: block;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+
+        .tx-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tx-status-badge.status-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #047857;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+        }
+
+        .tx-status-badge.status-success::before {
+            content: '✓';
+            margin-right: 0.25rem;
+        }
+
+        .tx-status-badge.status-failed {
+            background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%);
+            color: #991b1b;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+        }
+
+        .tx-status-badge.status-failed::before {
+            content: '✕';
+            margin-right: 0.25rem;
+        }
+
+        .tx-status-badge.status-pending {
+            background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%);
+            color: #92400e;
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
+        }
+
+        .tx-status-badge.status-pending::before {
+            content: '⧗';
+            margin-right: 0.25rem;
+        }
+
+        /* Transaction details row */
+        .tx-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            gap: 1rem;
+        }
+
+        .tx-card-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .tx-card-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .tx-card-value {
+            font-weight: 700;
+            color: #1f2937;
+            text-align: right;
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .tx-amount-value {
+            font-size: 1.25rem;
+            color: #059669 !important;
+            font-weight: 900;
+        }
+
+        .tx-reference-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #4b5563;
+            word-break: break-all;
+            background: #f9fafb;
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+        }
+
+        .tx-date-value {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .tx-order-link-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #047857;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+        }
+
+        .tx-order-link-badge:active {
+            transform: scale(0.96);
+        }
+
+        .tx-order-link-badge:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .transactions-card {
+            box-shadow: none;
+            border: none;
+            padding: 0;
+        }
+
+        .table-header {
+            padding: 1rem;
+            background: transparent;
+            border-bottom: none;
+        }
+
+        .unreconciled-section {
+            margin: 1.5rem 1rem 1rem;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .unreconciled-header {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%);
+            border-radius: 14px 14px 0 0;
+            border: 1px solid #fcd34d;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            color: #92400e;
+        }
+
+        .unreconciled-header i {
+            font-size: 1.5rem;
+        }
+
+        .unreconciled-list {
+            padding: 1.25rem;
+            background: white;
+            border: 1px solid #fcd34d;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .unreconciled-item {
+            display: block;
+            padding: 1rem;
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            border-radius: 10px;
+            border: 1px solid #f3f3f3;
+            transition: all 0.2s ease;
+        }
+
+        .unreconciled-item:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .unreconciled-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .unreconciled-item .tx-reference {
+            display: block;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.35rem;
+            color: #1f2937;
+            word-break: break-word;
+        }
+
+        .unreconciled-item .tx-date {
+            display: block;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .unreconciled-item .tx-amount {
+            display: block;
+            font-weight: 800;
+            color: #d97706;
+            font-size: 1.05rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .unreconciled-item .tx-order-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%);
+            color: #92400e;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.15);
+        }
+
+        .unreconciled-item .tx-order-link:active {
+            transform: scale(0.96);
+        }
+
+        .empty-state {
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 2rem;
+            color: #d1d5db;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-title {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        /* Tab Navigation */
+        .tabs-container {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e5e7eb;
+            margin: 1.5rem 1rem 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 100px;
+            padding: 1rem 0.75rem;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tab-button:active {
+            transform: scale(0.98);
+        }
+
+        .tab-button.active {
+            color: #059669;
+            border-bottom-color: #059669;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 0 1rem;
+        }
+    }
+    
+    /* Dark mode adjustments for payments dashboard */
+    @media (prefers-color-scheme: dark) {
+        .payments-page,
+        .payments-page * {
+            color: #e2e8f0 !important;
+        }
+        
+        .payments-page .stat-card,
+        .payments-page .filters-card,
+        .payments-page .transactions-card,
+        .payments-page .unreconciled-section {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+        }
+        
+        .payments-page .stat-value {
+            color: #e2e8f0 !important;
+        }
+        
+        .payments-page .stat-label {
+            color: #94a3b8 !important;
+        }
+        
+        .payments-page .filter-input,
+        .payments-page select.filter-input {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+    }
+
+    body.dark-mode .payments-page,
+    body.dark-mode .payments-page * {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .payments-page .stat-card,
+    body.dark-mode .payments-page .filters-card,
+    body.dark-mode .payments-page .transactions-card,
+    body.dark-mode .payments-page .unreconciled-section {
+        background: #111827 !important;
+        border-color: #334155 !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+    }
+
+    body.dark-mode .payments-page .stat-value {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .payments-page .stat-label {
+        color: #94a3b8 !important;
+    }
+
+    body.dark-mode .payments-page .filter-input,
+    body.dark-mode .payments-page select.filter-input {
+        background: #0f172a !important;
+        color: #e2e8f0 !important;
+        border-color: #334155 !important;
+    }
+
+    /* Quick Stats Strip - Compact mobile summary */
+    .quick-stats {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .quick-stats {
+            display: flex;
+            gap: 0.4rem;
+            margin: 0 1rem 0.75rem;
+        }
+
+        .qs-item {
+            flex: 1;
+            min-width: 0;
+            background: white;
+            border-radius: 10px;
+            padding: 0.6rem 0.35rem;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+
+        .qs-value {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #111827;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .qs-label {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: block;
+            margin-top: 0.15rem;
+        }
+
+        .qs-success .qs-value { color: #059669; }
+        .qs-failed .qs-value { color: #dc2626; }
+        .qs-amount .qs-value { color: #d97706; font-size: 0.8rem; }
+    }
+
+    /* Desktop: hide tab navigation, show all content */
+    @media (min-width: 769px) {
+        .tabs-container {
+            display: none !important;
+        }
+        .tab-content {
+            display: block !important;
+        }
+        .quick-stats {
+            display: none !important;
+        }
+    }
+
+    /* Tab badge for counts */
+    .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #fef3c7;
+        color: #d97706;
+        font-size: 0.6rem;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        padding: 0 4px;
+    }
+
+    /* Filter active indicator dot */
+    .filter-active-dot {
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+        animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); }
+        50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
+    }
+
+    /* Transaction count in table header */
+    .tx-count {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        font-weight: 500;
+    }
+
+    .tx-count strong {
+        color: #4b5563;
+        font-weight: 700;
+    }
+
+    /* Search bar */
+    .tx-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+        background: #fafafa;
+    }
+
+    .tx-search-bar form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        position: relative;
+    }
+
+    .tx-search-wrapper {
+        position: relative;
+        flex: 1;
+    }
+
+    .tx-search-input {
+        width: 100%;
+        padding: 0.7rem 1rem 0.7rem 2.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        background: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #1f2937;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    .tx-search-input:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .tx-search-input:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .tx-search-input::placeholder {
+        color: #9ca3af;
+        transition: opacity 0.2s;
+    }
+    
+    .tx-search-input:focus::placeholder {
+        opacity: 0.6;
+    }
+    
+    .tx-search-icon {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .tx-search-wrapper:focus-within .tx-search-icon {
+        color: #10b981;
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .tx-search-inline-clear {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #d1d5db;
+        background: #f3f4f6;
+        border: none;
+        font-size: 0.9rem;
+        padding: 0.35rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .tx-search-inline-clear.visible {
+        display: flex;
+    }
+    
+    .tx-search-inline-clear:hover {
+        color: #ef4444;
+        background: #fee2e2;
+        transform: translateY(-50%) scale(1.15) rotate(90deg);
+    }
+    
+    .tx-search-kbd-hint {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.7rem;
+        color: #9ca3af;
+        background: #f3f4f6;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e5e7eb;
+        font-family: monospace;
+        pointer-events: none;
+        transition: opacity 0.25s;
+    }
+    
+    .tx-search-wrapper:focus-within .tx-search-kbd-hint {
+        opacity: 0;
+    }
+    
+    @keyframes txShake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-4px); }
+        40% { transform: translateX(4px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+    }
+    
+    .tx-search-wrapper.shake {
+        animation: txShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    .tx-search-btn {
+        padding: 0.65rem 1.1rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .tx-search-btn:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .tx-search-clear {
+        padding: 0.65rem 0.85rem;
+        background: #f3f4f6;
+        color: #6b7280;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tx-search-clear:hover {
+        background: #fee2e2;
+        color: #ef4444;
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+        .tx-search-bar {
+            padding: 0.75rem;
+        }
+
+        .tx-search-input {
+            min-height: 44px;
+            font-size: 1rem;
+        }
+
+        .tx-search-btn {
+            min-height: 44px;
+            padding: 0.65rem 0.95rem;
+        }
+
+        .tx-search-clear {
+            min-height: 44px;
+        }
+        
+        .tx-search-kbd-hint {
+            display: none;
+        }
+    }
+</style>
+
+<div class="payments-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="page-header-content">
+                <div>
+                    <h1>
+                        <i class="bi bi-credit-card-fill"></i>
+                        Paystack Payments
+                    </h1>
+                    <p>Monitor all payment transactions and reconciliation status</p>
+                </div>
+                <a href="{% url 'admin_dashboard:order_list' %}" class="btn-back">
+                    <i class="bi bi-arrow-left"></i> Back to Orders
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Stats Strip (Mobile) -->
+        <div class="quick-stats">
+            <div class="qs-item">
+                <span class="qs-value">{{ total_transactions }}</span>
+                <span class="qs-label">Total</span>
+            </div>
+            <div class="qs-item qs-success">
+                <span class="qs-value">{{ successful_transactions }}</span>
+                <span class="qs-label">Success</span>
+            </div>
+            <div class="qs-item qs-failed">
+                <span class="qs-value">{{ failed_transactions }}</span>
+                <span class="qs-label">Failed</span>
+            </div>
+            <div class="qs-item qs-amount">
+                <span class="qs-value">₦{{ total_amount|floatformat:0 }}</span>
+                <span class="qs-label">Revenue</span>
+            </div>
+        </div>
+
+        <!-- Tab Navigation (Mobile) -->
+        <div class="tabs-container">
+            <button class="tab-button active" data-tab="transactions">
+                <i class="bi bi-card-list"></i>
+                <span>Transactions</span>
+            </button>
+            <button class="tab-button" data-tab="stats">
+                <i class="bi bi-graph-up"></i>
+                <span>Stats</span>
+            </button>
+            <button class="tab-button" data-tab="filters">
+                <i class="bi bi-funnel"></i>
+                <span>Filters</span>
+                {% if status_filter or search_query %}<span class="filter-active-dot"></span>{% endif %}
+            </button>
+            {% if unreconciled %}
+            <button class="tab-button" data-tab="unreconciled">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>Unreconciled</span>
+                <span class="tab-badge">{{ unreconciled_count }}</span>
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Stats Grid -->
+        <div id="stats" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div class="stat-icon"><i class="bi bi-receipt-cutoff"></i></div>
+                    <div class="stat-value">{{ total_transactions }}</div>
+                    <div class="stat-label">Total Transactions</div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="stat-value">{{ successful_transactions }}</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-card stat-failed">
+                    <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+                    <div class="stat-value">{{ failed_transactions }}</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card stat-amount">
+                    <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+                    <div class="stat-value">₦{{ total_amount|floatformat:0 }}</div>
+                    <div class="stat-label">Total Amount</div>
+                </div>
+                <div class="stat-card stat-recent">
+                    <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                    <div class="stat-value">{{ recent_count }}</div>
+                    <div class="stat-label">Last 24 Hours</div>
+                </div>
+                <div class="stat-card stat-unreconciled">
+                    <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div class="stat-value">{{ unreconciled_count }}</div>
+                    <div class="stat-label">Unreconciled</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div id="filters" class="tab-content">
+            <div class="filters-card">
+                <form method="get" class="filters-form">
+                    <div class="filter-group">
+                        <label class="filter-label">Search Reference/Order</label>
+                        <input type="text" name="search" value="{{ search_query }}" placeholder="Enter reference or order ID" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select name="status" class="filter-input">
+                            <option value="">All Statuses</option>
+                            <option value="success" {% if status_filter == 'success' %}selected{% endif %}>Success</option>
+                            <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Date Range</label>
+                        <select name="date_range" class="filter-input">
+                            <option value="7" {% if date_filter == '7' %}selected{% endif %}>Last 7 days</option>
+                            <option value="30" {% if date_filter == '30' %}selected{% endif %}>Last 30 days</option>
+                            <option value="90" {% if date_filter == '90' %}selected{% endif %}>Last 90 days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-filter">
+                        <i class="bi bi-funnel"></i> Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <div id="transactions" class="tab-content active">
+        <div class="transactions-card">
+            <div class="table-header">
+                <div class="table-title">
+                    <div class="table-icon"><i class="bi bi-card-list"></i></div>
+                    <span>Recent Transactions</span>
+                </div>
+                <span class="tx-count">Showing <strong>{{ transactions|length }}</strong> of {{ total_transactions }}</span>
+            </div>
+            <div class="tx-search-bar">
+                <form method="get" id="txSearchForm">
+                    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+                    {% if date_filter %}<input type="hidden" name="date_range" value="{{ date_filter }}">{% endif %}
+                    <div class="tx-search-wrapper" id="txSearchWrapper">
+                        <i class="bi bi-search tx-search-icon"></i>
+                        <input type="text" name="search" class="tx-search-input" id="txSearchInput" value="{{ search_query }}" 
+                               placeholder="Search..." 
+                               data-placeholder-mobile="Search..." 
+                               data-placeholder-tablet="Search transactions..." 
+                               data-placeholder-desktop="Search by name, reference, or order #"
+                               autocomplete="off">
+                        <button type="button" class="tx-search-inline-clear {% if search_query %}visible{% endif %}" id="txInlineClear" title="Clear search">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                        <span class="tx-search-kbd-hint">Ctrl+K</span>
+                    </div>
+                    <button type="submit" class="tx-search-btn"><i class="bi bi-search"></i></button>
+                    {% if search_query %}
+                    <a href="{% url 'admin_dashboard:payments_dashboard' %}{% if status_filter %}?status={{ status_filter }}{% endif %}{% if date_filter %}&date_range={{ date_filter }}{% endif %}" class="tx-search-clear"><i class="bi bi-x-lg"></i></a>
+                    {% endif %}
+                </form>
+            </div>
+
+            {% if transactions %}
+            <div style="overflow-x: auto;">
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Reference</th>
+                            <th>Order</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <!-- Desktop table row -->
+                        <tr class="desktop-row" style="display: none;">
+                            <td>
+                                <div style="font-weight: 600; color: #1f2937;">
+                                    {% if tx.order %}{{ tx.order.full_name }}{% else %}<em>Unknown</em>{% endif %}
+                                </div>
+                                {% if tx.order %}
+                                <div style="font-size: 0.85rem; color: #6b7280;">{{ tx.order.email }}</div>
+                                {% endif %}
+                            </td>
+                            <td><span class="tx-reference">{{ tx.reference }}</span></td>
+                            <td>
+                                {% if tx.order %}
+                                <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link">#{{ tx.order.id }}</a>
+                                {% else %}
+                                <span style="color: #d1d5db;">—</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="tx-amount">₦{{ tx.amount|floatformat:0 }}</span></td>
+                            <td>
+                                {% if tx.payment_method %}
+                                    <span style="font-weight: 600; color: #6b7280; text-transform: capitalize;">{{ tx.payment_method }}</span>
+                                {% else %}
+                                    <span style="color: #d1d5db;">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="tx-status status-{% if tx.status == 'success' %}success{% elif 'fail' in tx.status %}failed{% else %}pending{% endif %}">
+                                    <i class="bi bi-{% if tx.status == 'success' %}check-circle-fill{% elif 'fail' in tx.status %}x-circle-fill{% else %}clock-fill{% endif %}"></i>
+                                    {{ tx.status|title }}
+                                </span>
+                            </td>
+                            <td><span class="tx-date">{{ tx.created_at|date:"M d, Y H:i" }}</span></td>
+                        </tr>
+
+                        <!-- Mobile card rows -->
+                        <tr class="mobile-row">
+                            <td colspan="7" class="mobile-card-cell">
+                                <div class="tx-card">
+                                    <div class="tx-card-header">
+                                        <div class="tx-customer-info">
+                                            <span class="tx-customer-name">
+                                                {% if tx.order %}{{ tx.order.full_name }}{% else %}<em>Unknown Customer</em>{% endif %}
+                                            </span>
+                                            {% if tx.order %}
+                                            <span class="tx-customer-contact">{{ tx.order.email }}</span>
+                                            <span class="tx-customer-contact">{{ tx.order.phone }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="tx-status-badge status-{% if tx.status == 'success' %}success{% elif 'fail' in tx.status %}failed{% else %}pending{% endif %}">
+                                            <i class="bi bi-{% if tx.status == 'success' %}check-circle-fill{% elif 'fail' in tx.status %}x-circle-fill{% else %}clock{% endif %}"></i>
+                                            {{ tx.status|title }}
+                                        </span>
+                                    </div>
+                                    <div class="tx-card-body">
+                                        <div class="tx-card-row">
+                                            <span class="tx-card-label">Reference</span>
+                                            <span class="tx-card-value tx-reference-value">{{ tx.reference }}</span>
+                                        </div>
+                                        <div class="tx-card-row">
+                                            <span class="tx-card-label">Amount</span>
+                                            <span class="tx-card-value tx-amount-value">₦{{ tx.amount|floatformat:0 }}</span>
+                                        </div>
+                                        <div class="tx-card-row">
+                                            <span class="tx-card-label">Method</span>
+                                            <span class="tx-card-value" style="text-transform: capitalize;">
+                                                {% if tx.payment_method %}{{ tx.payment_method }}{% else %}—{% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="tx-card-row">
+                                            <span class="tx-card-label">Order</span>
+                                            {% if tx.order %}
+                                            <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link-badge">
+                                                <i class="bi bi-box-seam me-1"></i>#{{ tx.order.id }}
+                                            </a>
+                                            {% else %}
+                                            <span class="tx-card-value">—</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="tx-card-row">
+                                            <span class="tx-card-label">Date</span>
+                                            <span class="tx-card-value tx-date-value">{{ tx.created_at|date:"M d, Y · H:i" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <p class="empty-title">No transactions found</p>
+            </div>
+            {% endif %}
+        </div>
+        </div>
+
+        <!-- Unreconciled Payments -->
+        {% if unreconciled %}
+        <div id="unreconciled" class="tab-content">
+            <div class="unreconciled-section">
+                <div class="unreconciled-header">
+                    <div class="unreconciled-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div class="unreconciled-title">Unreconciled Payments ({{ unreconciled_count }})</div>
+                </div>
+                <div class="unreconciled-list">
+                    {% for tx in unreconciled %}
+                    <div class="unreconciled-item">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb;">
+                            <div>
+                                <div class="tx-customer-name" style="margin-bottom: 0.25rem;">
+                                    {% if tx.order %}{{ tx.order.full_name }}{% else %}<em>Unknown Customer</em>{% endif %}
+                                </div>
+                                {% if tx.order %}
+                                <div class="tx-customer-contact">{{ tx.order.email }}</div>
+                                <div class="tx-customer-contact">{{ tx.order.phone }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Reference</div>
+                                <div class="tx-reference" style="font-size: 0.85rem;">{{ tx.reference }}</div>
+                            </div>
+                            <div style="flex: 0 0 auto; text-align: right;">
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Amount</div>
+                                <div class="tx-amount" style="font-size: 1rem;">₦{{ tx.amount|floatformat:0 }}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="tx-date" style="font-size: 0.8rem;">
+                                {{ tx.created_at|date:"M d, Y H:i" }}
+                                {% if tx.payment_method %}
+                                <span style="margin-left: 0.5rem; text-transform: capitalize; color: #6b7280; font-weight: 600;">· {{ tx.payment_method }}</span>
+                                {% endif %}
+                            </div>
+                            {% if tx.order %}
+                            <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link-badge">Order #{{ tx.order.id }}</a>
+                            {% else %}
+                            <span style="color: #9ca3af; font-size: 0.85rem;">No order</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Tab functionality
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and contents
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding content
+            this.classList.add('active');
+            const tabContent = document.getElementById(tabName);
+            if (tabContent) {
+                tabContent.classList.add('active');
+                tabContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    });
+    
+    // Search functionality enhancements
+    document.addEventListener('DOMContentLoaded', function() {
+        const txSearchInput = document.getElementById('txSearchInput');
+        const txInlineClear = document.getElementById('txInlineClear');
+        const txSearchWrapper = document.getElementById('txSearchWrapper');
+        const txSearchForm = document.getElementById('txSearchForm');
+        
+        // Responsive placeholder handling
+        function updatePlaceholder() {
+            if (!txSearchInput) return;
+            const width = window.innerWidth;
+            if (width < 576) {
+                txSearchInput.placeholder = txSearchInput.dataset.placeholderMobile || 'Search...';
+            } else if (width < 992) {
+                txSearchInput.placeholder = txSearchInput.dataset.placeholderTablet || 'Search transactions...';
+            } else {
+                txSearchInput.placeholder = txSearchInput.dataset.placeholderDesktop || 'Search by name, reference, or order #';
+            }
+        }
+        updatePlaceholder();
+        window.addEventListener('resize', updatePlaceholder, { passive: true });
+        
+        // Update clear button visibility
+        function updateClearButton() {
+            if (txInlineClear && txSearchInput) {
+                if (txSearchInput.value.trim()) {
+                    txInlineClear.classList.add('visible');
+                } else {
+                    txInlineClear.classList.remove('visible');
+                }
+            }
+        }
+        
+        // Clear search inline
+        if (txInlineClear) {
+            txInlineClear.addEventListener('click', function() {
+                txSearchInput.value = '';
+                updateClearButton();
+                txSearchInput.focus();
+            });
+        }
+        
+        // Input event for clear button
+        if (txSearchInput) {
+            txSearchInput.addEventListener('input', updateClearButton);
+            
+            // Enter key with shake for empty
+            txSearchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !this.value.trim()) {
+                    e.preventDefault();
+                    txSearchWrapper.classList.add('shake');
+                    setTimeout(() => txSearchWrapper.classList.remove('shake'), 500);
+                }
+            });
+        }
+        
+        // Keyboard shortcut: Ctrl+K to focus search
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (txSearchInput) {
+                    txSearchInput.focus();
+                    txSearchInput.select();
+                }
+            }
+            // Escape to clear and blur
+            if (e.key === 'Escape' && document.activeElement === txSearchInput) {
+                if (txSearchInput.value) {
+                    txSearchInput.value = '';
+                    updateClearButton();
+                } else {
+                    txSearchInput.blur();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

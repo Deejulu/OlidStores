@@ -1,0 +1,476 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 mb-3"><i class="fas fa-question-circle text-primary"></i> Help & Tutorial Center</h1>
+        <p class="lead text-muted">Everything you need to know about shopping on E-Stores</p>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="fas fa-compass"></i> Quick Navigation</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="#getting-started" class="btn btn-outline-primary btn-sm">Getting Started</a>
+                        <a href="#shopping-guide" class="btn btn-outline-primary btn-sm">Shopping Guide</a>
+                        <a href="#payment-methods" class="btn btn-outline-primary btn-sm">Payment Methods</a>
+                        <a href="#order-tracking" class="btn btn-outline-primary btn-sm">Order Tracking</a>
+                        <a href="#account-management" class="btn btn-outline-primary btn-sm">Account Management</a>
+                        <a href="#faqs" class="btn btn-outline-primary btn-sm">FAQs</a>
+                        <a href="#contact-support" class="btn btn-outline-primary btn-sm">Contact Support</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Getting Started -->
+    <div id="getting-started" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-play-circle text-success"></i> Getting Started</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-user-plus"></i> Create Your Account</h5>
+                        <ol class="mb-0">
+                            <li>Click <b>"Sign Up"</b> in the top navigation</li>
+                            <li>Fill in your email, username, and password</li>
+                            <li>Verify your email (if required)</li>
+                            <li>Complete your profile with delivery details</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-shopping-bag"></i> Browse Products</h5>
+                        <ol class="mb-0">
+                            <li>Visit the <a href="/shop/">Shop page</a></li>
+                            <li>Use filters to narrow down by category, price</li>
+                            <li>Search for specific products using the search bar</li>
+                            <li>Click on any product to view full details</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Guide -->
+    <div id="shopping-guide" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-shopping-cart text-primary"></i> Complete Shopping Guide</h2>
+        <div class="accordion" id="shoppingAccordion">
+            <!-- Step 1 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#step1">
+                        <strong>Step 1: Browse & Search Products</strong>
+                    </button>
+                </h2>
+                <div id="step1" class="accordion-collapse collapse show" data-bs-parent="#shoppingAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Methods to find products:</strong></p>
+                        <ul>
+                            <li><b>Browse by Category:</b> Navigate through Electronics, Cosmetics, Fashion, Home & more</li>
+                            <li><b>Use Search Bar:</b> Type product names or keywords at the top of any page</li>
+                            <li><b>Filter Results:</b> Sort by price, popularity, newest arrivals</li>
+                            <li><b>View Featured:</b> Check homepage for special deals and featured items</li>
+                        </ul>
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> Use the wishlist <i class="fas fa-heart text-danger"></i> to save products you're interested in for later!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step2">
+                        <strong>Step 2: Add Products to Cart</strong>
+                    </button>
+                </h2>
+                <div id="step2" class="accordion-collapse collapse" data-bs-parent="#shoppingAccordion">
+                    <div class="accordion-body">
+                        <ol>
+                            <li>Click on a product to view its detail page</li>
+                            <li>Review product images, description, and specifications</li>
+                            <li>Select quantity (if available in stock)</li>
+                            <li>Choose variants like size, color (if applicable)</li>
+                            <li>Click <b>"Add to Cart"</b> button</li>
+                            <li>Continue shopping or go to cart to checkout</li>
+                        </ol>
+                        <p><strong>Cart Features:</strong></p>
+                        <ul>
+                            <li>View cart icon in top navigation showing item count</li>
+                            <li>Update quantities directly in cart</li>
+                            <li>Remove items you no longer want</li>
+                            <li>See live total calculation including delivery fees</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step3">
+                        <strong>Step 3: Checkout Process</strong>
+                    </button>
+                </h2>
+                <div id="step3" class="accordion-collapse collapse" data-bs-parent="#shoppingAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Checkout Steps:</strong></p>
+                        <ol>
+                            <li>Click "Proceed to Checkout" from your cart</li>
+                            <li>Review your order summary and delivery details</li>
+                            <li>Enter or confirm your delivery address</li>
+                            <li>Add phone number and any special delivery instructions</li>
+                            <li>Choose your preferred payment method</li>
+                            <li>Review total amount including delivery fee</li>
+                            <li>Complete payment or upload receipt</li>
+                        </ol>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> Ensure all delivery information is accurate before completing your order. Orders cannot be modified after submission.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div id="payment-methods" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-credit-card text-success"></i> Payment Methods</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-success h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Paystack (Instant Payment)</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Advantages:</strong></p>
+                        <ul>
+                            <li><i class="fas fa-check text-success"></i> Instant order confirmation</li>
+                            <li><i class="fas fa-check text-success"></i> Secure payment gateway</li>
+                            <li><i class="fas fa-check text-success"></i> Multiple payment options (Card, Bank Transfer, USSD)</li>
+                            <li><i class="fas fa-check text-success"></i> Immediate order processing</li>
+                        </ul>
+                        <p><strong>How it works:</strong></p>
+                        <ol>
+                            <li>Select Paystack at checkout</li>
+                            <li>You'll be redirected to secure payment page</li>
+                            <li>Choose payment method (Card/Bank/USSD)</li>
+                            <li>Complete payment</li>
+                            <li>Automatic order confirmation</li>
+                        </ol>
+                        <div class="badge bg-success">Recommended</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-info h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-university"></i> Manual Bank Transfer</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Process:</strong></p>
+                        <ol>
+                            <li>Select Manual Bank Transfer at checkout</li>
+                            <li>View our bank account details</li>
+                            <li>Make transfer from your bank</li>
+                            <li>Upload payment receipt/screenshot</li>
+                            <li>Wait for admin confirmation (within 24 hours)</li>
+                            <li>Order will be processed after verification</li>
+                        </ol>
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle"></i> <strong>Processing Time:</strong> Manual payments are verified within 24 hours. Your order will be on hold until payment is confirmed by our team.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Tracking -->
+    <div id="order-tracking" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-truck text-warning"></i> Order Tracking & Status</h2>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <p class="lead">Track your orders from your <a href="/accounts/dashboard/">Dashboard</a> or <a href="/cart/order-history/">Order History</a> page.</p>
+                
+                <h5 class="mt-4">Order Status Explained:</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Status</th>
+                                <th>Meaning</th>
+                                <th>What's Next</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                                <td>Order received, awaiting payment confirmation</td>
+                                <td>Complete payment or wait for manual payment verification</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">Processing</span></td>
+                                <td>Payment confirmed, order being prepared</td>
+                                <td>Your order is being packed and prepared for shipment</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">Shipped</span></td>
+                                <td>Order dispatched for delivery</td>
+                                <td>Track your package using the tracking number provided</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Delivered</span></td>
+                                <td>Order successfully delivered</td>
+                                <td>Enjoy your purchase! Don't forget to leave a review</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Cancelled</span></td>
+                                <td>Order cancelled by you or admin</td>
+                                <td>Refund will be processed if payment was made</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-success mt-4">
+                    <i class="fas fa-bell"></i> <strong>Notifications:</strong> You'll receive email notifications for each status update on your order.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Management -->
+    <div id="account-management" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-user-cog text-info"></i> Account Management</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-user-edit"></i> Profile Settings</h5>
+                        <p>Update your personal information:</p>
+                        <ul>
+                            <li>Name and contact details</li>
+                            <li>Email address</li>
+                            <li>Phone number</li>
+                            <li>Default delivery address</li>
+                        </ul>
+                        <a href="/accounts/profile/" class="btn btn-sm btn-outline-primary">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-heart"></i> Wishlist</h5>
+                        <p>Manage your saved products:</p>
+                        <ul>
+                            <li>Save products for later</li>
+                            <li>Quick access to favorites</li>
+                            <li>Move to cart when ready</li>
+                            <li>Share wishlist with others</li>
+                        </ul>
+                        <a href="/accounts/wishlist/" class="btn btn-sm btn-outline-danger">View Wishlist</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-history"></i> Order History</h5>
+                        <p>View all your past orders:</p>
+                        <ul>
+                            <li>See order details and status</li>
+                            <li>Download invoices</li>
+                            <li>Track shipments</li>
+                            <li>Reorder previous purchases</li>
+                        </ul>
+                        <a href="/cart/order-history/" class="btn btn-sm btn-outline-info">Order History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQs -->
+    <div id="faqs" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-question-circle text-danger"></i> Frequently Asked Questions</h2>
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        How long does delivery take?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Standard delivery takes 3-7 business days. Express delivery (24-hour) is available for an additional fee. Delivery times may vary depending on your location.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        What is your return policy?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        We offer a 7-day return policy for most items. Products must be unused, in original packaging, with tags attached. Contact support to initiate a return. Refunds are processed within 7-14 business days after receiving the returned item.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        How do I cancel my order?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Orders can be cancelled within 2 hours of placement. Go to your Order History, find the order, and click "Cancel Order" if available. After processing has begun, cancellation may not be possible. Contact support for assistance.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                        Is my payment information secure?
+                    </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes! We use Paystack, a PCI-DSS compliant payment gateway. We never store your card details on our servers. All transactions are encrypted and secure. For manual bank transfers, upload receipts through our secure upload system.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                        Can I modify my order after placing it?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Once an order is placed, items cannot be added or removed. However, you can cancel the order (if within 2 hours) and place a new one. For urgent modifications, contact support immediately.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                        Do you offer free shipping?
+                    </button>
+                </h2>
+                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes! We offer free shipping on orders over ₦15,000. Delivery fees apply to orders below this threshold. Check our promotions for special free shipping offers and discount codes.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Support -->
+    <div id="contact-support" class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-headset text-primary"></i> Contact Support</h2>
+        <div class="card shadow-sm border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Still need help?</h5>
+                <p class="card-text">Our customer support team is ready to assist you!</p>
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3">
+                            <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                            <h6>Email Us</h6>
+                            <a href="mailto:{{ contact_email }}" class="btn btn-outline-primary btn-sm">{{ contact_email }}</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3">
+                            <i class="fab fa-whatsapp fa-3x text-success mb-3"></i>
+                            <h6>WhatsApp</h6>
+                            {% if contact_whatsapp %}
+                            <a href="{{ contact_whatsapp }}" target="_blank" class="btn btn-outline-success btn-sm">Chat Now</a>
+                            {% else %}
+                            <span class="text-muted">Available soon</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3">
+                            <i class="fas fa-comments fa-3x text-info mb-3"></i>
+                            <h6>Contact Form</h6>
+                            <a href="/contact/" class="btn btn-outline-info btn-sm">Send Message</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-4 mb-0">
+                    <i class="fas fa-clock"></i> <strong>Support Hours:</strong> Monday - Saturday, 9:00 AM - 6:00 PM (WAT)<br>
+                    <small>We typically respond within 24 hours</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Tutorials (Optional - can add video embeds later) -->
+    <div class="mb-5">
+        <h2 class="mb-4"><i class="fas fa-video text-danger"></i> Video Tutorials</h2>
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-play-circle fa-5x text-danger mb-3"></i>
+                <h5>Video tutorials coming soon!</h5>
+                <p class="text-muted">We're creating helpful video guides to make your shopping experience even easier.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="card shadow-sm bg-light border-0">
+        <div class="card-body">
+            <h4 class="card-title"><i class="fas fa-lightbulb text-warning"></i> Quick Tips for Best Experience</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul>
+                        <li>Enable browser notifications to get order updates</li>
+                        <li>Save products to wishlist to track price changes</li>
+                        <li>Use search filters to find products faster</li>
+                        <li>Check promotions page regularly for deals</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul>
+                        <li>Keep your profile updated for smooth delivery</li>
+                        <li>Use Paystack for instant order processing</li>
+                        <li>Read product reviews before purchasing</li>
+                        <li>Contact support early if you have issues</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #e7f3ff;
+        color: #0d6efd;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    html {
+        scroll-behavior: smooth;
+    }
+</style>
+{% endblock %}

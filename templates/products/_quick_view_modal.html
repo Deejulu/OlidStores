@@ -1,0 +1,31 @@
+{# Partial template for product quick view modal #}
+<div class="quick-view-modal-content">
+  <div class="quick-view-header">
+    <h2 class="product-title">{{ product.name }}</h2>
+    <span class="product-category">{{ category.name }}</span>
+  </div>
+  <div class="quick-view-body">
+    <div class="quick-view-image">
+      {% if primary_image %}
+        <img src="{{ primary_image.url }}" alt="{{ product.name }}" style="max-width:100%;height:auto;" />
+      {% endif %}
+    </div>
+    <div class="quick-view-details">
+      <p class="product-description">{{ product.description|truncatewords:40 }}</p>
+      <div class="product-price">₦{{ price }}</div>
+      <div class="product-stock">
+        {% if stock > 0 %}
+          <span class="in-stock">In stock: {{ stock }}</span>
+        {% else %}
+          <span class="out-of-stock">Out of stock</span>
+        {% endif %}
+      </div>
+      <div class="product-rating">
+        <span>Rating: {{ average_rating }} / 5 ({{ review_count }} reviews)</span>
+      </div>
+    </div>
+  </div>
+  <div class="quick-view-footer">
+    <a href="{{ product.get_absolute_url }}" class="btn btn-primary">View Full Details</a>
+  </div>
+</div>

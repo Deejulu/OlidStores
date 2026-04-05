@@ -1,0 +1,1881 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<!-- Modern Content Management System - Version 3.0 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<style>
+    :root {
+        /* Use global theme variables where available so admin reflects site theme */
+        --primary-gradient: linear-gradient(135deg, var(--primary-color, #667eea) 0%, var(--primary-light, #764ba2) 100%);
+        --secondary-gradient: linear-gradient(135deg, var(--theme-accent, #f093fb) 0%, rgba(245, 158, 11, 0.15) 100%);
+        --success-gradient: linear-gradient(135deg, var(--success, #43e97b) 0%, rgba(56,249,215,0.3) 100%);
+        --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --glass-bg: rgba(255, 255, 255, 0.92);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+        --text-primary: #1a1d29;
+        --text-secondary: #4a4f6d;
+        --text-tertiary: #8c91b5;
+        --accent-light: rgba(102, 126, 234, 0.08);
+        --radius-xl: 24px;
+        --radius-lg: 20px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --transition-all: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        --animation-duration: 0.6s;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Content management uses existing admin layout - no body override */
+    .content-manage-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 2rem 1.5rem;
+        position: relative;
+    }
+
+    /* Floating Background Elements */
+    .floating-bg {
+        position: fixed;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.15;
+        filter: blur(100px);
+    }
+
+    .floating-bg-1 {
+        top: 10%;
+        left: 5%;
+        width: 400px;
+        height: 400px;
+        background: var(--primary-gradient);
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    .floating-bg-2 {
+        bottom: 10%;
+        right: 5%;
+        width: 300px;
+        height: 300px;
+        background: var(--secondary-gradient);
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        animation: float 15s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translate(0, 0) rotate(0deg);
+        }
+        33% {
+            transform: translate(30px, -50px) rotate(120deg);
+        }
+        66% {
+            transform: translate(-20px, 20px) rotate(240deg);
+        }
+    }
+
+    /* Admin Hero Header - Consistent Style */
+    .content-hero {
+        background: var(--primary-gradient);
+        padding: 3rem 2.5rem;
+        border-radius: 24px;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .content-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+        opacity: 0.15;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    .content-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -100px;
+        left: -100px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent);
+        opacity: 0.1;
+        animation: float 15s ease-in-out infinite reverse;
+    }
+    
+    .content-hero h1 {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 0 0 0.75rem 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .content-hero h1 i {
+        font-size: 2.5rem;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.18));
+        color: var(--primary-light);
+    }
+    
+    .content-hero p {
+        color: var(--primary-color);
+        font-size: 1.05rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+    }
+
+    /* Quick Links for sections */
+    .quick-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+        justify-content: flex-start;
+    }
+
+    .quick-link {
+        padding: 1.25rem 2.25rem;
+        background: var(--glass-bg);
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.08rem;
+        transition: var(--transition-all);
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(102,126,234,0.07);
+        min-width: 140px;
+        justify-content: center;
+        outline: none;
+    }
+
+    .quick-link:hover, .quick-link:focus {
+        background: var(--primary-gradient);
+        color: white !important;
+        border-color: var(--primary-color);
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        outline: 3px solid var(--primary-light);
+        outline-offset: 2px;
+    }
+    
+    .quick-link:hover span,
+    .quick-link:focus span {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
+    
+    .quick-link:hover i,
+    .quick-link:focus i {
+        color: white !important;
+    }
+
+    /* Form Sections */
+    .form-section {
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(32px);
+        border-radius: 32px;
+        padding: 2.75rem 2.25rem 2.5rem 2.25rem;
+        margin-bottom: 2.75rem;
+        border: 2.5px solid rgba(102,126,234,0.13);
+        box-shadow: 0 8px 40px 0 rgba(102,126,234,0.13), 0 1.5px 8px 0 rgba(31,38,135,0.08);
+        transition: box-shadow 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1);
+        animation: fadeInUp 0.6s ease-out both;
+        position: relative;
+        overflow: visible;
+    }
+    
+    .form-section::before {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 7px;
+        background: var(--primary-gradient);
+        border-radius: 32px 32px 0 0;
+        z-index: 2;
+        opacity: 0.95;
+        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.05);
+        transition: background 0.25s ease;
+    }
+    
+    .form-section:hover {
+        transform: translateY(-6px) scale(1.012);
+        box-shadow: 0 18px 60px 0 rgba(102,126,234,0.18), 0 2px 12px 0 rgba(31,38,135,0.10);
+        border-color: #667eea;
+    }
+
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .section-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--glass-bg);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #667eea;
+        border: 2px solid var(--glass-border);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .section-icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--primary-gradient);
+        opacity: 0.1;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .section-description {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+        line-height: 1.6;
+    }
+
+    /* Improved typography specifically for the About section */
+    #about-section .section-title {
+        font-family: var(--font-elegant, 'Cormorant Garamond'), serif;
+        font-size: 1.75rem;
+        letter-spacing: -0.01em;
+        color: var(--text-primary);
+    }
+
+    #about-section .form-label {
+        font-family: var(--font-heading, 'Poppins');
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    #about-section .form-control,
+    #about-section textarea {
+        font-family: var(--font-serif, 'Lora'), serif;
+        font-size: 1.02rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+        letter-spacing: 0.01em;
+    }
+
+    /* Preview card typography improvements */
+    .preview-about-card {
+        font-family: var(--font-serif, 'Lora'), serif;
+        color: var(--text-secondary);
+    }
+
+    #preview-about-title {
+        font-family: var(--font-display, 'Playfair Display'), serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    #preview-about-content {
+        font-family: var(--font-serif, 'Lora'), serif;
+        font-size: 1rem;
+        line-height: 1.9;
+        color: var(--text-secondary);
+    }
+
+    /* Form Groups */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem 1.5rem;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.05rem;
+        letter-spacing: 0.01em;
+    }
+
+    .form-label i {
+        color: #667eea;
+        font-size: 1.1rem;
+    }
+
+    .form-control-wrapper {
+        position: relative;
+    }
+
+    .form-control,
+    .form-select,
+    textarea {
+        width: 100%;
+        padding: 1.15rem 1.25rem;
+        background: rgba(255, 255, 255, 0.97);
+        border: 2px solid rgba(0, 0, 0, 0.08);
+        border-radius: var(--radius-md);
+        font-size: 1.08rem;
+        color: var(--text-primary);
+        transition: var(--transition-all);
+        font-family: inherit;
+        min-height: 48px;
+    }
+
+    .form-control:focus,
+    .form-select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        transform: translateY(-1px);
+    }
+
+    .form-control:hover,
+    .form-select:hover,
+    textarea:hover {
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px 12px;
+        padding-right: 3rem;
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    /* File Upload Enhancement */
+    .file-upload-area {
+        border: 2px dashed rgba(102, 126, 234, 0.3);
+        border-radius: var(--radius-md);
+        padding: 2rem;
+        text-align: center;
+        transition: var(--transition-all);
+        background: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .file-upload-area input[type="file"] {
+        position: absolute;
+        width: 0;
+        height: 0;
+        opacity: 0;
+        overflow: hidden;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--primary-color);
+        background: rgba(0,0,0,0.02);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    }
+    
+    .file-upload-area.dragover {
+        border-color: var(--primary-color);
+        background: rgba(102, 126, 234, 0.06);
+
+    .upload-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .upload-text {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-hint {
+        font-size: 0.85rem;
+        color: var(--text-tertiary);
+    }
+
+    /* Image Preview */
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .preview-card {
+        position: relative;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        background: rgba(0, 0, 0, 0.05);
+        transition: var(--transition-all);
+    }
+
+    .preview-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .preview-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        align-items: flex-end;
+        padding: 1rem;
+    }
+
+    .preview-card:hover .preview-overlay {
+        opacity: 1;
+    }
+
+    /* Map Container */
+    .map-container {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-top: 1rem;
+        border: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    #map {
+        height: 400px;
+        width: 100%;
+    }
+
+    /* Progress Indicator */
+    .progress-container {
+        position: sticky;
+        bottom: 2rem;
+        z-index: 100;
+        margin-top: 2rem;
+    }
+
+    .progress-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .progress-label {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .progress-bar {
+        flex: 1;
+        height: 8px;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--primary-gradient);
+        border-radius: 4px;
+        transition: width 0.6s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.4), 
+            transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Submit Actions */
+    .submit-actions {
+        position: sticky;
+        bottom: 1rem;
+        z-index: 101;
+        margin-top: 3rem;
+    }
+
+    .submit-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(30px);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem 2rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: 
+            0 20px 60px rgba(31, 38, 135, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* IMPROVED SAVE BUTTON - FIXED TEXT VISIBILITY */
+    .btn-save {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white !important;
+        border: none;
+        padding: 1rem 1.5rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: var(--transition-all);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        position: relative;
+        overflow: hidden;
+        outline: none;
+        min-width: 220px;
+    }
+    /* keep large, responsive CTA look in admin */
+    .btn-save.btn-consistent { min-width: 280px; max-width: 420px; }
+    @media (max-width: 900px) { .btn-save { min-width: 80%; } }
+    
+    .btn-save span,
+    .btn-save i {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn-save::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+    
+    .btn-save::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+        z-index: 1;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+        color: white !important;
+    }
+    
+    .btn-save:hover::before {
+        opacity: 1;
+    }
+    
+    .btn-save:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .btn-save:active {
+        transform: translateY(-1px);
+    }
+    
+    .btn-save:focus {
+        outline: 3px solid #43e97b;
+        outline-offset: 2px;
+    }
+
+    .btn-save.loading {
+        opacity: 0.9;
+        pointer-events: none;
+    }
+
+    .btn-save.loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Success Message */
+    .success-toast {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: var(--success-gradient);
+        color: white;
+        padding: 1.25rem 1.75rem;
+        border-radius: var(--radius-md);
+        box-shadow: 0 20px 60px rgba(67, 233, 123, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: 1000;
+        animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+                   fadeOut 0.3s ease 3s forwards;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        max-width: 400px;
+        backdrop-filter: blur(10px);
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeOut {
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 900px) {
+        .content-manage-wrapper {
+            padding: 1.25rem 0.5rem;
+        }
+        .form-section {
+            padding: 1.5rem 0.75rem;
+        }
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+        .quick-links {
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+        .quick-link {
+            width: 100%;
+            justify-content: center;
+            font-size: 1.12rem;
+            padding: 1.25rem 1.5rem;
+        }
+        .submit-card {
+            flex-direction: column;
+            gap: 1.2rem;
+            text-align: center;
+        }
+        .btn-save {
+            width: 100%;
+            justify-content: center;
+            position: fixed;
+            left: 50%;
+            bottom: 1.5rem;
+            transform: translateX(-50%);
+            z-index: 999;
+            box-shadow: 0 8px 32px rgba(102,126,234,0.18);
+        }
+        .floating-bg {
+            opacity: 0.08;
+        }
+    }
+
+    /* Desktop: keep submit actions visible and sticky */
+    @media (min-width: 901px) {
+        .submit-actions { position: sticky; top: 96px; align-self: flex-start; }
+        .submit-card { width: 320px; }
+    }
+    
+    @media (max-width: 480px) {
+        .content-hero {
+            padding: 1.25rem 0.5rem;
+        }
+        .content-hero h1 {
+            font-size: 1.25rem;
+        }
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .section-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 1.15rem;
+        }
+        .quick-link {
+            padding: 1rem 0.75rem;
+            font-size: 1.08rem;
+        }
+        .btn-save {
+            left: 50%;
+            bottom: 1rem;
+            transform: translateX(-50%);
+            font-size: 1.18rem;
+            padding: 1.5rem 2.5rem;
+        }
+    }
+
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --glass-bg: rgba(26, 29, 41, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b5d6;
+            --text-tertiary: #8c91b5;
+            --accent-light: rgba(102, 126, 234, 0.2);
+        }
+
+        .form-control,
+        .form-select,
+        textarea {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .form-control:focus,
+        .form-select:focus,
+        textarea:focus {
+            background: rgba(15, 23, 42, 1);
+            border-color: #667eea;
+        }
+
+        .file-upload-area {
+            background: rgba(15, 23, 42, 0.5);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+
+        .preview-card {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-save,
+        .quick-link:hover,
+        .quick-link:focus {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="Skip links" class="sticky-nav" style="position:sticky;top:0;z-index:102;background:var(--glass-bg);backdrop-filter:blur(12px);padding:0.5rem 1rem 0.5rem 1rem;border-bottom:1px solid var(--glass-border);">
+    <a href="#main-content" class="skip-link" tabindex="1" style="color:#667eea;font-weight:600;text-decoration:underline;">Skip to main content</a>
+    <span style="margin-left:1.5rem;color:var(--text-secondary);font-size:0.95rem;">Quick Navigation:</span>
+    <a href="#site-settings-section" class="skip-link" tabindex="2">Site Settings</a>
+    <a href="#banner-section" class="skip-link" tabindex="3">Banners</a>
+    <a href="#about-section" class="skip-link" tabindex="4">About Us</a>
+    <a href="#contact-section" class="skip-link" tabindex="5">Contact</a>
+    <a href="#checkout-section" class="skip-link" tabindex="6">Checkout</a>
+    <a href="#policies-section" class="skip-link" tabindex="7">Policies</a>
+</nav>
+<div class="content-manage-wrapper" id="main-content" role="main" aria-label="Content Management Area">
+    <!-- Floating Background Elements -->
+    <div class="floating-bg floating-bg-1" aria-hidden="true"></div>
+    <div class="floating-bg floating-bg-2" aria-hidden="true"></div>
+
+    <!-- Admin Hero Header -->
+    <div class="content-hero" role="banner" aria-label="Admin Content Management Header">
+        <h1>
+            <i class="bi bi-sliders" aria-hidden="true"></i>
+            Content Management
+        </h1>
+        <p>Design and control every aspect of your website. Update banners, configure settings, and manage content in real-time.</p>
+    </div>
+
+    <!-- Quick Section Links -->
+    <div class="quick-links" role="navigation" aria-label="Section Quick Links">
+        <a href="#site-settings-section" class="quick-link" aria-label="Go to Site Settings section" tabindex="8">
+            <i class="bi bi-gear-fill" aria-hidden="true"></i>
+            <span>Site Settings</span>
+        </a>
+        <a href="#banner-section" class="quick-link" aria-label="Go to Banners section" tabindex="9">
+            <i class="bi bi-image-alt" aria-hidden="true"></i>
+            <span>Banners</span>
+        </a>
+        <a href="#about-section" class="quick-link" aria-label="Go to About Us section" tabindex="10">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <span>About Us</span>
+        </a>
+        <a href="#contact-section" class="quick-link" aria-label="Go to Contact section" tabindex="11">
+            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            <span>Contact</span>
+        </a>
+        <a href="#checkout-section" class="quick-link" aria-label="Go to Checkout section" tabindex="12">
+            <i class="bi bi-credit-card" aria-hidden="true"></i>
+            <span>Checkout</span>
+        </a>
+        <a href="#policies-section" class="quick-link" aria-label="Go to Policies section" tabindex="13">
+            <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+            <span>Policies</span>
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" novalidate id="content-form" aria-label="Content Management Form">
+        {% csrf_token %}
+
+        {% if site_settings_form %}
+        <!-- Site Settings Section (NEW) -->
+        <section class="form-section" id="site-settings-section" aria-labelledby="site-settings-title" role="region" style="border-left: 4px solid #667eea;">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-gear-fill" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="site-settings-title">Site Settings</h3>
+                    <p class="section-description">
+                        Configure your store name, branding, social media, shipping policies, and SEO settings.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Site Identity -->
+            <div style="margin-bottom:2rem;">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-shop" style="color:#667eea;"></i> Store Identity
+                </h4>
+                <div class="form-grid">
+                    {% for field in site_settings_form.visible_fields %}
+                        {% if field.name in 'site_name,site_tagline,site_logo,favicon,footer_text' %}
+                        <div class="form-group" role="group" aria-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                <i class="bi {% if 'name' in field.name %}bi-shop{% elif 'tagline' in field.name %}bi-quote{% elif 'logo' in field.name %}bi-image{% elif 'favicon' in field.name %}bi-window{% elif 'footer' in field.name %}bi-card-text{% else %}bi-gear{% endif %}" aria-hidden="true"></i>
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Business Info -->
+            <div style="margin-bottom:2rem;">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-building" style="color:#667eea;"></i> Business Information
+                </h4>
+                <div class="form-grid">
+                    {% for field in site_settings_form.visible_fields %}
+                        {% if field.name in 'store_address,business_hours' %}
+                        <div class="form-group" role="group" aria-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                <i class="bi {% if 'address' in field.name %}bi-geo-alt{% elif 'hours' in field.name %}bi-clock{% else %}bi-building{% endif %}" aria-hidden="true"></i>
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Social Media -->
+            <div style="margin-bottom:2rem;">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-share" style="color:#667eea;"></i> Social Media Links
+                </h4>
+                <div class="form-grid">
+                    {% for field in site_settings_form.visible_fields %}
+                        {% if '_handle' in field.name or '_number' in field.name %}
+                        <div class="form-group" role="group" aria-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                <i class="bi {% if 'twitter' in field.name %}bi-twitter{% elif 'instagram' in field.name %}bi-instagram{% elif 'facebook' in field.name %}bi-facebook{% elif 'whatsapp' in field.name %}bi-whatsapp{% elif 'tiktok' in field.name %}bi-tiktok{% elif 'youtube' in field.name %}bi-youtube{% else %}bi-link{% endif %}" aria-hidden="true"></i>
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Shipping & Policies -->
+            <div style="margin-bottom:2rem;">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-truck" style="color:#667eea;"></i> Shipping & Returns
+                </h4>
+                <div class="form-grid">
+                    {% for field in site_settings_form.visible_fields %}
+                        {% if field.name in 'free_shipping_threshold,return_policy_days' %}
+                        <div class="form-group" role="group" aria-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                <i class="bi {% if 'shipping' in field.name %}bi-box-seam{% elif 'return' in field.name %}bi-arrow-return-left{% else %}bi-truck{% endif %}" aria-hidden="true"></i>
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SEO -->
+            <div style="margin-bottom:1rem;">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-search" style="color:#667eea;"></i> SEO Settings
+                </h4>
+                <div class="form-grid">
+                    {% for field in site_settings_form.visible_fields %}
+                        {% if field.name in 'meta_description,meta_keywords' %}
+                        <div class="form-group" role="group" aria-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                <i class="bi {% if 'description' in field.name %}bi-card-text{% elif 'keywords' in field.name %}bi-tags{% else %}bi-search{% endif %}" aria-hidden="true"></i>
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if banner_form %}
+        <!-- Banner Section -->
+        <section class="form-section" id="banner-section" aria-labelledby="banner-title" tabindex="14" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-image-alt" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="banner-title">Homepage Banner</h3>
+                    <p class="section-description">
+                        Create an engaging first impression with a stunning banner that showcases your brand.
+                    </p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                {{ banner_form.non_field_errors }}
+                {% for field in banner_form.visible_fields %}
+                <div class="form-group" role="group" aria-label="{{ field.label }}">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        <i class="bi 
+                            {% if field.name == 'image' %}bi-image
+                            {% elif field.name == 'title' %}bi-type-h1
+                            {% elif field.name == 'subtitle' %}bi-type
+                            {% else %}bi-link-45deg{% endif %}" aria-hidden="true"></i>
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                    </label>
+                    {% if field.name == 'image' and field.value %}
+                    <div class="image-preview-grid">
+                        <div class="preview-card">
+                            <img src="{{ field.value.url }}" alt="Current banner image" aria-label="Current banner image">
+                            <div class="preview-overlay">
+                                <span style="color: white; font-size: 0.85rem;">Current Image</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if field.name == 'image' %}
+                    <div class="file-upload-area" onclick="this.querySelector('input').click()" aria-label="Upload banner image">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+                        </div>
+                        <div class="upload-text">Click to upload or drag and drop</div>
+                        <div class="upload-hint">PNG, JPG, GIF up to 5MB</div>
+                        {{ field }}
+                    </div>
+                    {% else %}
+                    {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                    </div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div style="margin-top: 0.5rem; color: #ef4444; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <section class="form-section" id="banner-section" aria-labelledby="banner-title" tabindex="10" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-image-alt" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="banner-title">Homepage Banner</h3>
+                    <p class="section-description">No banner form available. Please add banner content.</p>
+                </div>
+            </div>
+            <div style="color:var(--text-tertiary);font-size:1rem;">No banner fields to display.</div>
+        </section>
+        {% endif %}
+
+        {% if about_form %}
+        <!-- About Section -->
+        <section class="form-section" id="about-section" aria-labelledby="about-title" tabindex="11" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="about-title">About Us</h3>
+                    <p class="section-description">
+                        Welcome to OD. We launched as a small, local online boutique with a simple goal: make thoughtfully curated products accessible and affordable.<br>
+                        We're a lean team focused on fast, friendly service — hand-packing each order and working directly with a small group of trusted makers and suppliers.<br>
+                        As a growing business, we prioritize product quality, clear communication, and listening to early customers so we can improve quickly.
+                    </p>
+                </div>
+            </div>
+                <div class="form-grid">
+                {{ about_form.non_field_errors }}
+                {% with about_placeholder="Welcome to OD. We launched as a small, local online boutique with a simple goal: make thoughtfully curated products accessible and affordable. We're a lean team focused on fast, friendly service — hand-packing each order and working directly with a small group of trusted makers and suppliers. As a growing business, we prioritise product quality, clear communication, and listening to early customers so we can improve quickly." %}
+                {% for field in about_form.visible_fields %}
+                <div class="form-group" role="group" aria-label="{{ field.label }}">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        <i class="bi 
+                            {% if 'title' in field.name %}bi-type-h2
+                            {% elif 'description' in field.name or 'text' in field.name %}bi-card-text
+                            {% elif 'image' in field.name %}bi-image
+                            {% else %}bi-pen{% endif %}" aria-hidden="true"></i>
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                    </label>
+                    {% if 'image' in field.name and field.value %}
+                    <div class="image-preview-grid">
+                        <div class="preview-card">
+                            <img src="{{ field.value.url }}" alt="About image" aria-label="Current about image">
+                            <div class="preview-overlay">
+                                <span style="color: white; font-size: 0.85rem;">Current Image</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if 'image' in field.name %}
+                    <div class="file-upload-area" onclick="this.querySelector('input').click()" aria-label="Upload about image">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+                        </div>
+                        <div class="upload-text">Click to upload or drag and drop</div>
+                        <div class="upload-hint">PNG, JPG, GIF up to 5MB</div>
+                        {{ field }}
+                    </div>
+                    {% else %}
+                        {# If this is the main content/description field, show a helpful placeholder when empty #}
+                        {% if 'content' in field.name or 'description' in field.name or 'text' in field.name %}
+                            {% if field.value %}
+                                {{ field }}
+                            {% else %}
+                                {{ field }}
+                                <div class="form-text text-muted" style="margin-top:0.5rem;">Suggested content: {{ about_placeholder }}</div>
+                            {% endif %}
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                    {% endif %}
+                    {% if field.help_text %}
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                    </div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div style="margin-top: 0.5rem; color: #ef4444; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                {% endwith %}
+            </div>
+        </section>
+        {% else %}
+        <section class="form-section" id="about-section" aria-labelledby="about-title" tabindex="11" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="about-title">About Us</h3>
+                    <p class="section-description">No about form available. Please add about content.</p>
+                </div>
+            </div>
+            <div style="color:var(--text-tertiary);font-size:1rem;">No about fields to display.</div>
+        </section>
+        {% endif %}
+
+        {% if contact_form %}
+        <!-- Contact Section -->
+        <section class="form-section" id="contact-section" aria-labelledby="contact-title" tabindex="12" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="contact-title">Contact Information</h3>
+                    <p class="section-description">
+                        Make it easy for customers to reach you. Add your location, phone, email, and social links.
+                    </p>
+                </div>
+            </div>
+            <div class="form-grid">
+                {{ contact_form.non_field_errors }}
+                {% for field in contact_form.visible_fields %}
+                <div class="form-group" role="group" aria-label="{{ field.label }}">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        <i class="bi 
+                            {% if 'email' in field.name %}bi-envelope
+                            {% elif 'phone' in field.name %}bi-telephone
+                            {% elif 'address' in field.name %}bi-geo-alt
+                            {% elif 'map' in field.name %}bi-map
+                            {% elif 'social' in field.name %}bi-share
+                            {% elif 'facebook' in field.name %}bi-facebook
+                            {% elif 'twitter' in field.name %}bi-twitter
+                            {% elif 'instagram' in field.name %}bi-instagram
+                            {% elif 'whatsapp' in field.name %}bi-whatsapp
+                            {% else %}bi-chat-dots{% endif %}" aria-hidden="true"></i>
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                    </label>
+                    {% if 'map' in field.name %}
+                    <div class="map-container" aria-label="Map location">
+                        <div id="map"></div>
+                    </div>
+                    {% endif %}
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                    </div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div style="margin-top: 0.5rem; color: #ef4444; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <section class="form-section" id="contact-section" aria-labelledby="contact-title" tabindex="12" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="contact-title">Contact Information</h3>
+                    <p class="section-description">No contact form available. Please add contact content.</p>
+                </div>
+            </div>
+            <div style="color:var(--text-tertiary);font-size:1rem;">No contact fields to display.</div>
+        </section>
+        {% endif %}
+
+        {% if checkout_form %}
+        <!-- Checkout Section -->
+        <section class="form-section" id="checkout-section" aria-labelledby="checkout-title" tabindex="13" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-credit-card" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="checkout-title">Checkout & Payment Settings</h3>
+                    <p class="section-description">
+                        Configure payment options, delivery fees, and bank transfer details for manual payments.
+                    </p>
+                </div>
+            </div>
+            <div class="form-grid">
+                {{ checkout_form.non_field_errors }}
+                {% for field in checkout_form.visible_fields %}
+                <div class="form-group" role="group" aria-label="{{ field.label }}">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        <i class="bi 
+                            {% if 'delivery' in field.name or 'fee' in field.name %}bi-truck
+                            {% elif 'bank' in field.name %}bi-bank
+                            {% elif 'account' in field.name %}bi-credit-card-2-front
+                            {% elif 'payment' in field.name %}bi-cash-coin
+                            {% elif 'terms' in field.name %}bi-file-text
+                            {% else %}bi-gear{% endif %}" aria-hidden="true"></i>
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color: #ef4444;">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                    </div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div style="margin-top: 0.5rem; color: #ef4444; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <section class="form-section" id="checkout-section" aria-labelledby="checkout-title" tabindex="13" role="region">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-credit-card" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="checkout-title">Checkout & Payment Settings</h3>
+                    <p class="section-description">No checkout form available. Please add checkout content.</p>
+                </div>
+            </div>
+            <div style="color:var(--text-tertiary);font-size:1rem;">No checkout fields to display.</div>
+        </section>
+        {% endif %}
+
+        <!-- Policies Section (FAQ, Privacy, Terms) -->
+        <section class="form-section" id="policies-section" aria-labelledby="policies-title" role="region" style="border-left: 4px solid #10b981;">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="bi bi-file-earmark-text" aria-hidden="true" style="color: white;"></i>
+                </div>
+                <div>
+                    <h3 class="section-title" id="policies-title">Legal & Policy Pages</h3>
+                    <p class="section-description">
+                        Edit your FAQ, Privacy Policy, and Terms & Conditions pages content.
+                    </p>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            {% if faq_form %}
+            <div style="margin-bottom:2.5rem;padding:1.5rem;background:rgba(16,185,129,0.05);border-radius:var(--radius-md);border:1px solid rgba(16,185,129,0.2);">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-question-circle" style="color:#10b981;"></i> FAQ (Frequently Asked Questions)
+                </h4>
+                <div class="form-grid">
+                    {% for field in faq_form.visible_fields %}
+                    <div class="form-group" role="group" aria-label="{{ field.label }}">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            <i class="bi {% if 'title' in field.name %}bi-type-h1{% else %}bi-card-text{% endif %}" aria-hidden="true"></i>
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Privacy Policy -->
+            {% if privacy_form %}
+            <div style="margin-bottom:2.5rem;padding:1.5rem;background:rgba(59,130,246,0.05);border-radius:var(--radius-md);border:1px solid rgba(59,130,246,0.2);">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-shield-lock" style="color:#3b82f6;"></i> Privacy Policy
+                </h4>
+                <div class="form-grid">
+                    {% for field in privacy_form.visible_fields %}
+                    <div class="form-group" role="group" aria-label="{{ field.label }}">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            <i class="bi {% if 'title' in field.name %}bi-type-h1{% else %}bi-card-text{% endif %}" aria-hidden="true"></i>
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Terms & Conditions -->
+            {% if terms_form %}
+            <div style="padding:1.5rem;background:rgba(245,158,11,0.05);border-radius:var(--radius-md);border:1px solid rgba(245,158,11,0.2);">
+                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-file-earmark-check" style="color:#f59e0b;"></i> Terms & Conditions
+                </h4>
+                <div class="form-grid">
+                    {% for field in terms_form.visible_fields %}
+                    <div class="form-group" role="group" aria-label="{{ field.label }}">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            <i class="bi {% if 'title' in field.name %}bi-type-h1{% else %}bi-card-text{% endif %}" aria-hidden="true"></i>
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-tertiary);">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i> {{ field.help_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Preview Mode Stub -->
+        <section class="form-section" id="preview-section" aria-label="Preview Mode" tabindex="14" role="region" style="background:rgba(255,255,255,0.85);border:2px dashed var(--primary-light);">
+            <div class="section-header">
+                <div class="section-icon" aria-hidden="true">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="section-title">Preview Mode</h3>
+                    <p class="section-description">Live preview — updates as you edit fields below.</p>
+                </div>
+            </div>
+
+            <!-- Preview Controls -->
+            <div class="preview-controls mb-3" role="tablist" aria-label="Preview tabs">
+                <button type="button" class="btn btn-outline-primary btn-sm me-2 preview-tab active" data-target="banner">Banner</button>
+                <button type="button" class="btn btn-outline-primary btn-sm me-2 preview-tab" data-target="about">About</button>
+                <button type="button" class="btn btn-outline-primary btn-sm me-2 preview-tab" data-target="contact">Contact</button>
+                <button type="button" class="btn btn-outline-primary btn-sm preview-tab" data-target="checkout">Checkout</button>
+            </div>
+
+            <div class="preview-container">
+                <div class="preview-pane" id="preview-banner" style="display:block;">
+                    <div class="preview-banner p-4 rounded-3 text-white" style="background:var(--primary-gradient);">
+                        <div id="preview-announcement" class="small fw-semibold mb-2" style="opacity:.95;"></div>
+                        <h2 id="preview-banner-title" class="mb-2">Homepage</h2>
+                        <p id="preview-banner-content" class="mb-0">This text appears in the banner on the homepage.</p>
+                    </div>
+                </div>
+
+                <div class="preview-pane" id="preview-about" style="display:none;">
+                    <div class="preview-about-card p-4 rounded-3 border bg-white">
+                        <h3 id="preview-about-title">About Us</h3>
+                        <p id="preview-about-content" class="text-muted">hello</p>
+                    </div>
+                </div>
+
+                <div class="preview-pane" id="preview-contact" style="display:none;">
+                    <div class="preview-contact-card p-4 rounded-3 border bg-white">
+                        <h5 class="mb-2">Contact</h5>
+                        <p id="preview-contact-content" class="text-muted">Make it easy for customers to reach you.</p>
+                        <div class="mt-2">
+                            <div><strong>Phone:</strong> <span id="preview-phone">08037105898</span></div>
+                            <div><strong>Email:</strong> <a id="preview-email" href="mailto:dokonkwo12@gmail.com">dokonkwo12@gmail.com</a></div>
+                            <div id="preview-social" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-pane" id="preview-checkout" style="display:none;">
+                    <div class="preview-checkout-card p-4 rounded-3 border bg-white d-flex flex-column gap-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><small class="text-muted">Subtotal</small><div class="fw-bold">₦0.00</div></div>
+                            <div><small class="text-muted">Delivery</small><div class="fw-bold">₦0.00</div></div>
+                        </div>
+                        <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                            <div class="fw-bold">Total</div>
+                            <div class="fw-bold fs-4 text-primary">₦0.00</div>
+                        </div>
+                        <div class="text-end"><button class="btn btn-consistent btn-primary">Place Order</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                /* Preview-specific styles */
+                #preview-section .preview-container { display:block; }
+                .preview-pane { margin-top: 1rem; }
+                .preview-banner h2 { font-size: 1.6rem; margin-bottom: .25rem; }
+                .preview-about-card h3 { margin-bottom: .5rem; }
+                .preview-contact-card a { color: var(--primary-color); }
+                .preview-social a { margin-right: .5rem; display:inline-flex; gap:.4rem; align-items:center; padding:.25rem .5rem; border-radius:6px; background:var(--accent-light); color:var(--primary-color); text-decoration:none; }
+                .preview-banner, .preview-about-card, .preview-contact-card, .preview-checkout-card { box-shadow: 0 8px 24px rgba(2,6,23,0.06); }
+                @media (max-width: 900px) { .preview-banner h2 { font-size: 1.25rem; } .preview-checkout-card .btn-consistent { width:100%; } }
+            </style>
+        </section>
+
+        <!-- Progress Indicator -->
+        <div class="progress-container" aria-label="Form Progress Indicator">
+            <div class="progress-card">
+                <div class="progress-label">Form Progress</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="form-progress"></div>
+                </div>
+                <div id="progress-percentage" style="font-weight: 600; color: var(--text-primary);">0%</div>
+            </div>
+        </div>
+
+        <!-- Submit Actions -->
+        <div class="submit-actions" aria-label="Submit Actions">
+            <div class="submit-card">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="bi bi-clock-history" style="color: var(--text-secondary);" aria-hidden="true"></i>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Changes are saved instantly
+                    </span>
+                </div>
+                <button type="submit" class="btn-save btn-consistent" id="save-button" aria-label="Save All Changes" tabindex="15">
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
+                    <span>Save All Changes</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Quick links smooth scrolling
+        const quickLinks = document.querySelectorAll('.quick-link');
+        quickLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                if (targetSection) {
+                    targetSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Form progress tracking
+        const form = document.getElementById('content-form');
+        const progressFill = document.getElementById('form-progress');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const saveButton = document.getElementById('save-button');
+        
+        if (form && progressFill) {
+            const inputs = form.querySelectorAll('input, textarea, select');
+            const totalInputs = inputs.length;
+            
+            function updateProgress() {
+                let filled = 0;
+                inputs.forEach(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (input.checked) filled++;
+                    } else if (input.type === 'file') {
+                        if (input.files && input.files.length > 0) filled++;
+                    } else if (input.value && input.value.trim() !== '') {
+                        filled++;
+                    }
+                });
+                
+                const percentage = Math.min(100, Math.round((filled / totalInputs) * 100));
+                progressFill.style.width = `${percentage}%`;
+                progressPercentage.textContent = `${percentage}%`;
+                
+                // Visual feedback
+                if (percentage === 100) {
+                    progressFill.style.background = 'var(--success-gradient)';
+                } else {
+                    progressFill.style.background = 'var(--primary-gradient)';
+                }
+            }
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', updateProgress);
+                input.addEventListener('change', updateProgress);
+            });
+            
+            // Initialize progress
+            updateProgress();
+        }
+
+        // File upload enhancement
+        const fileAreas = document.querySelectorAll('.file-upload-area');
+        fileAreas.forEach(area => {
+            const fileInput = area.querySelector('input[type="file"]');
+            
+            if (fileInput) {
+                area.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    area.classList.add('dragover');
+                });
+                
+                area.addEventListener('dragleave', () => {
+                    area.classList.remove('dragover');
+                });
+                
+                area.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    area.classList.remove('dragover');
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        fileInput.dispatchEvent(new Event('change'));
+                        updateFileDisplay(area, fileInput);
+                    }
+                });
+                
+                fileInput.addEventListener('change', () => {
+                    updateFileDisplay(area, fileInput);
+                });
+            }
+        });
+        
+        function updateFileDisplay(area, input) {
+            const uploadText = area.querySelector('.upload-text');
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                const fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
+                uploadText.innerHTML = `<strong>${fileName}</strong> (${fileSize} MB)`;
+                area.style.borderColor = '#10b981';
+                area.style.background = 'rgba(16, 185, 129, 0.05)';
+            }
+        }
+
+        // Map functionality (if exists)
+        const mapDiv = document.getElementById('map');
+        const embedInput = document.querySelector('input[name*="map_embed"]');
+        
+        if (mapDiv && embedInput) {
+            // Extract coordinates from existing embed or use default
+            let lat = 6.5244, lng = 3.3792; // Default: Lagos, Nigeria
+            const match = embedInput.value.match(/q=([\d.\-]+),([\d.\-]+)/);
+            
+            if (match) {
+                lat = parseFloat(match[1]);
+                lng = parseFloat(match[2]);
+            }
+            
+            const map = L.map('map').setView([lat, lng], 13);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            const marker = L.marker([lat, lng], {
+                draggable: true
+            }).addTo(map);
+            
+            // Update embed on marker drag
+            function updateEmbed(lat, lng) {
+                const embed = `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed" width="100%" height="250" frameborder="0" style="border:0" allowfullscreen></iframe>`;
+                embedInput.value = embed;
+            }
+            
+            marker.on('dragend', function(e) {
+                const pos = marker.getLatLng();
+                updateEmbed(pos.lat, pos.lng);
+            });
+            
+            // Also update on map click
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateEmbed(e.latlng.lat, e.latlng.lng);
+            });
+            
+            // Initialize embed
+            updateEmbed(lat, lng);
+        }
+
+        // Form submission
+        if (form && saveButton) {
+            form.addEventListener('submit', function(e) {
+                saveButton.classList.add('loading');
+                saveButton.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Saving...';
+                
+                // Show success message
+                setTimeout(() => {
+                    const successToast = document.createElement('div');
+                    successToast.className = 'success-toast';
+                    successToast.innerHTML = `
+                        <i class="bi bi-check-circle-fill" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <div style="font-weight: 600;">Changes saved successfully!</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">Your updates are now live.</div>
+                        </div>
+                    `;
+                    document.body.appendChild(successToast);
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        saveButton.classList.remove('loading');
+                        saveButton.innerHTML = '<i class="bi bi-check-circle"></i><span>Save All Changes</span>';
+                    }, 3000);
+                    
+                    // Remove toast after animation
+                    setTimeout(() => {
+                        successToast.remove();
+                    }, 3300);
+                }, 800);
+            });
+        }
+
+        // Auto-save draft (optional feature)
+        let autoSaveTimer;
+        form?.addEventListener('input', () => {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                console.log('Auto-save triggered');
+                // Implement auto-save logic here
+            }, 3000);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveButton.click();
+            }
+        });
+        
+        // Real-time field validation styling
+        const textInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="url"], input[type="number"], textarea');
+        textInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() !== '') {
+                    if (this.checkValidity()) {
+                        this.style.borderColor = '#10b981';
+                    } else {
+                        this.style.borderColor = '#ef4444';
+                    }
+                }
+            });
+            
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '#667eea';
+            });
+        });
+
+        /* ---------------------
+           Live Preview bindings
+           --------------------- */
+        function escapeHtml(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function nl2brSafe(s) { return escapeHtml(s).replace(/\n/g, '<br>'); }
+
+        // Tab switching for preview panes
+        document.querySelectorAll('.preview-tab').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.preview-tab').forEach(b=>b.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.dataset.target;
+                document.querySelectorAll('.preview-pane').forEach(p => p.style.display = 'none');
+                const pane = document.getElementById('preview-' + target);
+                if (pane) pane.style.display = 'block';
+            });
+        });
+
+        // Helpers to find inputs per section
+        const q = sel => document.querySelector(sel);
+        const bySection = (section, selector) => document.querySelector(`#${section} ${selector}`);
+
+        // Banner
+        const bannerTitle = bySection('banner-section', '[name*="title"]');
+        const bannerContent = bySection('banner-section', 'textarea[name*="content"], textarea');
+        const bannerAnnouncement = document.querySelector('[name*="announcement_text"]');
+        const bannerBgSelect = bySection('banner-section', '[name*="background_style"], select');
+
+        // About
+        const aboutTitle = bySection('about-section', '[name*="title"]');
+        const aboutContent = bySection('about-section', 'textarea[name*="content"], textarea');
+
+        // Contact
+        const contactPhone = bySection('contact-section', '[name*="phone"]');
+        const contactEmail = bySection('contact-section', '[name*="email"]');
+        const contactSocial = bySection('contact-section', '[name*="social"], [name*="social_links"]');
+
+        function applyBannerBackground(styleVal, el) {
+            const map = {
+                'neon_pulse': 'linear-gradient(-45deg,#7c3aed 0%,#00f5a0 50%,#ff6b6b 100%)',
+                'sunset_blur': 'linear-gradient(135deg,#ff5f6d 0%,#ff9966 45%,#ffd6a5 100%)',
+                'stellar_night': 'radial-gradient(ellipse at bottom,#0b1020 0%,#0f1724 60%,#071024 100%)',
+                'gradient_orange': 'linear-gradient(135deg,#ea580c 0%,#fb923c 45%,#ffd6a5 100%)',
+                'gradient_blue': 'var(--primary-gradient)',
+                'gradient_purple': 'linear-gradient(135deg,#581c87 0%,#7e22ce 50%,#581c87 100%)',
+                'gradient_green': 'linear-gradient(135deg,#166534 0%,#22c55e 50%,#166534 100%)',
+                'animated_gradient': 'linear-gradient(-45deg,#ee7752,#e73c7e,#23a6d5,#23d5ab)'
+            };
+            el.style.background = map[styleVal] || 'var(--primary-gradient)';
+        }
+
+        function updateBannerPreview() {
+            const title = bannerTitle?.value || 'Homepage';
+            const content = bannerContent?.value || 'This text appears in the banner on the homepage.';
+            const ann = bannerAnnouncement?.value || '';
+            q('#preview-banner-title').innerHTML = nl2brSafe(title);
+            q('#preview-banner-content').innerHTML = nl2brSafe(content);
+            q('#preview-announcement').innerHTML = ann ? nl2brSafe(ann) : '';
+            const bgVal = bannerBgSelect?.value || '';
+            applyBannerBackground(bgVal, q('.preview-banner'));
+        }
+
+        function updateAboutPreview() {
+            const title = aboutTitle?.value || 'About Us';
+            const content = (aboutContent?.value && aboutContent.value.trim() !== '') ? aboutContent.value : (aboutContent?.placeholder || 'Tell your story.');
+            q('#preview-about-title').textContent = title;
+            q('#preview-about-content').innerHTML = nl2brSafe(content);
+        }
+
+        function updateContactPreview() {
+            const phone = contactPhone?.value || '';
+            const email = contactEmail?.value || '';
+            const social = contactSocial?.value || '';
+            q('#preview-phone').textContent = phone;
+            q('#preview-email').textContent = email;
+            q('#preview-email').href = email ? `mailto:${email}` : '#';
+
+            const container = q('#preview-social');
+            container.innerHTML = '';
+            if (social) {
+                social.split(',').map(s => s.trim()).filter(Boolean).forEach(link => {
+                    const a = document.createElement('a');
+                    a.href = link;
+                    a.target = '_blank';
+                    a.rel = 'noopener';
+                    a.innerHTML = `<i class="bi bi-link-45deg"></i>&nbsp;Link`;
+                    container.appendChild(a);
+                });
+            }
+        }
+
+        // Wire inputs to preview updates
+        [bannerTitle, bannerContent, bannerAnnouncement, bannerBgSelect].forEach(el => el && el.addEventListener('input', updateBannerPreview));
+        [aboutTitle, aboutContent].forEach(el => el && el.addEventListener('input', updateAboutPreview));
+        [contactPhone, contactEmail, contactSocial].forEach(el => el && el.addEventListener('input', updateContactPreview));
+
+        // Initialize previews on load
+        updateBannerPreview();
+        updateAboutPreview();
+        updateContactPreview();
+
+    });
+</script>
+{% endblock %}

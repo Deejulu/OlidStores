@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    :root { --ar-radius:16px; --ar-shadow:0 4px 20px rgba(0,0,0,0.07); }
+    .ar-page { background:linear-gradient(135deg,#f8f9fa,#e9ecef); min-height:100vh; padding:2rem 0; }
+    .ar-hero {
+        background:linear-gradient(135deg,{{ theme_colors.primary }} 0%,{{ theme_colors.primary_dark }} 100%);
+        border-radius:var(--ar-radius);padding:2.5rem 2rem 2rem;color:#fff;
+        margin-bottom:2rem;position:relative;overflow:hidden;
+        box-shadow:0 8px 30px rgba(0,0,0,.15);
+    }
+    .ar-hero::after {
+        content:'';position:absolute;right:-60px;top:-60px;
+        width:250px;height:250px;border-radius:50%;background:rgba(255,255,255,.06);
+    }
+    .ar-hero h1 { font-size:1.9rem;font-weight:900;margin:0 0 .35rem; }
+    .ar-hero p  { opacity:.85;font-size:.9rem;margin:0; }
+
+    .ar-stat { background:#fff;border-radius:12px;padding:1.25rem 1rem;box-shadow:var(--ar-shadow);text-align:center; }
+    .ar-stat-val { font-size:2rem;font-weight:900; }
+    .ar-stat-lbl { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#6b7280; }
+
+    .ar-cat-bar {
+        background:#fff;border-radius:12px;padding:.9rem 1.25rem;
+        box-shadow:var(--ar-shadow);margin-bottom:1.25rem;
+        display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+    }
+    .ar-cat-btn {
+        padding:.3rem .85rem;border-radius:99px;font-size:.8rem;font-weight:700;
+        border:2px solid #e5e7eb;background:#f9fafb;color:#374151;cursor:pointer;
+        transition:all .2s;
+    }
+    .ar-cat-btn.active, .ar-cat-btn:hover {
+        background:{{ theme_colors.primary }};border-color:{{ theme_colors.primary }};color:#fff;
+    }
+
+    .ar-card {
+        background:#fff;border-radius:var(--ar-radius);box-shadow:var(--ar-shadow);
+        margin-bottom:1rem;overflow:hidden;transition:box-shadow .2s;
+    }
+    .ar-card:hover { box-shadow:0 8px 30px rgba(0,0,0,.12); }
+    .ar-card-head {
+        display:flex;align-items:center;gap:.75rem;padding:.9rem 1.25rem;
+        border-bottom:1px solid #f3f4f6;flex-wrap:wrap;
+    }
+    .ar-cat-badge {
+        font-size:.7rem;font-weight:700;padding:.25rem .7rem;border-radius:99px;
+        text-transform:uppercase;letter-spacing:.5px;
+    }
+    .ar-cat-orders  { background:#dbeafe;color:#1d4ed8; }
+    .ar-cat-payment { background:#fce7f3;color:#9d174d; }
+    .ar-cat-returns { background:#d1fae5;color:#065f46; }
+    .ar-cat-products{ background:#fef3c7;color:#92400e; }
+    .ar-cat-account { background:#ede9fe;color:#5b21b6; }
+    .ar-cat-general { background:#f3f4f6;color:#374151; }
+
+    .ar-question { font-weight:800;font-size:.95rem;color:#111827;flex:1; }
+    .ar-priority  { font-size:.78rem;color:#6b7280;font-weight:600;margin-left:auto;white-space:nowrap; }
+    .ar-inactive  { opacity:.5; }
+
+    .ar-card-body  { padding:1rem 1.25rem; }
+    .ar-keywords   { display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.75rem; }
+    .ar-kw-chip    {
+        background:#f3f4f6;border:1px solid #e5e7eb;border-radius:99px;
+        padding:.2rem .65rem;font-size:.72rem;color:#374151;font-weight:600;
+    }
+    .ar-response   { font-size:.875rem;color:#374151;line-height:1.55; }
+
+    .ar-card-foot  {
+        display:flex;align-items:center;gap:.5rem;padding:.75rem 1.25rem;
+        border-top:1px solid #f3f4f6;flex-wrap:wrap;
+    }
+    .ar-btn        {
+        padding:.32rem .8rem;border-radius:99px;font-size:.78rem;font-weight:700;
+        border:2px solid transparent;cursor:pointer;transition:all .2s;
+        text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;
+    }
+    .ar-btn-edit   { background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8; }
+    .ar-btn-edit:hover { background:#1d4ed8;color:#fff; }
+    .ar-btn-toggle { background:#f0fdf4;border-color:#bbf7d0;color:#16a34a; }
+    .ar-btn-toggle:hover { background:#16a34a;color:#fff; }
+    .ar-btn-toggle.is-active { background:#fef9c3;border-color:#fde047;color:#854d0e; }
+    .ar-btn-toggle.is-active:hover { background:#854d0e;color:#fff; }
+    .ar-btn-delete { background:#fef2f2;border-color:#fecaca;color:#dc2626; }
+    .ar-btn-delete:hover { background:#dc2626;color:#fff; }
+
+    /* Add/Edit modal */
+    .ar-modal-overlay {
+        display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1050;
+        align-items:center;justify-content:center;padding:1rem;
+    }
+    .ar-modal-overlay.show { display:flex; }
+    .ar-modal {
+        background:#fff;border-radius:var(--ar-radius);box-shadow:0 20px 60px rgba(0,0,0,.25);
+        width:100%;max-width:640px;max-height:90vh;overflow-y:auto;
+    }
+    .ar-modal-head {
+        display:flex;align-items:center;justify-content:space-between;
+        padding:1.25rem 1.5rem;border-bottom:1px solid #f3f4f6;
+    }
+    .ar-modal-title { font-size:1.1rem;font-weight:800;color:#111827; }
+    .ar-modal-close {
+        background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;
+        line-height:1;padding:.25rem .5rem;border-radius:8px;transition:background .15s;
+    }
+    .ar-modal-close:hover { background:#f3f4f6;color:#111827; }
+    .ar-modal-body { padding:1.5rem; }
+    .ar-form-group  { margin-bottom:1rem; }
+    .ar-form-label  { display:block;font-size:.82rem;font-weight:700;color:#374151;margin-bottom:.35rem; }
+    .ar-form-hint   { font-size:.74rem;color:#9ca3af;margin-top:.25rem; }
+    .ar-form-control {
+        width:100%;border:2px solid #e5e7eb;border-radius:10px;padding:.6rem .85rem;
+        font-size:.88rem;color:#111827;transition:border-color .2s;outline:none;
+    }
+    .ar-form-control:focus { border-color:{{ theme_colors.primary }}; }
+    textarea.ar-form-control { resize:vertical;min-height:90px; }
+    .ar-modal-foot { padding:1rem 1.5rem;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:.75rem; }
+    .ar-btn-cancel { background:#f3f4f6;border:2px solid #e5e7eb;color:#374151;padding:.45rem 1.1rem;border-radius:99px;font-size:.84rem;font-weight:700;cursor:pointer; }
+    .ar-btn-save   {
+        background:{{ theme_colors.primary }};border:2px solid {{ theme_colors.primary }};
+        color:#fff;padding:.45rem 1.3rem;border-radius:99px;font-size:.84rem;font-weight:700;cursor:pointer;
+        transition:opacity .2s;
+    }
+    .ar-btn-save:hover { opacity:.88; }
+
+    .ar-empty { text-align:center;padding:3rem 1rem;color:#9ca3af; }
+    .ar-empty-icon { font-size:3rem;margin-bottom:1rem; }
+</style>
+
+<div class="ar-page">
+<div class="container-lg py-2">
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-3">
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-2" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Hero -->
+    <div class="ar-hero mb-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h1>&#129302; Auto-Reply Rules</h1>
+                <p>FAQ keyword-matching bot — manage automated responses sent to customers</p>
+            </div>
+            <div>
+                <a href="{% url 'admin_dashboard:chat_list' %}" class="ar-btn" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4);color:#fff;">
+                    &#8592; Chat list
+                </a>
+                <button class="ar-btn ms-1" style="background:rgba(255,255,255,.95);color:{{ theme_colors.primary }};border-color:transparent;"
+                        onclick="openAddModal()">
+                    &#43; Add rule
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats row -->
+    {% with total=rules|length %}
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="ar-stat">
+                <div class="ar-stat-val" style="color:{{ theme_colors.primary }};">{{ total }}</div>
+                <div class="ar-stat-lbl">Total rules</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="ar-stat">
+                <div class="ar-stat-val" style="color:#16a34a;">
+                    {{ rules|length }}{% comment %}active count done via JS filter below{% endcomment %}
+                    <span id="active-count" style="font-size:2rem;font-weight:900;"></span>
+                </div>
+                <div class="ar-stat-lbl">Active</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="ar-stat">
+                <div class="ar-stat-val" style="color:#9ca3af;"><span id="inactive-count"></span></div>
+                <div class="ar-stat-lbl">Inactive</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="ar-stat">
+                <div class="ar-stat-val" style="color:#f59e0b;"><span id="cat-count"></span></div>
+                <div class="ar-stat-lbl">Categories</div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+
+    <!-- Category filter tabs -->
+    <div class="ar-cat-bar">
+        <span style="font-size:.78rem;font-weight:700;color:#6b7280;margin-right:.25rem;">Filter:</span>
+        <button class="ar-cat-btn active" data-cat="all" onclick="filterCat('all',this)">All</button>
+        {% for val, label in categories %}
+        <button class="ar-cat-btn" data-cat="{{ val }}" onclick="filterCat('{{ val }}',this)">{{ label }}</button>
+        {% endfor %}
+    </div>
+
+    <!-- Rules list -->
+    <div id="rules-container">
+    {% for rule in rules %}
+    <div class="ar-card {% if not rule.is_active %}ar-inactive{% endif %}" data-cat="{{ rule.category }}" data-rule="{{ rule.pk }}">
+        <div class="ar-card-head">
+            <span class="ar-cat-badge ar-cat-{{ rule.category }}">{{ rule.get_category_display }}</span>
+            <span class="ar-question">{{ rule.question }}</span>
+            <span class="ar-priority">Priority: {{ rule.priority }}</span>
+            {% if not rule.is_active %}
+            <span class="badge bg-secondary" style="font-size:.68rem;">Inactive</span>
+            {% endif %}
+        </div>
+        <div class="ar-card-body">
+            <div class="ar-keywords">
+                {% for kw in rule.keyword_list %}
+                <span class="ar-kw-chip">{{ kw }}</span>
+                {% endfor %}
+            </div>
+            <div class="ar-response">{{ rule.response }}</div>
+        </div>
+        <div class="ar-card-foot">
+            <button class="ar-btn ar-btn-edit"
+                    onclick="openEditModal({{ rule.pk }},'{{ rule.category|escapejs }}','{{ rule.question|escapejs }}','{{ rule.keywords|escapejs }}','{{ rule.response|escapejs }}',{{ rule.priority }})">
+                &#9998; Edit
+            </button>
+            <!-- Toggle active/inactive -->
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="rule_id" value="{{ rule.pk }}">
+                <button type="submit" class="ar-btn ar-btn-toggle {% if rule.is_active %}is-active{% endif %}">
+                    {% if rule.is_active %}&#x23F8; Pause{% else %}&#x25B6; Activate{% endif %}
+                </button>
+            </form>
+            <!-- Delete -->
+            <form method="post" style="display:inline;"
+                  onsubmit="return confirm('Delete this auto-reply rule? This cannot be undone.');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="rule_id" value="{{ rule.pk }}">
+                <button type="submit" class="ar-btn ar-btn-delete">&#128465; Delete</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="ar-empty">
+        <div class="ar-empty-icon">&#129302;</div>
+        <p>No auto-reply rules yet. Click <strong>"+ Add rule"</strong> to create your first FAQ rule.</p>
+    </div>
+    {% endfor %}
+    </div>
+
+</div><!-- /container -->
+</div><!-- /ar-page -->
+
+
+<!-- ═══════════════════ ADD / EDIT MODAL ═══════════════════ -->
+<div class="ar-modal-overlay" id="ruleModal">
+<div class="ar-modal">
+    <div class="ar-modal-head">
+        <span class="ar-modal-title" id="modal-title">Add Auto-Reply Rule</span>
+        <button class="ar-modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <form method="post" id="ruleForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="form-action" value="add">
+        <input type="hidden" name="rule_id" id="form-rule-id" value="">
+        <div class="ar-modal-body">
+            <div class="row g-3">
+                <div class="col-md-7">
+                    <div class="ar-form-group">
+                        <label class="ar-form-label">Category</label>
+                        <select name="category" id="form-category" class="ar-form-control">
+                            {% for val, label in categories %}
+                            <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="ar-form-group">
+                        <label class="ar-form-label">Priority</label>
+                        <input type="number" name="priority" id="form-priority" class="ar-form-control" value="10" min="1" max="100">
+                        <div class="ar-form-hint">Higher = checked first (1–100)</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="ar-form-group">
+                        <label class="ar-form-label">Question / Label</label>
+                        <input type="text" name="question" id="form-question" class="ar-form-control"
+                               placeholder="e.g. Where is my order?" maxlength="300" required>
+                        <div class="ar-form-hint">Short label shown in admin for this rule</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="ar-form-group">
+                        <label class="ar-form-label">Trigger Keywords</label>
+                        <input type="text" name="keywords" id="form-keywords" class="ar-form-control"
+                               placeholder="track,where is my order,order status,where my order" required>
+                        <div class="ar-form-hint">Comma-separated — if <em>any</em> keyword appears in the customer message, this rule fires</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="ar-form-group">
+                        <label class="ar-form-label">Bot Response</label>
+                        <textarea name="response" id="form-response" class="ar-form-control"
+                                  placeholder="The message the bot will send to the customer…" required></textarea>
+                        <div class="ar-form-hint">Keep it friendly and helpful. You can use plain text — no HTML.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ar-modal-foot">
+            <button type="button" class="ar-btn-cancel" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="ar-btn-save">Save Rule</button>
+        </div>
+    </form>
+</div>
+</div>
+
+
+<script>
+// ── Category filter ────────────────────────────────────────────────
+function filterCat(cat, btn) {
+    document.querySelectorAll('.ar-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#rules-container .ar-card').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+    });
+}
+
+// ── Stats counters ─────────────────────────────────────────────────
+(function() {
+    const cards = document.querySelectorAll('#rules-container .ar-card');
+    let active = 0, cats = new Set();
+    cards.forEach(c => {
+        if (!c.classList.contains('ar-inactive')) active++;
+        cats.add(c.dataset.cat);
+    });
+    const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setEl('active-count', active);
+    setEl('inactive-count', cards.length - active);
+    setEl('cat-count', cats.size);
+    // Hide the raw {% with %} number that appears before the span
+    document.querySelectorAll('.ar-stat-val').forEach(el => {
+        if (el.querySelector('#active-count')) {
+            // strip the text node at the start
+            el.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ''; });
+        }
+    });
+})();
+
+// ── Modal helpers ──────────────────────────────────────────────────
+const modal = document.getElementById('ruleModal');
+
+function openAddModal() {
+    document.getElementById('modal-title').textContent = 'Add Auto-Reply Rule';
+    document.getElementById('form-action').value = 'add';
+    document.getElementById('form-rule-id').value = '';
+    document.getElementById('form-category').value = 'general';
+    document.getElementById('form-question').value = '';
+    document.getElementById('form-keywords').value = '';
+    document.getElementById('form-response').value = '';
+    document.getElementById('form-priority').value = '10';
+    modal.classList.add('show');
+}
+
+function openEditModal(pk, cat, question, keywords, response, priority) {
+    document.getElementById('modal-title').textContent = 'Edit Auto-Reply Rule';
+    document.getElementById('form-action').value = 'edit';
+    document.getElementById('form-rule-id').value = pk;
+    document.getElementById('form-category').value = cat;
+    document.getElementById('form-question').value = question;
+    document.getElementById('form-keywords').value = keywords;
+    document.getElementById('form-response').value = response;
+    document.getElementById('form-priority').value = priority;
+    modal.classList.add('show');
+}
+
+function closeModal() { modal.classList.remove('show'); }
+
+// Close on overlay click
+modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+// Close on Escape
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+</script>
+{% endblock %}

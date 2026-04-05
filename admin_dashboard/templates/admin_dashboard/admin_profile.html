@@ -1,0 +1,665 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    :root {
+        --dashboard-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        --card-shadow: 0 8px 30px rgba(0,0,0,.08);
+        --card-shadow-hover: 0 20px 50px rgba(0,0,0,.15);
+        --radius-lg: 24px;
+        --radius-md: 16px;
+        --radius-sm: 10px;
+        --transition: all .4s cubic-bezier(.175,.885,.32,1.275);
+    }
+
+    .admin-profile-page {
+        background: var(--dashboard-bg);
+        min-height: 100vh;
+        padding: 2.5rem 0;
+    }
+
+    /* ── Hero Header (matches dashboard_home) ── */
+    .ap-hero {
+        background: linear-gradient(135deg, {{ theme_colors.primary }} 0%, {{ theme_colors.primary_dark }} 100%);
+        padding: 3.5rem 3rem;
+        border-radius: var(--radius-lg);
+        margin-bottom: 2.5rem;
+        box-shadow: var(--card-shadow-hover);
+        position: relative;
+        overflow: hidden;
+    }
+    .ap-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -10%;
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, {{ theme_colors.primary_light }}, transparent);
+        opacity: 0.15;
+        animation: float 20s ease-in-out infinite;
+    }
+    .ap-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -100px; left: -100px;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, {{ theme_colors.accent }}, transparent);
+        opacity: 0.1;
+        animation: float 15s ease-in-out infinite reverse;
+    }
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(-30px, -30px) scale(1.1); }
+    }
+    .ap-hero-content {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 2;
+    }
+    .ap-hero-avatar {
+        flex-shrink: 0;
+        width: 110px; height: 110px;
+        border-radius: 50%;
+        border: 5px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 3rem; font-weight: 900; color: white;
+        backdrop-filter: blur(8px);
+        text-transform: uppercase;
+        box-shadow: 0 8px 32px rgba(0,0,0,.2);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+        50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+    }
+    .ap-hero-info h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin: 0 0 .5rem;
+        text-shadow: 0 4px 20px rgba(0,0,0,.2);
+    }
+    .ap-hero-info .meta {
+        color: rgba(255,255,255,.9);
+        font-size: 1rem;
+        font-weight: 400;
+        letter-spacing: .3px;
+    }
+    .ap-hero-info .meta span + span::before { content: ' · '; }
+    .ap-role-badge {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: rgba(255,255,255,.2); color: white;
+        border: 2px solid rgba(255,255,255,.3);
+        border-radius: 99px; padding: .4rem 1rem;
+        font-size: .85rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .8px; backdrop-filter: blur(8px);
+        margin-top: 1rem;
+    }
+    .ap-hero-actions { margin-left: auto; }
+    .ap-btn-white {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: white; color: {{ theme_colors.primary }};
+        border: none; border-radius: 99px;
+        padding: .85rem 1.75rem; font-weight: 700; font-size: .95rem;
+        cursor: pointer; text-decoration: none;
+        transition: transform .3s, box-shadow .3s;
+        box-shadow: 0 6px 20px rgba(0,0,0,.2);
+    }
+    .ap-btn-white:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 30px rgba(0,0,0,.25);
+        color: {{ theme_colors.primary_dark }};
+    }
+
+    /* ── Stats grid (matches quick-action-card style) ── */
+    .ap-stat-card {
+        background: white;
+        border-radius: var(--radius-md);
+        padding: 2rem 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 3px solid transparent;
+        transition: var(--transition);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        cursor: default;
+    }
+    .ap-stat-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, {{ theme_colors.primary_light }}, {{ theme_colors.accent }});
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    .ap-stat-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--card-shadow-hover);
+        border-color: {{ theme_colors.primary }};
+    }
+    .ap-stat-card:hover::before { opacity: 0.03; }
+    .ap-stat-icon {
+        width: 60px; height: 60px;
+        border-radius: var(--radius-sm);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 1.25rem;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+    .ap-stat-value { font-size: 2.5rem; font-weight: 900; line-height: 1; margin-bottom: .4rem; position: relative; z-index: 1; }
+    .ap-stat-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: #6b7280; position: relative; z-index: 1; }
+    .ap-stat-sub   { font-size: .8rem; color: #9ca3af; margin-top: .35rem; position: relative; z-index: 1; }
+
+    /* colour variants */
+    .stat-blue   { color: #3b82f6; }
+    .stat-blue   .ap-stat-icon { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #3b82f6; }
+    .stat-green  { color: #10b981; }
+    .stat-green  .ap-stat-icon { background: linear-gradient(135deg, #f0fdf4, #dcfce7); color: #10b981; }
+    .stat-amber  { color: #f59e0b; }
+    .stat-amber  .ap-stat-icon { background: linear-gradient(135deg, #fffbeb, #fef3c7); color: #f59e0b; }
+    .stat-red    { color: #ef4444; }
+    .stat-red    .ap-stat-icon { background: linear-gradient(135deg, #fef2f2, #fee2e2); color: #ef4444; }
+    .stat-purple { color: #8b5cf6; }
+    .stat-purple .ap-stat-icon { background: linear-gradient(135deg, #f5f3ff, #ede9fe); color: #8b5cf6; }
+    .stat-teal   { color: #06b6d4; }
+    .stat-teal   .ap-stat-icon { background: linear-gradient(135deg, #ecfeff, #cffafe); color: #06b6d4; }
+
+    /* ── Section headers ── */
+    .ap-section-title {
+        font-size: 1.25rem; font-weight: 800; color: #1a1a1a;
+        display: flex; align-items: center; gap: .75rem;
+        margin-bottom: 1.5rem;
+    }
+    .ap-section-title-icon {
+        width: 42px; height: 42px;
+        background: linear-gradient(135deg, {{ theme_colors.primary }} 0%, {{ theme_colors.primary_dark }} 100%);
+        border-radius: 12px; color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 6px 15px rgba(0,0,0,.2);
+    }
+
+    /* ── Panel card (matches feature-section style) ── */
+    .ap-panel {
+        background: white;
+        border-radius: var(--radius-md);
+        box-shadow: var(--card-shadow);
+        border: 3px solid transparent;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    .ap-panel:hover {
+        box-shadow: var(--card-shadow-hover);
+        border-color: {{ theme_colors.primary }};
+    }
+    .ap-panel-header {
+        padding: 1.5rem 1.75rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex; align-items: center; justify-content: space-between;
+        background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    }
+    .ap-panel-body { padding: 1.75rem; }
+
+    /* ── Orders table ── */
+    .ap-orders-table { width: 100%; border-collapse: collapse; }
+    .ap-orders-table th {
+        padding: .65rem 1rem; text-align: left;
+        font-size: .75rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; color: #6b7280; background: #f9fafb;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .ap-orders-table td {
+        padding: .8rem 1rem; font-size: .9rem;
+        color: #374151; border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+    .ap-orders-table tr:last-child td { border-bottom: none; }
+    .ap-orders-table tr:hover td { background: #f9fafb; }
+    .status-badge {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: .25rem .65rem; border-radius: 99px;
+        font-size: .75rem; font-weight: 700;
+    }
+    .status-Pending    { background: #fef9c3; color: #a16207; }
+    .status-Processing { background: #dbeafe; color: #1e40af; }
+    .status-Shipped    { background: #e0e7ff; color: #3730a3; }
+    .status-Delivered  { background: #dcfce7; color: #166534; }
+    .status-Cancelled  { background: #fee2e2; color: #991b1b; }
+
+    /* ── Quick action links (matches feature-link style) ── */
+    .ap-quick-link {
+        display: flex; align-items: center; gap: 1rem;
+        padding: 1.1rem 1.25rem;
+        border-radius: var(--radius-sm);
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        border: 2px solid #e5e7eb;
+        text-decoration: none; color: #374151;
+        transition: var(--transition);
+        margin-bottom: .85rem;
+    }
+    .ap-quick-link:last-child { margin-bottom: 0; }
+    .ap-quick-link:hover {
+        background: linear-gradient(135deg, {{ theme_colors.primary }}08, {{ theme_colors.primary }}12);
+        border-color: {{ theme_colors.primary }};
+        color: {{ theme_colors.primary }};
+        transform: translateX(6px);
+        box-shadow: 0 4px 15px rgba(0,0,0,.08);
+    }
+    .ap-quick-link-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; flex-shrink: 0;
+        transition: transform .3s;
+    }
+    .ap-quick-link:hover .ap-quick-link-icon { transform: scale(1.1); }
+    .ap-quick-link-text { flex: 1; }
+    .ap-quick-link-text strong { display: block; font-size: .95rem; font-weight: 700; }
+    .ap-quick-link-text small  { color: #9ca3af; font-size: .8rem; }
+    .ap-quick-link:hover .ap-quick-link-text small { color: {{ theme_colors.primary }}; opacity: .7; }
+
+    /* ── Alert boxes ── */
+    .ap-alert {
+        border-radius: var(--radius-sm);
+        padding: .9rem 1.1rem;
+        display: flex; align-items: flex-start; gap: .65rem;
+        margin-bottom: .75rem;
+        font-size: .88rem;
+    }
+    .ap-alert:last-child { margin-bottom: 0; }
+    .ap-alert-amber { background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e; }
+    .ap-alert-red   { background: #fff5f5; border: 1.5px solid #fca5a5; color: #7f1d1d; }
+    .ap-alert-blue  { background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1e3a5f; }
+    .ap-alert i     { font-size: 1rem; flex-shrink: 0; margin-top: .1rem; }
+    .ap-alert a     { font-weight: 700; text-decoration: underline; }
+
+    /* ── Account info rows ── */
+    .ap-info-row {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .9rem 1rem;
+        background: #f9fafb; border-radius: var(--radius-sm);
+        margin-bottom: .6rem; border: 1.5px solid #e5e7eb;
+    }
+    .ap-info-row:last-child { margin-bottom: 0; }
+    .ap-info-row-icon {
+        width: 38px; height: 38px; border-radius: 9px;
+        background: linear-gradient(135deg, {{ theme_colors.primary }} 0%, {{ theme_colors.primary_dark }} 100%);
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-size: .95rem; flex-shrink: 0;
+    }
+    .ap-info-row-label { font-size: .72rem; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .ap-info-row-value { font-size: .92rem; color: #1a1a1a; font-weight: 600; }
+
+    @media (max-width: 991.98px) {
+        .ap-hero-actions { margin-left: 0; width: 100%; margin-top: 1rem; }
+    }
+    @media (max-width: 575.98px) {
+        .ap-hero { padding: 2rem 1.5rem; }
+        .ap-hero-content { gap: 1.25rem; }
+        .ap-hero-avatar { width: 80px; height: 80px; font-size: 2.25rem; }
+        .ap-hero-info h1 { font-size: 1.75rem; }
+        .ap-panel-body { padding: 1.25rem; }
+        .ap-stat-value { font-size: 2rem; }
+    }
+</style>
+
+<div class="admin-profile-page">
+<div class="container-fluid px-3 px-md-4">
+
+    <!-- Hero banner with admin info -->
+    <div class="ap-hero">
+        <div class="ap-hero-content">
+            <div class="ap-hero-avatar">
+                {% if user.first_name %}{{ user.first_name|slice:":1" }}{% else %}{{ user.username|slice:":1" }}{% endif %}
+            </div>
+            <div class="ap-hero-info">
+                <h1>
+                    {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                </h1>
+                <div class="meta">
+                    <span>@{{ user.username }}</span>
+                    <span>{{ user.email }}</span>
+                    <span>Joined {{ user.date_joined|date:"F Y" }}</span>
+                </div>
+                <span class="ap-role-badge">
+                    <i class="bi bi-shield-fill-check"></i>
+                    Administrator
+                </span>
+            </div>
+            <div class="ap-hero-actions">
+                <a href="/admin-dashboard/" class="ap-btn-white">
+                    <i class="bi bi-speedometer2"></i>
+                    Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site stats row -->
+    <div class="ap-section-title">
+        <div class="ap-section-title-icon"><i class="bi bi-bar-chart-fill"></i></div>
+        Site Overview
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="ap-stat-card stat-blue">
+                <div class="ap-stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="ap-stat-value">{{ total_customers }}</div>
+                <div class="ap-stat-label">Customers</div>
+                <div class="ap-stat-sub">+{{ new_customers_30d }} last 30d</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="ap-stat-card stat-green">
+                <div class="ap-stat-icon"><i class="bi bi-bag-fill"></i></div>
+                <div class="ap-stat-value">{{ total_products }}</div>
+                <div class="ap-stat-label">Products</div>
+                <div class="ap-stat-sub">{{ active_products }} active</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="ap-stat-card stat-purple">
+                <div class="ap-stat-icon"><i class="bi bi-box-seam-fill"></i></div>
+                <div class="ap-stat-value">{{ total_orders }}</div>
+                <div class="ap-stat-label">All Orders</div>
+                <div class="ap-stat-sub">{{ orders_30d }} last 30d</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="ap-stat-card stat-amber">
+                <div class="ap-stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                <div class="ap-stat-value">{{ pending_orders }}</div>
+                <div class="ap-stat-label">Pending</div>
+                <div class="ap-stat-sub">Needs action</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="ap-stat-card stat-teal">
+                <div class="ap-stat-icon"><i class="bi bi-currency-dollar"></i></div>
+                <div class="ap-stat-value" style="font-size:1.5rem;">₦{{ total_revenue|floatformat:0 }}</div>
+                <div class="ap-stat-label">Revenue</div>
+                <div class="ap-stat-sub">₦{{ revenue_30d|floatformat:0 }} last 30d</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="ap-stat-card stat-red">
+                <div class="ap-stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div class="ap-stat-value">{{ out_of_stock }}</div>
+                <div class="ap-stat-label">Out of Stock</div>
+                <div class="ap-stat-sub">{{ low_stock }} low stock</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if pending_orders or out_of_stock or low_stock or unread_messages or unread_feedback or unread_chats %}
+    <div class="ap-section-title mt-2">
+        <div class="ap-section-title-icon"><i class="bi bi-bell-fill"></i></div>
+        Attention Required
+    </div>
+    <div class="mb-4">
+        {% if pending_orders %}
+        <div class="ap-alert ap-alert-amber">
+            <i class="bi bi-hourglass-split"></i>
+            <span><strong>{{ pending_orders }} pending order{{ pending_orders|pluralize }}</strong> awaiting processing.
+            <a href="/admin-dashboard/orders/">View Orders →</a></span>
+        </div>
+        {% endif %}
+        {% if out_of_stock %}
+        <div class="ap-alert ap-alert-red">
+            <i class="bi bi-x-circle-fill"></i>
+            <span><strong>{{ out_of_stock }} product{{ out_of_stock|pluralize }}</strong> out of stock.
+            <a href="/admin-dashboard/products/">Manage Products →</a></span>
+        </div>
+        {% endif %}
+        {% if low_stock %}
+        <div class="ap-alert ap-alert-amber">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span><strong>{{ low_stock }} product{{ low_stock|pluralize }}</strong> running low on stock (≤5 remaining).
+            <a href="/admin-dashboard/products/">Check Stock →</a></span>
+        </div>
+        {% endif %}
+        {% if unread_messages %}
+        <div class="ap-alert ap-alert-blue">
+            <i class="bi bi-envelope-fill"></i>
+            <span><strong>{{ unread_messages }} unread contact message{{ unread_messages|pluralize }}</strong>.
+            <a href="/admin-dashboard/contact-messages/">Read Messages →</a></span>
+        </div>
+        {% endif %}
+        {% if unread_feedback %}
+        <div class="ap-alert ap-alert-blue">
+            <i class="bi bi-chat-left-text-fill"></i>
+            <span><strong>{{ unread_feedback }} unresolved feedback item{{ unread_feedback|pluralize }}</strong>.
+            <a href="/admin-dashboard/feedback/">View Feedback →</a></span>
+        </div>
+        {% endif %}
+        {% if unread_chats %}
+        <div class="ap-alert ap-alert-blue">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span><strong>{{ unread_chats }} unread live chat message{{ unread_chats|pluralize }}</strong> from customers.
+            <a href="/admin-dashboard/chat/">View Live Chat →</a></span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+
+        <!-- Left: recent orders + account info -->
+        <div class="col-lg-8">
+
+            <!-- Recent orders -->
+            <div class="ap-panel mb-4">
+                <div class="ap-panel-header">
+                    <div class="ap-section-title mb-0">
+                        <div class="ap-section-title-icon"><i class="bi bi-clock-history"></i></div>
+                        Recent Orders
+                    </div>
+                    <a href="/admin-dashboard/orders/" class="btn btn-sm btn-outline-secondary rounded-pill">View All</a>
+                </div>
+                <div style="overflow-x:auto;">
+                    {% if recent_orders %}
+                    <table class="ap-orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>{{ order.full_name }}</td>
+                                <td>₦{{ order.total|floatformat:2 }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ order.status }}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'admin_dashboard:order_detail' order.pk %}" class="btn btn-xs btn-outline-secondary rounded-pill" style="padding:.2rem .65rem;font-size:.78rem;">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        No orders yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Account info -->
+            <div class="ap-panel">
+                <div class="ap-panel-header">
+                    <div class="ap-section-title mb-0">
+                        <div class="ap-section-title-icon"><i class="bi bi-person-fill"></i></div>
+                        Account Information
+                    </div>
+                </div>
+                <div class="ap-panel-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="ap-info-row">
+                                <div class="ap-info-row-icon"><i class="bi bi-person-badge-fill"></i></div>
+                                <div>
+                                    <div class="ap-info-row-label">Username</div>
+                                    <div class="ap-info-row-value">{{ user.username }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ap-info-row">
+                                <div class="ap-info-row-icon"><i class="bi bi-envelope-fill"></i></div>
+                                <div>
+                                    <div class="ap-info-row-label">Email</div>
+                                    <div class="ap-info-row-value">{{ user.email|default:"Not set" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ap-info-row">
+                                <div class="ap-info-row-icon"><i class="bi bi-calendar3"></i></div>
+                                <div>
+                                    <div class="ap-info-row-label">Member Since</div>
+                                    <div class="ap-info-row-value">{{ user.date_joined|date:"F j, Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ap-info-row">
+                                <div class="ap-info-row-icon"><i class="bi bi-shield-fill-check"></i></div>
+                                <div>
+                                    <div class="ap-info-row-label">Role</div>
+                                    <div class="ap-info-row-value">Administrator</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ap-info-row">
+                                <div class="ap-info-row-icon"><i class="bi bi-telephone-fill"></i></div>
+                                <div>
+                                    <div class="ap-info-row-label">Phone</div>
+                                    <div class="ap-info-row-value">{{ user.phone|default:"Not set" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ap-info-row">
+                                <div class="ap-info-row-icon"><i class="bi bi-check-circle-fill"></i></div>
+                                <div>
+                                    <div class="ap-info-row-label">Last Login</div>
+                                    <div class="ap-info-row-value">{{ user.last_login|date:"M d, Y H:i"|default:"Unknown" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-top d-flex gap-2 flex-wrap">
+                        <a href="{% url 'users:password_change' %}" class="btn btn-sm rounded-pill"
+                           style="background:linear-gradient(135deg,{{ theme_colors.primary }},{{ theme_colors.primary_dark }});color:white;font-weight:700;">
+                            <i class="bi bi-key-fill me-1"></i>Change Password
+                        </a>
+                        <a href="/admin-dashboard/" class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: quick actions -->
+        <div class="col-lg-4">
+            <div class="ap-panel">
+                <div class="ap-panel-header">
+                    <div class="ap-section-title mb-0">
+                        <div class="ap-section-title-icon"><i class="bi bi-lightning-fill"></i></div>
+                        Quick Actions
+                    </div>
+                </div>
+                <div class="ap-panel-body">
+                    <a href="/admin-dashboard/products/add/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#eff6ff;color:#3b82f6;"><i class="bi bi-plus-circle-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Add New Product</strong>
+                            <small>List a product for sale</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/orders/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#fef3c7;color:#d97706;"><i class="bi bi-box-seam-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Manage Orders</strong>
+                            <small>{{ pending_orders }} pending</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/customers/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#f0fdf4;color:#10b981;"><i class="bi bi-people-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Customers</strong>
+                            <small>{{ total_customers }} registered</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/analytics/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#f5f3ff;color:#8b5cf6;"><i class="bi bi-graph-up-arrow"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Analytics</strong>
+                            <small>Sales &amp; performance</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/content/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#ecfeff;color:#06b6d4;"><i class="bi bi-file-earmark-text-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Site Content</strong>
+                            <small>Edit pages &amp; announcements</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/contact-messages/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#fff5f5;color:#ef4444;"><i class="bi bi-envelope-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Messages</strong>
+                            <small>{{ unread_messages }} unread</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/chat/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#f0fdf4;color:#10b981;"><i class="bi bi-chat-dots-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Live Chat</strong>
+                            <small>{% if unread_chats %}{{ unread_chats }} unread message{{ unread_chats|pluralize }}{% else %}Customer conversations{% endif %}</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                    <a href="/admin-dashboard/payments/" class="ap-quick-link">
+                        <div class="ap-quick-link-icon" style="background:#fffbeb;color:#f59e0b;"><i class="bi bi-credit-card-fill"></i></div>
+                        <div class="ap-quick-link-text">
+                            <strong>Payments</strong>
+                            <small>Revenue &amp; transactions</small>
+                        </div>
+                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+{% endblock %}

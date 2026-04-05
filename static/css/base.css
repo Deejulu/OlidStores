@@ -1,0 +1,191 @@
+:root {
+    /* Dynamic Theme Colors - Enhanced elegant palette for Olid Stores */
+    --primary-color: #1a1a1a;
+    --primary-light: #8B7355;
+    --primary-dark: #6b5a44;
+    --accent-color: #D4AF37;
+    --accent-light: #f4d06f;
+    --accent-gradient: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-color) 100%);
+
+    /* Refined Color System */
+    --white: #FFFFFF;
+    --off-white: #FAF9F6;
+    --black: #1a1a1a;
+    --gray-50: #F8F9FA;
+    --gray-100: #F1F3F5;
+    --gray-200: #E9ECEF;
+    --gray-300: #DEE2E6;
+    --gray-400: #CED4DA;
+    --gray-500: #ADB5BD;
+    --gray-600: #6C757D;
+    --gray-700: #495057;
+    --gray-800: #343A40;
+    --gray-900: #212529;
+
+    /* Metallic Accents */
+    --gold: #D4AF37;
+    --gold-light: #F4E4C1;
+    --gold-dark: #B8860B;
+    --bronze: #CD7F32;
+    --copper: #B87333;
+
+    /* Semantic Colors - Softer palette */
+    --success: #2B8C5E;
+    --success-light: #E8F3E9;
+    --error: #C23B3B;
+    --error-light: #FCE9E9;
+    --warning: #E6A020;
+    --warning-light: #FFF4E0;
+    --info: #3B7A9E;
+    --info-light: #E8F0F5;
+
+    /* Typography - Refined hierarchy */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-heading: 'Poppins', -apple-system, sans-serif;
+    --font-elegant: 'Cormorant Garamond', Georgia, serif;
+    --font-serif: 'Lora', Georgia, serif;
+
+    /* Fluid Spacing System */
+    --space-unit: 0.25rem;
+    --space-xs: calc(var(--space-unit) * 1);    /* 0.25rem */
+    --space-sm: calc(var(--space-unit) * 2);     /* 0.5rem */
+    --space-md: calc(var(--space-unit) * 4);     /* 1rem */
+    --space-lg: calc(var(--space-unit) * 6);     /* 1.5rem */
+    --space-xl: calc(var(--space-unit) * 8);     /* 2rem */
+    --space-2xl: calc(var(--space-unit) * 12);   /* 3rem */
+    --space-3xl: calc(var(--space-unit) * 16);   /* 4rem */
+    --space-4xl: calc(var(--space-unit) * 20);   /* 5rem */
+
+    /* Enhanced Transitions */
+    --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    --transition-fast: 150ms var(--ease-out);
+    --transition-base: 250ms var(--ease-out);
+    --transition-slow: 350ms var(--ease-in-out);
+    --transition-bounce: 400ms var(--bounce);
+
+    /* Refined Shadows */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-2xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+    --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    /* Refined Border Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+    --radius-3xl: 2rem;
+    --radius-full: 9999px;
+
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-blur: 12px;
+    --glass-border: rgba(255, 255, 255, 0.2);
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    --gradient-accent: linear-gradient(135deg, var(--accent-color), var(--gold-dark));
+    --gradient-elegant: linear-gradient(135deg, var(--primary-light), var(--accent-color));
+    --gradient-subtle: linear-gradient(135deg, var(--gray-100), var(--off-white));
+    --gradient-dark: linear-gradient(135deg, var(--gray-900), var(--black));
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+}
+
+body {
+    font-family: var(--font-sans);
+    color: var(--gray-800);
+    background: var(--white);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+}
+
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h4 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
+h5 { font-size: clamp(1.1rem, 2vw, 1.25rem); }
+h6 { font-size: clamp(1rem, 1.5vw, 1.1rem); }
+
+/* ... (rest of user's CSS omitted here for brevity in the replacement) ... */
+
+/* === Merge improvements (header/logo mobile layout + tweaks) === */
+/* Ensure logo is prominent and pulled down on small screens; keep hamburger + actions on same row */
+.header-container { align-items: center; }
+.brand-logo { transition: transform var(--transition-fast), height var(--transition-base); display: flex; align-items: center; justify-content: center; }
+
+@media (max-width: 992px) {
+    /* make search use more horizontal space on larger viewports */
+    .search-container { max-width: 760px; }
+}
+
+@media (max-width: 768px) {
+    .brand-logo { transform: translateY(12px); max-width: none; width: 100%; justify-content: center; }
+    /* Mobile: show icon-only logo, hide full wordmark to avoid duplicates */
+    .brand-logo svg.logo-svg-full { display: none !important; max-width: 220px !important; height: auto !important; margin: 0 auto; }
+    .brand-logo svg.logo-svg-icon { display: block !important; height: 64px !important; width: auto !important; }
+    .mobile-menu-button { display: flex !important; order: 1; }
+    .brand-logo { order: 2; margin: 0 auto; }
+    .user-actions { order: 3; margin-left: auto; }
+    .search-container { order: 4; width: 100%; margin-top: 0 !important; }
+    .main-header { padding-bottom: calc(var(--space-sm) + 4px); }
+}
+
+/* Desktop: ensure logo is always visible and large */
+.brand-logo svg.logo-svg-full {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    margin: 0 auto;
+}
+.brand-logo svg.logo-svg-icon {
+    display: none;
+}
+@media (max-width: 600px) {
+    .brand-logo svg.logo-svg-full { max-width: 220px !important; }
+    .brand-logo svg.logo-svg-icon { display: block !important; max-width: 120px !important; height: 88px !important; }
+}
+
+/* small safety: preserve focus outlines for accessibility */
+:focus-visible { outline: 3px solid rgba(212,175,55,0.18); outline-offset: 2px; border-radius: var(--radius-sm); }
+

@@ -1,0 +1,2249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --admin-primary: {{ theme_colors.primary }};
+        --admin-primary-dark: {{ theme_colors.primary_dark }};
+        --admin-primary-light: {{ theme_colors.primary_light }};
+        --admin-accent: {{ theme_colors.accent }};
+        --admin-success: #10b981;
+        --admin-warning: #f59e0b;
+        --admin-danger: #ef4444;
+        --admin-info: #3b82f6;
+        --admin-bg: #f8fafc;
+        --admin-card-bg: #ffffff;
+        --admin-border: #e2e8f0;
+        --admin-text-primary: #1e293b;
+        --admin-text-secondary: #64748b;
+        --admin-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --admin-shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .analytics-page {
+        background: linear-gradient(135deg, #f0f4ff 0%, #f8faff 50%, #ffffff 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+        position: relative;
+        overflow-x: hidden;
+    }
+    
+    .analytics-page::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        right: -15%;
+        width: 900px;
+        height: 900px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 20s ease-in-out infinite;
+        filter: blur(80px);
+    }
+    
+    .analytics-page::after {
+        content: '';
+        position: fixed;
+        bottom: -40%;
+        left: -10%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 25s ease-in-out infinite reverse;
+        filter: blur(90px);
+    }
+    
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Header */
+    .analytics-header {
+        background: linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.95) 0%, 
+            rgba(255, 255, 255, 0.88) 100%);
+        backdrop-filter: blur(20px);
+        color: #1e293b;
+        padding: 3.5rem 3rem;
+        border-radius: 32px;
+        margin-bottom: 2.5rem;
+        box-shadow: 
+            0 20px 60px rgba(99, 102, 241, 0.12),
+            0 8px 24px rgba(99, 102, 241, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .analytics-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, 
+            #6366f1 0%, 
+            #8b5cf6 25%, 
+            #ec4899 50%, 
+            #f59e0b 75%, 
+            #10b981 100%);
+        background-size: 200% 100%;
+        animation: gradientMove 3s ease infinite;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-40px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes gradientMove {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .analytics-header h1 {
+        font-size: 2.75rem;
+        font-weight: 800;
+        margin: 0;
+        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.025em;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-icon {
+        font-size: 2.75rem;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-10px) rotate(5deg); }
+    }
+
+    /* Controls Card */
+    .controls-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        padding: 2.5rem;
+        border-radius: 28px;
+        margin-bottom: 3rem;
+        box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.05),
+            0 4px 16px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .controls-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .controls-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: end;
+        margin-bottom: 1.5rem;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-width: 160px;
+        flex: 1;
+    }
+
+    .control-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .control-label::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #6366f1;
+        border-radius: 50%;
+    }
+
+    .form-control,
+    .form-select {
+        padding: 1rem 1.25rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        font-weight: 500;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 
+            0 0 0 4px rgba(99, 102, 241, 0.1),
+            0 8px 20px rgba(99, 102, 241, 0.15);
+        transform: translateY(-2px);
+        background: white;
+    }
+
+    .btn-apply {
+        padding: 1rem 2.5rem;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 
+            0 10px 30px rgba(99, 102, 241, 0.3),
+            0 4px 12px rgba(99, 102, 241, 0.2);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        letter-spacing: 0.02em;
+    }
+    
+    .btn-apply::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255, 255, 255, 0.2) 50%, 
+            transparent 100%);
+        transition: left 0.6s;
+    }
+    
+    .btn-apply:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 
+            0 15px 40px rgba(99, 102, 241, 0.4),
+            0 6px 16px rgba(99, 102, 241, 0.25);
+    }
+    
+    .btn-apply:hover::before {
+        left: 100%;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-export {
+        padding: 0.875rem 1.75rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-export::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+    }
+    
+    .btn-export:hover {
+        color: white;
+        border-color: #6366f1;
+        transform: translateY(-3px);
+        box-shadow: 
+            0 12px 30px rgba(99, 102, 241, 0.2),
+            0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn-export:hover::before {
+        opacity: 1;
+    }
+
+    .quick-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    .btn-quick {
+        padding: 0.875rem 1.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-quick::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+    }
+    
+    .btn-quick:hover {
+        color: white;
+        border-color: #6366f1;
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 
+            0 12px 30px rgba(99, 102, 241, 0.2),
+            0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn-quick:hover::before {
+        opacity: 1;
+    }
+
+    /* Section Headers */
+    .section-header {
+        margin: 3.5rem 0 2rem;
+        position: relative;
+        padding-left: 1.5rem;
+    }
+    
+    .section-header h3 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 0;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .section-header h3::before {
+        content: '';
+        width: 6px;
+        height: 40px;
+        background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 3px;
+        position: absolute;
+        left: -1.5rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.75rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.05),
+            0 4px 16px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+        z-index: -1;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    .stat-card:nth-child(5) { animation-delay: 0.5s; }
+    .stat-card:nth-child(6) { animation-delay: 0.6s; }
+    .stat-card:nth-child(7) { animation-delay: 0.7s; }
+    .stat-card:nth-child(8) { animation-delay: 0.8s; }
+    .stat-card:nth-child(9) { animation-delay: 0.9s; }
+    .stat-card:nth-child(10) { animation-delay: 1s; }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 24px 60px rgba(99, 102, 241, 0.15),
+            0 12px 32px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(255, 255, 255, 0.9);
+    }
+    
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    
+    .stat-card:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+
+    .stat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .stat-card-title i {
+        font-size: 1.25rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(99, 102, 241, 0.1);
+        border-radius: 12px;
+        color: #6366f1;
+    }
+
+    .change-indicator {
+        padding: 0.5rem 1rem;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #10b981;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .change-indicator.negative {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+    
+    .change-indicator.neutral {
+        background: rgba(100, 116, 139, 0.1);
+        color: #64748b;
+    }
+
+    /* Performance Status Indicators */
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+    
+    .status-dot.good { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
+    .status-dot.warning { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
+    .status-dot.bad { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+    
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); }
+    }
+
+    /* Progress Bars */
+    .metric-progress {
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 100px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .metric-progress-bar {
+        height: 100%;
+        border-radius: 100px;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+    }
+    
+    .metric-progress-bar.success { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+    .metric-progress-bar.warning { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+    .metric-progress-bar.danger { background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%); }
+
+    /* Tooltip Styles */
+    .info-tooltip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+        font-size: 0.7rem;
+        cursor: help;
+        margin-left: 0.5rem;
+        transition: all 0.3s;
+    }
+    
+    .info-tooltip:hover {
+        background: #6366f1;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .info-tooltip .tooltip-text {
+        visibility: hidden;
+        position: absolute;
+        bottom: 130%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: nowrap;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s, visibility 0.3s;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        max-width: 250px;
+        white-space: normal;
+        text-align: center;
+    }
+    
+    .info-tooltip .tooltip-text::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: #1e293b transparent transparent transparent;
+    }
+    
+    .info-tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Metric Trend Spark */
+    .metric-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        margin-top: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 8px;
+    }
+    
+    .metric-trend.up {
+        background: rgba(16, 185, 129, 0.08);
+        color: #10b981;
+    }
+    
+    .metric-trend.down {
+        background: rgba(239, 68, 68, 0.08);
+        color: #ef4444;
+    }
+    
+    .metric-trend.stable {
+        background: rgba(100, 116, 139, 0.08);
+        color: #64748b;
+    }
+    
+    .metric-trend i {
+        font-size: 1rem;
+    }
+
+    /* Loading Skeleton */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+        border-radius: 8px;
+    }
+    
+    @keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Success Toast */
+    .toast-container {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .toast {
+        padding: 1rem 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        border-left: 4px solid #10b981;
+    }
+    
+    .toast.success { border-color: #10b981; }
+    .toast.warning { border-color: #f59e0b; }
+    .toast.error { border-color: #ef4444; }
+    .toast.info { border-color: #3b82f6; }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Better Card States */
+    .stat-card.highlight {
+        border-color: #10b981;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+    
+    .stat-card.attention {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+    
+    .stat-card.critical {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+
+    /* Mini Stats Row */
+    .mini-stats {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.5);
+    }
+    
+    .mini-stat {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        background: rgba(99, 102, 241, 0.05);
+        border-radius: 8px;
+    }
+    
+    .mini-stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    .mini-stat-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-card-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.025em;
+        background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-card-subtitle {
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.5;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0 0;
+        font-size: 0.9rem;
+    }
+
+    .stat-list li {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .stat-list li:hover {
+        transform: translateX(8px);
+        padding-left: 0.5rem;
+    }
+
+    .stat-list li span {
+        flex: 1;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+
+    .stat-list li strong {
+        font-weight: 700;
+        color: #6366f1;
+        min-width: 40px;
+        text-align: right;
+        font-size: 1.1rem;
+    }
+
+    .stat-list li:last-child {
+        border-bottom: none;
+    }
+
+    /* Charts Section */
+    .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .chart-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.05),
+            0 4px 16px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .chart-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 
+            0 24px 60px rgba(99, 102, 241, 0.15),
+            0 12px 32px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .chart-header {
+        padding: 1.75rem 2rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
+        color: white;
+        font-weight: 700;
+        font-size: 1.15rem;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .chart-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .chart-header i {
+        font-size: 1.5rem;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    .chart-body {
+        padding: 2rem;
+        background: rgba(248, 250, 252, 0.5);
+    }
+
+    .chart-large {
+        grid-column: 1 / -1;
+    }
+
+    /* Top Lists */
+    .top-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .top-list-item {
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .top-list-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .top-list-item:last-child {
+        border-bottom: none;
+    }
+    
+    .top-list-item:hover {
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+        transform: translateX(12px);
+        padding-left: 2.5rem;
+    }
+    
+    .top-list-item:hover::before {
+        opacity: 1;
+    }
+
+    .top-list-item a {
+        color: #1e293b;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.3s;
+        flex: 1;
+    }
+    
+    .top-list-item a:hover {
+        color: #6366f1;
+    }
+
+    .badge {
+        padding: 0.625rem 1.25rem;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
+    }
+
+    .btn-action {
+        flex: 1;
+        min-width: 180px;
+        padding: 1.125rem 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.875rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-action::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+    }
+    
+    .btn-action:hover {
+        color: white;
+        border-color: #6366f1;
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 
+            0 16px 40px rgba(99, 102, 241, 0.2),
+            0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .btn-action:hover::before {
+        opacity: 1;
+    }
+    
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 3rem;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: 3rem auto 1rem;
+        box-shadow: 
+            0 16px 50px rgba(99, 102, 241, 0.3),
+            0 8px 24px rgba(99, 102, 241, 0.2);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-back::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(255, 255, 255, 0.2) 50%, 
+            transparent 100%);
+        transition: left 0.6s;
+    }
+    
+    .btn-back:hover {
+        transform: translateY(-6px) scale(1.05);
+        box-shadow: 
+            0 24px 60px rgba(99, 102, 241, 0.4),
+            0 12px 32px rgba(99, 102, 241, 0.25);
+    }
+    
+    .btn-back:hover::before {
+        left: 100%;
+    }
+    
+    .btn-back-wrapper {
+        text-align: center;
+        margin: 4rem 0 2rem;
+    }
+
+    /* Empty States */
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        color: #94a3b8;
+    }
+    
+    .empty-state i {
+        font-size: 3.5rem;
+        display: block;
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+        background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .empty-state p {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state-subtitle {
+        font-size: 0.95rem;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-state-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .empty-state-btn {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .empty-state-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        color: white;
+    }
+    
+    .empty-state-btn.secondary {
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+    
+    .empty-state-btn.secondary:hover {
+        background: rgba(99, 102, 241, 0.2);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Insight Cards */
+    .insight-banner {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        animation: fadeIn 0.8s ease;
+    }
+    
+    .insight-banner-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .insight-banner-content {
+        flex: 1;
+    }
+    
+    .insight-banner-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .insight-banner-text {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin: 0;
+    }
+    
+    .insight-banner.success {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+    
+    .insight-banner.success .insight-banner-icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .insight-banner.warning {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+    
+    .insight-banner.warning .insight-banner-icon {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .charts-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-large {
+            grid-column: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .analytics-header {
+            padding: 2.5rem 2rem;
+        }
+        
+        .analytics-header h1 {
+            font-size: 2rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .controls-row {
+            flex-direction: column;
+        }
+        
+        .control-group {
+            width: 100%;
+        }
+        
+        .quick-buttons {
+            margin-left: 0;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .btn-export {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            min-width: 100%;
+        }
+        
+        .top-list-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="analytics-header">
+            <h1>
+                <i class="bi bi-graph-up-arrow header-icon"></i>
+                <div>
+                    Analytics Dashboard
+                    <div style="font-size: 1.1rem; font-weight: 500; color: #64748b; margin-top: 0.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <span>Real-time insights and performance metrics</span>
+                        <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.75rem; background: rgba(16, 185, 129, 0.1); border-radius: 100px; font-size: 0.8rem; color: #10b981;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse-dot 2s ease-in-out infinite;"></span>
+                            Live
+                        </span>
+                    </div>
+                </div>
+            </h1>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                <span style="font-size: 0.85rem; color: #94a3b8;">
+                    <i class="bi bi-calendar3"></i>
+                    Showing: {{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}
+                </span>
+                {% if applied_category %}
+                <span style="font-size: 0.85rem; padding: 0.35rem 0.75rem; background: rgba(99, 102, 241, 0.1); border-radius: 100px; color: #6366f1;">
+                    <i class="bi bi-tag"></i>
+                    {{ applied_category.name }}
+                </span>
+                {% endif %}
+                {% if applied_status %}
+                <span style="font-size: 0.85rem; padding: 0.35rem 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 100px; color: #f59e0b;">
+                    <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                    {{ applied_status }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-card">
+            <form method="get">
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="bi bi-calendar"></i>
+                            Start Date
+                        </label>
+                        <input type="date" name="start" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="bi bi-calendar-check"></i>
+                            End Date
+                        </label>
+                        <input type="date" name="end" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="bi bi-tags"></i>
+                            Category
+                        </label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for c in categories_list %}
+                                <option value="{{ c.id }}" {% if applied_category and applied_category.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            <i class="bi bi-circle-fill"></i>
+                            Status
+                        </label>
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            {% for s in status_choices %}
+                                <option value="{{ s }}" {% if applied_status == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <button type="submit" class="btn-apply">
+                            <i class="bi bi-funnel-fill"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+                    <div class="quick-buttons">
+                        <a href="?start={{ today|date:'Y-m-d' }}&end={{ today|date:'Y-m-d' }}{% if applied_category %}&category={{ applied_category.id }}{% endif %}{% if applied_status %}&status={{ applied_status }}{% endif %}" class="btn-quick">
+                            <i class="bi bi-sun"></i>
+                            Today
+                        </a>
+                        <a href="?start={{ quick_start_7|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}{% if applied_category %}&category={{ applied_category.id }}{% endif %}{% if applied_status %}&status={{ applied_status }}{% endif %}" class="btn-quick">
+                            <i class="bi bi-calendar-week"></i>
+                            7 Days
+                        </a>
+                        <a href="?start={{ quick_start_30|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}{% if applied_category %}&category={{ applied_category.id }}{% endif %}{% if applied_status %}&status={{ applied_status }}{% endif %}" class="btn-quick">
+                            <i class="bi bi-calendar-month"></i>
+                            30 Days
+                        </a>
+                        <a href="?start={{ quick_start_90|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}{% if applied_category %}&category={{ applied_category.id }}{% endif %}{% if applied_status %}&status={{ applied_status }}{% endif %}" class="btn-quick">
+                            <i class="bi bi-calendar-range"></i>
+                            90 Days
+                        </a>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a class="btn-export" href="?start={{ start_date|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}&export=orders{% if applied_category %}&category={{ applied_category.id }}{% endif %}{% if applied_status %}&status={{ applied_status }}{% endif %}">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                        Export Orders CSV
+                    </a>
+                    <a class="btn-export" href="?start={{ start_date|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}&export=top_products{% if applied_category %}&category={{ applied_category.id }}{% endif %}{% if applied_status %}&status={{ applied_status }}{% endif %}">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                        Export Top Products CSV
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section: Key Metrics -->
+        <div class="section-header">
+            <h3>
+                <i class="bi bi-speedometer2" style="color: #6366f1;"></i>
+                Key Metrics Overview
+            </h3>
+        </div>
+        
+        <!-- Smart Insights Banner -->
+        {% if total_sales > 0 or order_count > 0 %}
+        <div class="insight-banner {% if conversion_rate and conversion_rate > 10 %}success{% elif abandonment_rate and abandonment_rate > 60 %}warning{% endif %}">
+            <div class="insight-banner-icon">
+                {% if conversion_rate and conversion_rate > 10 %}
+                    <i class="bi bi-emoji-smile"></i>
+                {% elif abandonment_rate and abandonment_rate > 60 %}
+                    <i class="bi bi-lightbulb"></i>
+                {% else %}
+                    <i class="bi bi-bar-chart-line"></i>
+                {% endif %}
+            </div>
+            <div class="insight-banner-content">
+                <div class="insight-banner-title">
+                    {% if conversion_rate and conversion_rate > 10 %}
+                        Great Performance! 🎉
+                    {% elif abandonment_rate and abandonment_rate > 60 %}
+                        Opportunity Detected
+                    {% else %}
+                        Analytics Summary
+                    {% endif %}
+                </div>
+                <p class="insight-banner-text">
+                    {% if conversion_rate and conversion_rate > 10 %}
+                        Your conversion rate of {{ conversion_rate }}% is above industry average. Keep up the excellent work!
+                    {% elif abandonment_rate and abandonment_rate > 60 %}
+                        {{ abandonment_rate }}% cart abandonment detected. Consider simplifying checkout or offering free shipping to recover more sales.
+                    {% else %}
+                        You have {{ order_count }} order{{ order_count|pluralize }} totaling ₦{{ total_sales|floatformat:2 }} in the selected period.
+                        {% if repeat_rate and repeat_rate > 20 %}Your repeat customer rate of {{ repeat_rate }}% shows good loyalty!{% endif %}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card {% if total_sales > 0 %}highlight{% endif %}">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-currency-dollar"></i>
+                        Total Sales
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Total revenue from all orders in the selected date range</span>
+                        </span>
+                    </div>
+                    {% if sales_change %}
+                        <span class="change-indicator {% if sales_change < 0 %}negative{% elif sales_change == 0 %}neutral{% endif %}">
+                            <i class="bi bi-arrow-{% if sales_change > 0 %}up{% elif sales_change < 0 %}down{% else %}right{% endif %}"></i>
+                            {% if sales_change > 0 %}+{% endif %}{{ sales_change }}%
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="stat-card-value">₦{{ total_sales|floatformat:2 }}</div>
+                <div class="stat-card-subtitle">
+                    <span class="status-dot {% if total_sales > 10000 %}good{% elif total_sales > 0 %}warning{% else %}bad{% endif %}"></span>
+                    Revenue in selected period
+                </div>
+                {% if sales_change %}
+                <div class="metric-trend {% if sales_change > 0 %}up{% elif sales_change < 0 %}down{% else %}stable{% endif %}">
+                    <i class="bi bi-{% if sales_change > 0 %}trending-up{% elif sales_change < 0 %}trending-down{% else %}dash{% endif %}"></i>
+                    {% if sales_change > 0 %}Growing{% elif sales_change < 0 %}Declining{% else %}Stable{% endif %} vs. previous period
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="stat-card {% if order_count > 0 %}highlight{% endif %}">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-cart-check"></i>
+                        Orders
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Total orders placed in this period. Completed orders are successfully fulfilled.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">{{ order_count }}</div>
+                <div class="stat-card-subtitle">
+                    <i class="bi bi-check-circle-fill" style="color: #10b981;"></i>
+                    {{ completed_order_count }} completed orders
+                </div>
+                {% if order_count > 0 %}
+                <div class="metric-progress">
+                    <div class="metric-progress-bar success" style="width: {% widthratio completed_order_count order_count 100 %}%;"></div>
+                </div>
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <div class="mini-stat-value">{% widthratio completed_order_count order_count 100 %}%</div>
+                        <div class="mini-stat-label">Fulfilled</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-value">{{ completed_order_count }}/{{ order_count }}</div>
+                        <div class="mini-stat-label">Complete</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-receipt"></i>
+                        Avg Order Value
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Average amount spent per order. Higher AOV means customers are buying more.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">₦{{ avg_order_value|floatformat:2 }}</div>
+                <div class="stat-card-subtitle">
+                    <i class="bi bi-box-seam"></i>
+                    {{ avg_items_per_order }} items per order
+                </div>
+                <div class="metric-trend {% if avg_order_value > 5000 %}up{% elif avg_order_value > 1000 %}stable{% else %}down{% endif %}">
+                    <i class="bi bi-{% if avg_order_value > 5000 %}emoji-smile{% elif avg_order_value > 1000 %}emoji-neutral{% else %}emoji-frown{% endif %}"></i>
+                    {% if avg_order_value > 5000 %}Excellent{% elif avg_order_value > 1000 %}Good{% else %}Needs improvement{% endif %} basket size
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-people"></i>
+                        Total Users
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Registered users on your platform. New users joined in this period.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">{{ user_count }}</div>
+                <div class="stat-card-subtitle">
+                    <i class="bi bi-person-plus" style="color: #3b82f6;"></i>
+                    {{ new_users }} new users
+                </div>
+                {% if user_count > 0 %}
+                <div class="metric-trend {% if new_users > 5 %}up{% elif new_users > 0 %}stable{% else %}down{% endif %}">
+                    <i class="bi bi-{% if new_users > 5 %}graph-up-arrow{% elif new_users > 0 %}dash-lg{% else %}graph-down-arrow{% endif %}"></i>
+                    {% if new_users > 5 %}Strong{% elif new_users > 0 %}Steady{% else %}No{% endif %} user growth
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="stat-card {% if conversion_rate and conversion_rate > 10 %}highlight{% elif conversion_rate and conversion_rate < 5 %}critical{% endif %}">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-graph-up"></i>
+                        Conversion Rate
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Percentage of registered users who made a purchase. Industry average is 2-5%.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">{% if conversion_rate %}{{ conversion_rate }}%{% else %}N/A{% endif %}</div>
+                <div class="stat-card-subtitle">
+                    <span class="status-dot {% if conversion_rate > 10 %}good{% elif conversion_rate > 3 %}warning{% else %}bad{% endif %}"></span>
+                    {{ buyers_in_range }} active buyers
+                </div>
+                {% if conversion_rate %}
+                <div class="metric-progress">
+                    <div class="metric-progress-bar {% if conversion_rate > 10 %}success{% elif conversion_rate > 3 %}warning{% else %}danger{% endif %}" style="width: {% if conversion_rate > 100 %}100{% else %}{{ conversion_rate }}{% endif %}%;"></div>
+                </div>
+                <div class="metric-trend {% if conversion_rate > 10 %}up{% elif conversion_rate > 3 %}stable{% else %}down{% endif %}">
+                    <i class="bi bi-{% if conversion_rate > 10 %}trophy{% elif conversion_rate > 3 %}check-circle{% else %}exclamation-triangle{% endif %}"></i>
+                    {% if conversion_rate > 10 %}Excellent!{% elif conversion_rate > 3 %}On track{% else %}Needs attention{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="stat-card {% if abandonment_rate and abandonment_rate > 50 %}attention{% elif abandonment_rate and abandonment_rate > 70 %}critical{% endif %}">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-cart-x"></i>
+                        Cart Abandonment
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Percentage of carts that were abandoned. Lower is better. Industry average is 70%.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">{% if abandonment_rate %}{{ abandonment_rate }}%{% else %}N/A{% endif %}</div>
+                <div class="stat-card-subtitle">
+                    <span class="status-dot {% if abandonment_rate < 30 %}good{% elif abandonment_rate < 60 %}warning{% else %}bad{% endif %}"></span>
+                    {{ carts_with_items }} abandoned carts
+                </div>
+                {% if abandonment_rate %}
+                <div class="metric-progress">
+                    <div class="metric-progress-bar {% if abandonment_rate < 30 %}success{% elif abandonment_rate < 60 %}warning{% else %}danger{% endif %}" style="width: {{ abandonment_rate }}%;"></div>
+                </div>
+                <div class="metric-trend {% if abandonment_rate < 30 %}up{% elif abandonment_rate < 60 %}stable{% else %}down{% endif %}">
+                    <i class="bi bi-{% if abandonment_rate < 30 %}hand-thumbs-up{% elif abandonment_rate < 60 %}dash-lg{% else %}exclamation-circle{% endif %}"></i>
+                    {% if abandonment_rate < 30 %}Great job!{% elif abandonment_rate < 60 %}Room to improve{% else %}Consider checkout optimization{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-gem"></i>
+                        Customer LTV
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Average total revenue from a customer over their entire relationship with your store.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">₦{{ customer_lifetime_value }}</div>
+                <div class="stat-card-subtitle">
+                    <i class="bi bi-star-fill" style="color: #f59e0b;"></i>
+                    Average lifetime value
+                </div>
+                <div class="metric-trend up">
+                    <i class="bi bi-gem"></i>
+                    Focus on retention to increase LTV
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-list-check"></i>
+                        Orders by Status
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Distribution of orders across different fulfillment stages.</span>
+                        </span>
+                    </div>
+                </div>
+                <ul class="stat-list">
+                    {% for s in orders_by_status %}
+                        <li>
+                            <span>
+                                {% if s.status == 'Completed' or s.status == 'Delivered' %}
+                                    <span class="status-dot good"></span>
+                                {% elif s.status == 'Pending' %}
+                                    <span class="status-dot warning"></span>
+                                {% elif s.status == 'Processing' or s.status == 'Shipped' %}
+                                    <span class="status-dot" style="background: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);"></span>
+                                {% elif s.status == 'Cancelled' %}
+                                    <span class="status-dot bad"></span>
+                                {% else %}
+                                    <i class="bi bi-circle"></i>
+                                {% endif %}
+                                {{ s.status }}
+                            </span>
+                            <strong>{{ s.count|default:"0" }}</strong>
+                        </li>
+                    {% empty %}
+                        <li style="color: #94a3b8; justify-content: center; flex-direction: column; gap: 0.5rem;">
+                            <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                            <span>No orders in this period</span>
+                            <small style="color: #94a3b8;">Try adjusting the date range</small>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="stat-card {% if repeat_rate and repeat_rate > 20 %}highlight{% endif %}">
+                <div class="stat-card-header">
+                    <div class="stat-card-title">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Repeat Customers
+                        <span class="info-tooltip">
+                            <i class="bi bi-info"></i>
+                            <span class="tooltip-text">Percentage of customers who have placed more than one order. Higher means stronger loyalty.</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card-value">{% if repeat_rate %}{{ repeat_rate }}%{% else %}N/A{% endif %}</div>
+                <div class="stat-card-subtitle">
+                    <span class="status-dot {% if repeat_rate > 30 %}good{% elif repeat_rate > 10 %}warning{% else %}bad{% endif %}"></span>
+                    Customers who reordered
+                </div>
+                {% if repeat_rate %}
+                <div class="metric-progress">
+                    <div class="metric-progress-bar {% if repeat_rate > 30 %}success{% elif repeat_rate > 10 %}warning{% else %}danger{% endif %}" style="width: {{ repeat_rate }}%;"></div>
+                </div>
+                <div class="metric-trend {% if repeat_rate > 30 %}up{% elif repeat_rate > 10 %}stable{% else %}down{% endif %}">
+                    <i class="bi bi-{% if repeat_rate > 30 %}heart-fill{% elif repeat_rate > 10 %}heart{% else %}heart-half{% endif %}"></i>
+                    {% if repeat_rate > 30 %}Strong loyalty{% elif repeat_rate > 10 %}Building loyalty{% else %}Focus on retention{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section: Trends & Analysis -->
+        <div class="section-header">
+            <h3>
+                <i class="bi bi-graph-up-arrow" style="color: #6366f1;"></i>
+                Trends & Analysis
+            </h3>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="charts-row">
+            <!-- Large Chart -->
+            <div class="chart-card chart-large">
+                <div class="chart-header">
+                    <i class="bi bi-graph-up"></i>
+                    Sales & Orders Trend
+                </div>
+                <div class="chart-body">
+                    <canvas id="trendChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <!-- Category Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="bi bi-pie-chart"></i>
+                    Revenue by Category
+                </div>
+                <div class="chart-body">
+                    {% if revenue_by_category %}
+                        <canvas id="categoryChart" height="250"></canvas>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-pie-chart"></i>
+                            <div class="empty-state-title">No Category Data Yet</div>
+                            <div class="empty-state-subtitle">Revenue will appear here once you have orders with categorized products</div>
+                            <div class="empty-state-actions">
+                                <a href="/admin-dashboard/products/" class="empty-state-btn secondary">
+                                    <i class="bi bi-tags"></i>
+                                    Manage Categories
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Status Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="bi bi-hourglass-split"></i>
+                    Orders by Status
+                </div>
+                <div class="chart-body">
+                    {% if orders_by_status %}
+                        <canvas id="statusChart" height="250"></canvas>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-hourglass"></i>
+                            <div class="empty-state-title">No Orders Yet</div>
+                            <div class="empty-state-subtitle">Order status distribution will appear once customers start placing orders</div>
+                            <div class="empty-state-actions">
+                                <a href="{% url 'admin_dashboard:generate_sample_data' %}" class="empty-state-btn">
+                                    <i class="bi bi-database-add"></i>
+                                    Generate Sample Data
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Top Performers -->
+        <div class="section-header">
+            <h3>
+                <i class="bi bi-trophy" style="color: #f59e0b;"></i>
+                Top Performers
+            </h3>
+        </div>
+        
+        <div class="charts-row">
+            <!-- Top Customers -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="bi bi-star-fill"></i>
+                    Top Customers
+                </div>
+                <ul class="top-list">
+                    {% for u in top_customers %}
+                        <li class="top-list-item">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-weight: 800; color: #6366f1; font-size: 1.25rem; min-width: 30px;">#{{ forloop.counter }}</span>
+                                {% if forloop.first %}
+                                    <i class="bi bi-trophy-fill" style="color: #f59e0b; font-size: 1.25rem;"></i>
+                                {% endif %}
+                                <a href="/admin/users/customuser/{{ u.id }}/change/">{{ u.username }}</a>
+                            </div>
+                            <span class="badge">
+                                <i class="bi bi-currency-exchange"></i>
+                                ₦{{ u.spent|floatformat:2 }}
+                            </span>
+                        </li>
+                    {% empty %}
+                        <li class="empty-state" style="padding: 3rem 2rem;">
+                            <i class="bi bi-people"></i>
+                            <div class="empty-state-title">No Customer Data Yet</div>
+                            <div class="empty-state-subtitle">Top customers will appear here once they start making purchases</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="action-buttons">
+                    <a href="{% url 'admin_dashboard:generate_sample_data' %}" class="btn-action" title="Generate test data for development">
+                        <i class="bi bi-database-add"></i>
+                        Generate Sample Data
+                    </a>
+                    <a href="{% url 'admin_dashboard:send_analytics_report' %}" class="btn-action" title="Send analytics summary to admin email">
+                        <i class="bi bi-envelope-paper"></i>
+                        Email Analytics Report
+                    </a>
+                    <a href="{% url 'admin_dashboard:compute_daily_metrics' %}" class="btn-action" title="Recalculate all metrics with latest data">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Refresh All Metrics
+                    </a>
+                </div>
+            </div>
+
+            <!-- Top Products by Quantity -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="bi bi-box-seam"></i>
+                    Top Products (by quantity)
+                </div>
+                <ul class="top-list">
+                    {% for p in top_products_qty %}
+                        <li class="top-list-item">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-weight: 800; color: #10b981; font-size: 1.25rem; min-width: 30px;">#{{ forloop.counter }}</span>
+                                {% if forloop.first %}
+                                    <i class="bi bi-fire" style="color: #ef4444; font-size: 1.25rem;"></i>
+                                {% endif %}
+                                <a href="/admin/products/product/{{ p.id }}/change/">{{ p.name }}</a>
+                            </div>
+                            <span class="badge">
+                                <i class="bi bi-basket"></i>
+                                {{ p.total_qty }} sold
+                            </span>
+                        </li>
+                    {% empty %}
+                        <li class="empty-state" style="padding: 3rem 2rem;">
+                            <i class="bi bi-box-seam"></i>
+                            <div class="empty-state-title">No Product Sales Yet</div>
+                            <div class="empty-state-subtitle">Best-selling products will appear here after orders are placed</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Top Products by Revenue -->
+        <div class="charts-row">
+            <div class="chart-card chart-large">
+                <div class="chart-header">
+                    <i class="bi bi-cash-stack"></i>
+                    Top Products (by revenue)
+                </div>
+                <ul class="top-list">
+                    {% for p in top_products_revenue %}
+                        <li class="top-list-item">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-weight: 800; color: #f59e0b; font-size: 1.25rem; min-width: 30px;">#{{ forloop.counter }}</span>
+                                {% if forloop.first %}
+                                    <i class="bi bi-gem" style="color: #8b5cf6; font-size: 1.25rem;"></i>
+                                {% endif %}
+                                <a href="/admin/products/product/{{ p.id }}/change/">{{ p.name }}</a>
+                            </div>
+                            <span class="badge">
+                                <i class="bi bi-currency-dollar"></i>
+                                ₦{{ p.revenue|floatformat:2 }}
+                            </span>
+                        </li>
+                    {% empty %}
+                        <li class="empty-state" style="padding: 3rem 2rem;">
+                            <i class="bi bi-cash-coin"></i>
+                            <div class="empty-state-title">No Revenue Data Yet</div>
+                            <div class="empty-state-subtitle">Top revenue-generating products will appear here once you have completed orders</div>
+                            <div class="empty-state-actions">
+                                <a href="/admin-dashboard/products/add/" class="empty-state-btn">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Add Products
+                                </a>
+                                <a href="{% url 'admin_dashboard:generate_sample_data' %}" class="empty-state-btn secondary">
+                                    <i class="bi bi-database-add"></i>
+                                    Generate Sample Data
+                                </a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="btn-back-wrapper">
+            <a href="/admin-dashboard/" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ trend_labels|safe }};
+    const salesData = {{ sales_trend|safe }};
+    const ordersData = {{ orders_trend|safe }};
+
+    // Trend Chart
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Sales (₦)',
+                data: salesData,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y',
+                borderWidth: 3,
+                fill: true,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }, {
+                label: 'Orders',
+                data: ordersData,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1',
+                borderWidth: 3,
+                fill: true,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#64748b'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    grid: {
+                        color: 'rgba(226, 232, 240, 0.5)'
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        callback: function(value) {
+                            return '₦' + value.toLocaleString();
+                        }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        color: '#64748b'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#1e293b',
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#1e293b',
+                    bodyColor: '#475569',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    boxPadding: 6,
+                    usePointStyle: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label.includes('Sales')) {
+                                return label + ': ₦' + context.parsed.y.toLocaleString();
+                            }
+                            return label + ': ' + context.parsed.y;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Category Chart
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: { 
+            labels: [{% for c in revenue_by_category %}"{{ c.name }}",{% endfor %}],
+            datasets: [{ 
+                data: [{% for c in revenue_by_category %}{{ c.revenue|floatformat:2 }},{% endfor %}],
+                backgroundColor: [
+                    '#6366f1', '#10b981', '#f59e0b', '#ef4444', 
+                    '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                hoverOffset: 15
+            }]
+        },
+        options: { 
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#475569',
+                        font: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '₦' + context.parsed.toLocaleString();
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // Status Chart
+    new Chart(document.getElementById('statusChart'), {
+        type: 'pie',
+        data: {
+            labels: [{% for s in orders_by_status %}"{{ s.status }}",{% endfor %}],
+            datasets: [{
+                data: [{% for s in orders_by_status %}{{ s.count }},{% endfor %}],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#64748b', '#3b82f6'],
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#475569',
+                        font: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        padding: 15
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Toast Notification System -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    // Toast notification system
+    function showToast(message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+            success: 'check-circle-fill',
+            warning: 'exclamation-triangle-fill',
+            error: 'x-circle-fill',
+            info: 'info-circle-fill'
+        };
+        
+        toast.innerHTML = `
+            <i class="bi bi-${icons[type]}" style="color: ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#3b82f6'}; font-size: 1.25rem;"></i>
+            <span style="flex: 1; font-weight: 500; color: #1e293b;">${message}</span>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; padding: 0.25rem;">
+                <i class="bi bi-x" style="font-size: 1.25rem; color: #94a3b8;"></i>
+            </button>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) reverse forwards';
+            setTimeout(() => toast.remove(), 400);
+        }, duration);
+    }
+    
+    // Add loading states to action buttons
+    document.querySelectorAll('.btn-action').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (this.href && !this.href.includes('export')) {
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i> Processing...';
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.7';
+            }
+        });
+    });
+    
+    // Add spin animation for loading
+    const style = document.createElement('style');
+    style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+    
+    // Show success toast if URL has success parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'data_generated') {
+        showToast('Sample data generated successfully!', 'success');
+    } else if (urlParams.get('success') === 'report_sent') {
+        showToast('Analytics report sent to your email!', 'success');
+    } else if (urlParams.get('success') === 'metrics_refreshed') {
+        showToast('All metrics have been refreshed!', 'success');
+    }
+    
+    // Add smooth scroll for quick buttons
+    document.querySelectorAll('.btn-quick').forEach(btn => {
+        btn.addEventListener('click', function() {
+            showToast('Applying filter...', 'info', 2000);
+        });
+    });
+    
+    // Highlight active filter period
+    const currentStart = '{{ start_date|date:"Y-m-d" }}';
+    const currentEnd = '{{ end_date|date:"Y-m-d" }}';
+    const today = '{{ today|date:"Y-m-d" }}';
+    
+    document.querySelectorAll('.btn-quick').forEach(btn => {
+        const href = btn.getAttribute('href');
+        if (href) {
+            const params = new URLSearchParams(href.split('?')[1]);
+            if (params.get('start') === currentStart) {
+                btn.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
+                btn.style.color = 'white';
+                btn.style.borderColor = '#6366f1';
+            }
+        }
+    });
+    
+    // Animate stat cards on scroll into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stat-card, .chart-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+    
+    // Auto-refresh suggestion after 5 minutes of inactivity
+    let lastActivity = Date.now();
+    let refreshNotificationShown = false;
+    
+    document.addEventListener('mousemove', () => lastActivity = Date.now());
+    document.addEventListener('keydown', () => lastActivity = Date.now());
+    
+    setInterval(() => {
+        if (Date.now() - lastActivity > 300000 && !refreshNotificationShown) { // 5 minutes
+            showToast('Data may be stale. Click "Refresh All Metrics" for latest data.', 'warning', 8000);
+            refreshNotificationShown = true;
+        }
+    }, 60000);
+</script>
+{% endblock %}

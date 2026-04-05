@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Customer Feedback</h2>
+        <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" name="resolve_all" class="btn btn-sm btn-success">
+                <i class="bi bi-check-all"></i> Resolve All
+            </button>
+        </form>
+    </div>
+    
+    <!-- Search Bar -->
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search by username, email, or message..." value="{{ search_query }}" autocomplete="off">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Search
+            </button>
+            {% if search_query %}
+            <a href="{% url 'admin_dashboard:feedback_list' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+    {% if feedbacks %}
+        <table class="table table-bordered mt-3 align-middle">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fb in feedbacks %}
+                <tr{% if not fb.is_resolved %} class="table-warning"{% endif %}>
+                    <td>{% if fb.user %}{{ fb.user.username }}{% else %}<em>Anonymous</em>{% endif %}</td>
+                    <td style="max-width:350px; white-space:pre-line;">{{ fb.message }}</td>
+                    <td>{{ fb.created_at|date:'Y-m-d H:i' }}</td>
+                    <td>{% if fb.is_resolved %}<span class="badge bg-success">Resolved</span>{% else %}<span class="badge bg-warning text-dark">Open</span>{% endif %}</td>
+                    <td>
+                        {% if not fb.is_resolved %}
+                        <form method="post" action="" style="display:inline;">
+                          {% csrf_token %}
+                          <input type="hidden" name="resolve_id" value="{{ fb.id }}">
+                          <button type="submit" class="btn btn-lg btn-success fw-bold px-4 py-2" style="font-size:1.1rem;">
+                            <i class="fas fa-check-circle me-1"></i> Resolve
+                          </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="" style="display:inline;">
+                          {% csrf_token %}
+                          <input type="hidden" name="unresolve_id" value="{{ fb.id }}">
+                          <button type="submit" class="btn btn-lg btn-secondary fw-bold px-4 py-2" style="font-size:1.1rem;">
+                            <i class="fas fa-redo me-1"></i> Reopen
+                          </button>
+                        </form>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#fbModal{{ fb.id }}">View</button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="fbModal{{ fb.id }}" tabindex="-1" aria-labelledby="fbModalLabel{{ fb.id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="fbModalLabel{{ fb.id }}">Feedback from {% if fb.user %}{{ fb.user.username }}{% else %}Anonymous{% endif %}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <p><strong>Date:</strong> {{ fb.created_at|date:'Y-m-d H:i' }}</p>
+                                <p><strong>Status:</strong> {% if fb.is_resolved %}<span class="badge bg-success">Resolved</span>{% else %}<span class="badge bg-warning text-dark">Open</span>{% endif %}</p>
+                                <hr>
+                                <p style="white-space:pre-line;">{{ fb.message }}</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info mt-4">No feedback submitted yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

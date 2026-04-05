@@ -1,0 +1,1508 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* ===== Customer Detail Premium Styles ===== */
+    .customer-detail-page {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+        min-height: 100vh !important;
+        padding: 2rem 0 4rem !important;
+        position: relative !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    .customer-detail-page::before {
+        content: '';
+        position: fixed;
+        top: -40%;
+        right: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    
+    /* Header */
+    .customer-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2.5rem 3rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.25);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .customer-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: floatBg 8s ease-in-out infinite;
+    }
+    
+    @keyframes floatBg {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(15px); }
+    }
+    
+    .customer-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .customer-header-left {
+        flex: 1;
+    }
+    
+    .customer-header h1 {
+        color: white;
+        font-weight: 900;
+        font-size: 2.5rem;
+        margin: 0 0 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .customer-avatar-lg {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 2rem;
+        border: 3px solid rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+    }
+    
+    .header-badges-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .badge-active { background: rgba(16, 185, 129, 0.25); color: #d1fae5; }
+    .badge-inactive { background: rgba(239, 68, 68, 0.25); color: #fecaca; }
+    .badge-role { background: rgba(255, 255, 255, 0.2); color: white; }
+    
+    .back-btn {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        background: white;
+        color: #667eea;
+        border-color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 1.25rem !important;
+        margin-bottom: 2rem !important;
+        width: 100% !important;
+    }
+    
+    .stat-card {
+        background: white !important;
+        border-radius: 16px !important;
+        padding: 1.75rem 1.5rem !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+        border: 1px solid #e5e7eb !important;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        text-align: center !important;
+        position: relative !important;
+        overflow: hidden !important;
+        min-height: 150px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .stat-card::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 4px !important;
+        transform: scaleX(0) !important;
+        transform-origin: left !important;
+        transition: transform 0.4s ease !important;
+        z-index: 1 !important;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-6px) !important;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12) !important;
+    }
+    
+    .stat-card:hover::before {
+        transform: scaleX(1) !important;
+    }
+    
+    .stat-icon {
+        width: 50px !important;
+        height: 50px !important;
+        margin: 0 auto 1rem !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.4rem !important;
+        flex-shrink: 0 !important;
+        z-index: 2 !important;
+        position: relative !important;
+    }
+    
+    .stat-value {
+        font-size: 2rem !important;
+        font-weight: 900 !important;
+        color: #1f2937 !important;
+        margin-bottom: 0.25rem !important;
+        line-height: 1 !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 3 !important;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem !important;
+        color: #6b7280 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        font-weight: 700 !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 3 !important;
+    }
+    
+    .stat-secondary {
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        margin-top: 0.5rem !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 3 !important;
+    }
+    
+    /* Stat color themes */
+    .stat-orders .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white !important; }
+    .stat-orders::before { background: linear-gradient(135deg, #667eea, #764ba2) !important; }
+    
+    .stat-spent .stat-icon { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; }
+    .stat-spent::before { background: linear-gradient(135deg, #10b981, #059669) !important; }
+    
+    .stat-wishlist .stat-icon { background: linear-gradient(135deg, #ef4444, #dc2626) !important; color: white !important; }
+    .stat-wishlist::before { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
+    
+    .stat-dates .stat-icon { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; color: white !important; }
+    .stat-dates::before { background: linear-gradient(135deg, #06b6d4, #0891b2) !important; }
+    
+    .stat-last .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: white !important; }
+    .stat-last::before { background: linear-gradient(135deg, #f59e0b, #d97706) !important; }
+    
+    /* Content Grid */
+    .content-grid {
+        display: grid !important;
+        grid-template-columns: 380px 1fr !important;
+        gap: 1.5rem !important;
+    }
+    
+    /* Detail Cards */
+    .detail-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .detail-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .detail-card-header {
+        padding: 1.25rem 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: white;
+    }
+    
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+    
+    .header-purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .header-green { background: linear-gradient(135deg, #10b981, #059669); }
+    .header-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .header-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .header-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .header-gray { background: linear-gradient(135deg, #64748b, #475569); }
+    
+    .detail-card-body {
+        padding: 1.75rem;
+    }
+    
+    /* Info Rows */
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #f3f4f6;
+        gap: 1rem;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-shrink: 0;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: #1f2937;
+        text-align: right;
+        word-break: break-word;
+    }
+    
+    .info-value a {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .info-value a:hover {
+        color: #764ba2;
+    }
+    
+    /* List Items */
+    .list-item {
+        padding: 1.25rem 1.75rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.3s ease;
+    }
+    
+    .list-item:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), transparent);
+        transform: translateX(6px);
+    }
+    
+    .list-item:last-child {
+        border-bottom: none;
+    }
+    
+    .wishlist-item {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 1.25rem 1.75rem;
+        border-bottom: 1px solid #f3f4f6;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+    }
+    
+    .wishlist-item:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.03), transparent);
+        transform: translateX(6px);
+    }
+    
+    .wishlist-item:last-child {
+        border-bottom: none;
+    }
+    
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+    
+    .product-placeholder {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    /* Badges */
+    .status-badge-sm {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        line-height: 1;
+    }
+    
+    .badge-success { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; border: 1px solid #6ee7b7; }
+    .badge-info { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; border: 1px solid #93c5fd; }
+    .badge-warning { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border: 1px solid #fcd34d; }
+    .badge-danger { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border: 1px solid #fca5a5; }
+    .badge-secondary { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); color: #374151; border: 1px solid #d1d5db; }
+    .badge-primary { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #3730a3; border: 1px solid #a5b4fc; }
+    .badge-admin { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border: 1px solid #fca5a5; }
+    
+    /* Forms */
+    .edit-form {
+        padding: 1.75rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-group .helptext {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.35rem;
+        display: block;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-primary {
+        flex: 1;
+        padding: 0.85rem 2rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .btn-secondary {
+        flex: 1;
+        padding: 0.85rem 2rem;
+        background: white;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+    
+    /* Tables */
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .modern-table thead {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    }
+    
+    .modern-table thead th {
+        padding: 1rem 1.25rem;
+        font-weight: 700;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #64748b;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    
+    .modern-table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+    
+    .modern-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), transparent);
+    }
+    
+    .modern-table tbody td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #9ca3af;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+        opacity: 0.5;
+    }
+
+    /* ===== Enhanced Empty State ===== */
+    .empty-state-enhanced {
+        text-align: center;
+        padding: 3.5rem 2rem;
+    }
+
+    .empty-state-enhanced .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.25rem;
+        background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e5e7eb;
+    }
+
+    .empty-state-enhanced .empty-icon i {
+        font-size: 2rem;
+        color: #d1d5db;
+    }
+
+    .empty-state-enhanced .empty-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #6b7280;
+        margin: 0 0 0.35rem;
+    }
+
+    .empty-state-enhanced .empty-subtitle {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #9ca3af;
+        margin: 0;
+    }
+
+    /* ===== Orders List Styling ===== */
+    .orders-list {
+        padding: 0;
+    }
+
+    .order-item {
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.25s ease;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-item:hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.02), transparent);
+    }
+
+    .order-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.75rem 0.85rem;
+        gap: 1.5rem;
+    }
+
+    .order-id-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .order-id-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        width: fit-content;
+    }
+
+    .order-id-link:hover {
+        transform: translateX(3px);
+    }
+
+    .order-id-link i {
+        font-size: 1.1rem;
+        color: #3b82f6;
+    }
+
+    .order-id {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #1e40af;
+    }
+
+    .order-date {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        color: #9ca3af;
+        font-weight: 500;
+    }
+
+    .order-date i {
+        font-size: 0.75rem;
+    }
+
+    .order-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .order-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+    }
+
+    .order-status i {
+        font-size: 0.75rem;
+    }
+
+    .status-completed {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+
+    .status-processing {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+    }
+
+    .status-pending {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .status-cancelled {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .status-default {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+    }
+
+    .order-total {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #059669;
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        padding: 0.45rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #a7f3d0;
+    }
+
+    .order-item-body {
+        padding: 0 1.75rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .order-items-list {
+        flex: 1;
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .order-items-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+    }
+
+    .order-items-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .order-product-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #f9fafb;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        font-size: 0.85rem;
+    }
+
+    .order-product-item .product-name {
+        color: #374151;
+        font-weight: 600;
+    }
+
+    .order-product-item .product-qty {
+        color: #9ca3af;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .receipt-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 1rem;
+        background: white;
+        border: 1.5px solid #e0e7ff;
+        border-radius: 8px;
+        color: #6366f1;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .receipt-link:hover {
+        background: #6366f1;
+        color: white;
+        border-color: #6366f1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* ===== Shopping Carts Styling ===== */
+    .carts-list {
+        padding: 0;
+    }
+
+    .cart-item {
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.25s ease;
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+
+    .cart-item:hover {
+        background: linear-gradient(135deg, rgba(100, 116, 139, 0.02), transparent);
+    }
+
+    .cart-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.75rem 0.85rem;
+        gap: 1.5rem;
+    }
+
+    .cart-id-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .cart-id {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: #475569;
+    }
+
+    .cart-id i {
+        font-size: 1.1rem;
+        color: #64748b;
+    }
+
+    .cart-dates {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #9ca3af;
+        flex-wrap: wrap;
+    }
+
+    .cart-date-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-weight: 500;
+    }
+
+    .cart-date-item i {
+        font-size: 0.75rem;
+    }
+
+    .cart-date-divider {
+        color: #d1d5db;
+    }
+
+    .cart-summary {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .cart-items-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.9rem;
+        background: #eef2ff;
+        color: #6366f1;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: 1px solid #c7d2fe;
+    }
+
+    .cart-items-badge i {
+        font-size: 0.85rem;
+    }
+
+    .cart-total {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #059669;
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        padding: 0.45rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #a7f3d0;
+    }
+
+    .cart-item-body {
+        padding: 0 1.75rem 1.25rem;
+    }
+
+    .cart-products {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .cart-product-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.85rem;
+        background: #f9fafb;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .cart-product-item:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .cart-product-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6366f1;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .cart-product-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+    }
+
+    .cart-product-name {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cart-product-qty {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        font-weight: 500;
+    }
+
+    .cart-product-price {
+        font-weight: 700;
+        color: #059669;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    .cart-empty-notice {
+        padding: 1.5rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: #fafafa;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .cart-empty-notice i {
+        font-size: 1.1rem;
+        opacity: 0.6;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+        
+        .content-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .customer-header {
+            padding: 1.75rem !important;
+        }
+        
+        .customer-header h1 {
+            font-size: 1.75rem !important;
+        }
+        
+        .customer-header-content {
+            flex-direction: column !important;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        
+        .info-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.35rem !important;
+        }
+        
+        .info-value {
+            text-align: left !important;
+        }
+        
+        .form-actions {
+            flex-direction: column !important;
+        }
+
+        /* Orders responsive */
+        .order-item-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .order-meta {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .order-item-body {
+            flex-direction: column;
+            padding: 0 1rem 1rem;
+            gap: 1rem;
+        }
+
+        .order-items-list {
+            flex-direction: column;
+        }
+
+        .order-items-content {
+            gap: 0.4rem;
+        }
+
+        .receipt-link {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Carts responsive */
+        .cart-item-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .cart-summary {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .cart-item-body {
+            padding: 0 1rem 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        .order-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .order-total {
+            font-size: 1.1rem;
+        }
+
+        .cart-summary {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .cart-product-item {
+            padding: 0.75rem;
+        }
+
+        .cart-product-name {
+            white-space: normal;
+        }
+    }
+</style>
+
+<div class="customer-detail-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="customer-header">
+            <div class="customer-header-content">
+                <div class="customer-header-left">
+                    <h1>
+                        <div class="customer-avatar-lg">{{ user_obj.username|first }}</div>
+                        {{ user_obj.username }}
+                    </h1>
+                    <div class="header-badges-row">
+                        <span class="header-badge {% if user_obj.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                            {% if user_obj.is_active %}<i class="bi bi-check-circle-fill"></i> Active{% else %}<i class="bi bi-x-circle-fill"></i> Inactive{% endif %} Customer
+                        </span>
+                        <span class="header-badge badge-role">
+                            <i class="bi bi-shield-check"></i> {{ user_obj.role|capfirst }}
+                        </span>
+                    </div>
+                </div>
+                <a href="{% url 'admin_dashboard:customer_list' %}" class="back-btn">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card stat-orders">
+                <div class="stat-icon"><i class="bi bi-cart-check-fill"></i></div>
+                <div class="stat-value">{{ total_orders }}</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card stat-spent">
+                <div class="stat-icon"><i class="bi bi-currency-exchange"></i></div>
+                <div class="stat-value">₦{{ total_spent|floatformat:0 }}</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+            <div class="stat-card stat-wishlist">
+                <div class="stat-icon"><i class="bi bi-heart-fill"></i></div>
+                <div class="stat-value">{{ wishlist_products|length }}</div>
+                <div class="stat-label">Wishlist Items</div>
+            </div>
+            <div class="stat-card stat-dates">
+                <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-label" style="margin-bottom: 0.5rem;">Registered</div>
+                <div class="stat-secondary">{{ reg_date|date:"M d, Y" }}</div>
+                <div class="stat-label" style="margin-top: 0.75rem; margin-bottom: 0.5rem;">Last Login</div>
+                <div class="stat-secondary">{% if last_login %}{{ last_login|date:"M d, Y" }}{% else %}<span style="color: #9ca3af;">Never</span>{% endif %}</div>
+            </div>
+            <div class="stat-card stat-last">
+                <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="stat-label" style="margin-bottom: 0.5rem;">Last Order</div>
+                <div class="stat-secondary">{% if last_order %}{{ last_order|date:"M d, Y" }}{% else %}<span style="color: #9ca3af;">Never</span>{% endif %}</div>
+            </div>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Left Sidebar -->
+            <div>
+                <!-- Profile Information -->
+                <div class="detail-card">
+                    <div class="detail-card-header header-purple">
+                        <div class="header-icon"><i class="bi bi-person-badge"></i></div>
+                        <span>Profile Information</span>
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="info-row">
+                            <span class="info-label"><i class="bi bi-person"></i> Username</span>
+                            <span class="info-value">{{ user_obj.username }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+                            <span class="info-value">
+                                <a href="mailto:{{ user_obj.email }}">
+                                    <i class="bi bi-send"></i> {{ user_obj.email }}
+                                </a>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="bi bi-card-heading"></i> Full Name</span>
+                            <span class="info-value">
+                                {% if user_obj.first_name or user_obj.last_name %}
+                                    {{ user_obj.first_name }} {{ user_obj.last_name }}
+                                {% else %}
+                                    <span style="color: #9ca3af; font-style: italic;">Not provided</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="bi bi-shield"></i> Role</span>
+                            <span class="info-value">
+                                <span class="status-badge-sm {% if user_obj.role == 'admin' %}badge-admin{% else %}badge-primary{% endif %}">
+                                    <i class="bi bi-star-fill"></i> {{ user_obj.role|capfirst }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delivery Addresses -->
+                <div class="detail-card">
+                    <div class="detail-card-header header-green">
+                        <div class="header-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <span>Delivery Addresses</span>
+                    </div>
+                    {% if addresses %}
+                        <div style="padding: 0;">
+                            {% for addr in addresses %}
+                                <div class="list-item">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                        <strong style="color: #1f2937;"><i class="bi bi-person"></i> {{ addr.full_name }}</strong>
+                                        {% if addr.is_default %}
+                                            <span class="status-badge-sm badge-primary"><i class="bi bi-star-fill"></i> Default</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #6b7280; margin-bottom: 0.25rem;">
+                                        <i class="bi bi-telephone"></i> {{ addr.phone }}
+                                    </div>
+                                    <div style="color: #374151;">{{ addr.address_line }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No saved addresses</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Wishlist Products -->
+                <div class="detail-card">
+                    <div class="detail-card-header header-red">
+                        <div class="header-icon"><i class="bi bi-heart-fill"></i></div>
+                        <span>Wishlist Products</span>
+                    </div>
+                    {% if wishlist_products %}
+                        <div style="padding: 0;">
+                            {% for p in wishlist_products %}
+                                <a href="{{ p.get_absolute_url }}" target="_blank" class="wishlist-item">
+                                    {% if p.image %}
+                                        <img src="{{ p.image.url }}" alt="{{ p.name }}" class="product-img">
+                                    {% else %}
+                                        <div class="product-placeholder">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; color: #1f2937; margin-bottom: 0.25rem;">{{ p.name }}</div>
+                                        <div style="font-weight: 700; color: #10b981; font-size: 0.95rem;">₦{{ p.price|floatformat:0 }}</div>
+                                    </div>
+                                    <i class="bi bi-box-arrow-up-right" style="color: #9ca3af; font-size: 1.2rem;"></i>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-heart"></i>
+                            <p>No wishlist items</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Right Main Content -->
+            <div>
+                <!-- Edit Customer Details -->
+                <div class="detail-card">
+                    <div class="detail-card-header header-amber">
+                        <div class="header-icon"><i class="bi bi-pencil-square"></i></div>
+                        <span>Edit Customer Details</span>
+                    </div>
+                    <div class="edit-form">
+                        <form method="post" id="customerEditForm">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="bi bi-check-circle"></i> Save Changes
+                                </button>
+                                <a href="{% url 'admin_dashboard:customer_list' %}" class="btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders -->
+                <div class="detail-card orders-card">
+                    <div class="detail-card-header header-blue">
+                        <div class="header-icon"><i class="bi bi-basket-fill"></i></div>
+                        <span>Recent Orders ({{ orders|length }})</span>
+                    </div>
+                    {% if orders %}
+                        <div class="orders-list">
+                            {% for order in orders %}
+                            <div class="order-item">
+                                <div class="order-item-header">
+                                    <div class="order-id-section">
+                                        <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="order-id-link">
+                                            <i class="bi bi-receipt-cutoff"></i>
+                                            <span class="order-id">#{{ order.id }}</span>
+                                        </a>
+                                        <div class="order-date">
+                                            <i class="bi bi-calendar3"></i>
+                                            {{ order.created_at|date:"M d, Y H:i" }}
+                                        </div>
+                                    </div>
+                                    <div class="order-meta">
+                                        {% if order.status == 'Completed' or order.status == 'Delivered' %}
+                                            <span class="order-status status-completed">
+                                                <i class="bi bi-check-circle-fill"></i> {{ order.status }}
+                                            </span>
+                                        {% elif order.status == 'Processing' or order.status == 'Shipped' %}
+                                            <span class="order-status status-processing">
+                                                <i class="bi bi-arrow-repeat"></i> {{ order.status }}
+                                            </span>
+                                        {% elif order.status == 'Pending' %}
+                                            <span class="order-status status-pending">
+                                                <i class="bi bi-clock-fill"></i> {{ order.status }}
+                                            </span>
+                                        {% elif order.status == 'Cancelled' %}
+                                            <span class="order-status status-cancelled">
+                                                <i class="bi bi-x-circle-fill"></i> {{ order.status }}
+                                            </span>
+                                        {% else %}
+                                            <span class="order-status status-default">{{ order.status }}</span>
+                                        {% endif %}
+                                        <div class="order-total">₦{{ order.grand_total|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+                                <div class="order-item-body">
+                                    <div class="order-items-list">
+                                        <div class="order-items-label">Items:</div>
+                                        <div class="order-items-content">
+                                            {% for item in order.items.all %}
+                                                <div class="order-product-item">
+                                                    <span class="product-name">{{ item.product.name }}</span>
+                                                    <span class="product-qty">×{{ item.quantity }}</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% if order.receipt %}
+                                    <a href="{{ order.receipt.url }}" target="_blank" class="receipt-link">
+                                        <i class="bi bi-file-earmark-text"></i> View Receipt
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-enhanced">
+                            <div class="empty-icon">
+                                <i class="bi bi-cart-x"></i>
+                            </div>
+                            <p class="empty-title">No orders yet</p>
+                            <p class="empty-subtitle">Customer hasn't placed any orders</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Shopping Carts -->
+                <div class="detail-card carts-card">
+                    <div class="detail-card-header header-gray">
+                        <div class="header-icon"><i class="bi bi-cart3"></i></div>
+                        <span>Shopping Carts ({{ carts|length }})</span>
+                    </div>
+                    {% if carts %}
+                        <div class="carts-list">
+                            {% for cart in carts %}
+                            <div class="cart-item">
+                                <div class="cart-item-header">
+                                    <div class="cart-id-section">
+                                        <span class="cart-id">
+                                            <i class="bi bi-cart-check"></i> Cart #{{ cart.id }}
+                                        </span>
+                                        <div class="cart-dates">
+                                            <span class="cart-date-item">
+                                                <i class="bi bi-plus-circle"></i> Created: {{ cart.created_at|date:"M d, Y" }}
+                                            </span>
+                                            <span class="cart-date-divider">•</span>
+                                            <span class="cart-date-item">
+                                                <i class="bi bi-arrow-clockwise"></i> Updated: {{ cart.updated_at|date:"M d, Y" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="cart-summary">
+                                        <div class="cart-items-badge">
+                                            <i class="bi bi-box2"></i> {{ cart.total_items }} item{{ cart.total_items|pluralize }}
+                                        </div>
+                                        <div class="cart-total">₦{{ cart.total_price|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+                                {% if cart.items.all %}
+                                <div class="cart-item-body">
+                                    <div class="cart-products">
+                                        {% for item in cart.items.all %}
+                                        <div class="cart-product-item">
+                                            <div class="cart-product-icon">
+                                                <i class="bi bi-bag-fill"></i>
+                                            </div>
+                                            <div class="cart-product-info">
+                                                <span class="cart-product-name">{{ item.product.name }}</span>
+                                                <span class="cart-product-qty">Quantity: {{ item.quantity }}</span>
+                                            </div>
+                                            <div class="cart-product-price">₦{{ item.product.price|floatformat:0 }}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="cart-empty-notice">
+                                    <i class="bi bi-inbox"></i> Cart is empty
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-enhanced">
+                            <div class="empty-icon">
+                                <i class="bi bi-cart-x"></i>
+                            </div>
+                            <p class="empty-title">No active carts</p>
+                            <p class="empty-subtitle">Customer has no shopping carts at the moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Style form fields properly
+    document.querySelectorAll('#customerEditForm p').forEach(p => {
+        p.classList.add('form-group');
+        
+        // Hide default labels (we use our own styling)
+        const label = p.querySelector('label');
+        if (label) {
+            label.style.display = 'block';
+            label.style.fontWeight = '700';
+            label.style.color = '#374151';
+            label.style.marginBottom = '0.5rem';
+            label.style.fontSize = '0.9rem';
+        }
+        
+        const input = p.querySelector('input, select, textarea');
+        if (input) {
+            input.style.width = '100%';
+            input.style.padding = '0.85rem 1rem';
+            input.style.border = '2px solid #e5e7eb';
+            input.style.borderRadius = '10px';
+            input.style.fontSize = '0.95rem';
+            input.style.fontFamily = 'inherit';
+            
+            input.addEventListener('focus', function() {
+                this.style.outline = 'none';
+                this.style.borderColor = '#667eea';
+                this.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.borderColor = '#e5e7eb';
+                this.style.boxShadow = 'none';
+            });
+        }
+        
+        // Style helptext
+        const helptext = p.querySelector('.helptext');
+        if (helptext) {
+            helptext.style.fontSize = '0.8rem';
+            helptext.style.color = '#6b7280';
+            helptext.style.marginTop = '0.35rem';
+            helptext.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

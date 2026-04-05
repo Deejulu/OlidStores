@@ -1,0 +1,827 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --gallery-primary: {{ theme_colors.primary }};
+        --gallery-primary-dark: {{ theme_colors.primary_dark }};
+        --gallery-primary-light: {{ theme_colors.primary_light }};
+        --gallery-accent: {{ theme_colors.accent }};
+        --gallery-bg-light: #FAF8F6;
+        --gallery-shadow: rgba(139, 115, 85, 0.1);
+        --gallery-shadow-hover: rgba(139, 115, 85, 0.25);
+        --gallery-overlay: rgba(139, 115, 85, 0.95);
+        --gallery-text-dark: #2C2416;
+        --gallery-text-light: #F5F1ED;
+        --gallery-border: #E8DFD6;
+    }
+
+    .gallery-page {
+        background: linear-gradient(135deg, #FAF8F6 0%, #F5F1ED 100%);
+        min-height: 100vh;
+        padding: 3rem 0;
+    }
+
+    /* Hero Header */
+    .gallery-hero {
+        background: linear-gradient(135deg, var(--gallery-primary) 0%, var(--gallery-primary-dark) 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        border-radius: 25px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 50px rgba(139, 115, 85, 0.2);
+    }
+
+    .gallery-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    .gallery-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 25s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    .gallery-hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+    }
+
+    .gallery-icon-wrapper {
+        width: 100px;
+        height: 100px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        backdrop-filter: blur(10px);
+        border: 3px solid rgba(255,255,255,0.2);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+    }
+
+    .gallery-icon-wrapper i {
+        font-size: 3rem;
+        color: white;
+    }
+
+    .gallery-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        letter-spacing: -1px;
+    }
+
+    .gallery-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+
+    /* Filter/Stats Bar */
+    .gallery-stats {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px var(--gallery-shadow);
+        margin-bottom: 2.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .gallery-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #FAF8F6 0%, #F5F1ED 100%);
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gallery-primary);
+    }
+
+    .gallery-stat-item i {
+        font-size: 1.5rem;
+    }
+
+    /* Masonry Grid */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    /* Gallery Item */
+    .gallery-item {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 5px 20px var(--gallery-shadow);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        animation: fadeInUp 0.6s ease-out backwards;
+    }
+
+    .gallery-item:nth-child(1) { animation-delay: 0.05s; }
+    .gallery-item:nth-child(2) { animation-delay: 0.1s; }
+    .gallery-item:nth-child(3) { animation-delay: 0.15s; }
+    .gallery-item:nth-child(4) { animation-delay: 0.2s; }
+    .gallery-item:nth-child(5) { animation-delay: 0.25s; }
+    .gallery-item:nth-child(6) { animation-delay: 0.3s; }
+    .gallery-item:nth-child(7) { animation-delay: 0.35s; }
+    .gallery-item:nth-child(8) { animation-delay: 0.4s; }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 50px var(--gallery-shadow-hover);
+        z-index: 10;
+    }
+
+    /* Image Container */
+    .gallery-image-container {
+        position: relative;
+        width: 100%;
+        padding-top: 125%;
+        overflow: hidden;
+        background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+    }
+
+    .gallery-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .gallery-item:hover .gallery-image {
+        transform: scale(1.15);
+    }
+
+    /* Overlay */
+    .gallery-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 1.5rem;
+        z-index: 2;
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .gallery-overlay-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.5);
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.4s ease;
+    }
+
+    .gallery-item:hover .gallery-overlay-icon {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .gallery-overlay-icon i {
+        font-size: 1.5rem;
+        color: var(--gallery-primary);
+    }
+
+    .gallery-item-title {
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+        transform: translateY(20px);
+        transition: transform 0.4s ease;
+    }
+
+    .gallery-item:hover .gallery-item-title {
+        transform: translateY(0);
+    }
+
+    /* No Image Placeholder */
+    .gallery-no-image {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: #999;
+    }
+
+    .gallery-no-image i {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        opacity: 0.2;
+    }
+
+    .gallery-no-image p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Empty State */
+    .gallery-empty {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 10px 40px var(--gallery-shadow);
+        max-width: 700px;
+        margin: 3rem auto;
+    }
+
+    .gallery-empty-icon {
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, var(--gallery-primary-light) 0%, var(--gallery-primary) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        box-shadow: 0 15px 40px rgba(139, 115, 85, 0.3);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    .gallery-empty-icon i {
+        font-size: 5rem;
+        color: white;
+    }
+
+    .gallery-empty-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--gallery-text-dark);
+        margin-bottom: 1rem;
+    }
+
+    .gallery-empty-text {
+        font-size: 1.2rem;
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 2.5rem;
+    }
+
+    .gallery-empty-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem 3rem;
+        background: linear-gradient(135deg, var(--gallery-primary) 0%, var(--gallery-primary-dark) 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 8px 25px rgba(139, 115, 85, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .gallery-empty-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(139, 115, 85, 0.4);
+        color: white;
+    }
+
+    /* Lightbox Modal */
+    .gallery-lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .gallery-lightbox.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .lightbox-content {
+        max-width: 90%;
+        max-height: 90vh;
+        position: relative;
+        animation: zoomIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes zoomIn {
+        from {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .lightbox-image {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 15px;
+        box-shadow: 0 25px 100px rgba(0, 0, 0, 0.5);
+    }
+
+    .lightbox-close {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        width: 50px;
+        height: 50px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .lightbox-close:hover {
+        transform: rotate(90deg) scale(1.1);
+        background: var(--gallery-primary);
+    }
+
+    .lightbox-close i {
+        font-size: 1.5rem;
+        color: var(--gallery-primary);
+        transition: color 0.3s ease;
+    }
+
+    .lightbox-close:hover i {
+        color: white;
+    }
+
+    .lightbox-info {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .lightbox-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gallery-text-dark);
+    }
+
+    /* Navigation Arrows */
+    .lightbox-nav {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+    }
+
+    .lightbox-nav:hover {
+        background: var(--gallery-primary);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .lightbox-nav i {
+        font-size: 1.5rem;
+        color: var(--gallery-primary);
+        transition: color 0.3s ease;
+    }
+
+    .lightbox-nav:hover i {
+        color: white;
+    }
+
+    .lightbox-prev {
+        left: 2rem;
+    }
+
+    .lightbox-next {
+        right: 2rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 991px) {
+        .gallery-grid {
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .gallery-title {
+            font-size: 2.5rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .gallery-page {
+            padding: 2rem 0;
+        }
+
+        .gallery-hero {
+            padding: 3rem 1rem;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+
+        .gallery-icon-wrapper {
+            width: 80px;
+            height: 80px;
+        }
+
+        .gallery-icon-wrapper i {
+            font-size: 2.5rem;
+        }
+
+        .gallery-title {
+            font-size: 2rem;
+        }
+
+        .gallery-subtitle {
+            font-size: 1rem;
+        }
+
+        .gallery-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .gallery-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .gallery-item-title {
+            font-size: 0.9rem;
+        }
+
+        .lightbox-close,
+        .lightbox-nav {
+            width: 40px;
+            height: 40px;
+        }
+
+        .lightbox-close {
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .lightbox-prev {
+            left: 1rem;
+        }
+
+        .lightbox-next {
+            right: 1rem;
+        }
+
+        .lightbox-close i,
+        .lightbox-nav i {
+            font-size: 1.2rem;
+        }
+
+        .gallery-empty {
+            padding: 3rem 1.5rem;
+        }
+
+        .gallery-empty-icon {
+            width: 120px;
+            height: 120px;
+        }
+
+        .gallery-empty-icon i {
+            font-size: 4rem;
+        }
+
+        .gallery-empty-title {
+            font-size: 1.75rem;
+        }
+
+        .gallery-empty-text {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .gallery-title {
+            font-size: 1.5rem;
+        }
+
+        .gallery-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .gallery-item {
+            border-radius: 12px;
+        }
+    }
+</style>
+
+<div class="gallery-page">
+    <div class="container">
+        <!-- Hero Header -->
+        <div class="gallery-hero">
+            <div class="gallery-hero-content">
+                <div class="gallery-icon-wrapper">
+                    <i class="bi bi-images"></i>
+                </div>
+                <h1 class="gallery-title">Lookbook Gallery</h1>
+                <p class="gallery-subtitle">
+                    Discover our curated collection of stunning products and style inspiration
+                </p>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        {% if gallery_images or gallery_products %}
+            <div class="gallery-stats">
+                <div class="gallery-stat-item">
+                    <i class="bi bi-images"></i>
+                    <span>
+                        {% if gallery_images %}
+                            {{ gallery_images|length }}
+                        {% else %}
+                            {{ gallery_products|length }}
+                        {% endif %}
+                        Image{{ gallery_images|length|pluralize }}
+                    </span>
+                </div>
+                <div class="gallery-stat-item">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    <span>Masonry Layout</span>
+                </div>
+                <div class="gallery-stat-item">
+                    <i class="bi bi-star-fill"></i>
+                    <span>Premium Collection</span>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Gallery Grid -->
+        {% if gallery_images %}
+            <div class="gallery-grid">
+                {% for img in gallery_images %}
+                    <div class="gallery-item" onclick="openLightbox({{ forloop.counter0 }})">
+                        <div class="gallery-image-container">
+                            <img src="{{ img.image.url|default:img.url }}" class="gallery-image" alt="Gallery Image {{ forloop.counter }}" loading="lazy">
+                            <div class="gallery-overlay">
+                                <div class="gallery-overlay-icon">
+                                    <i class="bi bi-zoom-in"></i>
+                                </div>
+                                <h3 class="gallery-item-title">Image {{ forloop.counter }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif gallery_products %}
+            <div class="gallery-grid">
+                {% for product in gallery_products %}
+                    <div class="gallery-item" onclick="openLightbox({{ forloop.counter0 }})">
+                        <div class="gallery-image-container">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="gallery-image" alt="{{ product.name }}" loading="lazy">
+                                <div class="gallery-overlay">
+                                    <div class="gallery-overlay-icon">
+                                        <i class="bi bi-zoom-in"></i>
+                                    </div>
+                                    <h3 class="gallery-item-title">{{ product.name }}</h3>
+                                </div>
+                            {% else %}
+                                <div class="gallery-no-image">
+                                    <i class="bi bi-image"></i>
+                                    <p>No Image Available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="gallery-empty">
+                <div class="gallery-empty-icon">
+                    <i class="bi bi-images"></i>
+                </div>
+                <h2 class="gallery-empty-title">Gallery Coming Soon</h2>
+                <p class="gallery-empty-text">
+                    We're curating a beautiful collection of images for you.<br>
+                    Check back soon to see our amazing lookbook!
+                </p>
+                <a href="{% url 'products:shop' %}" class="gallery-empty-btn">
+                    <i class="bi bi-shop"></i>
+                    Browse Products
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div class="gallery-lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox(event)">
+        <i class="bi bi-x"></i>
+    </button>
+    <button class="lightbox-nav lightbox-prev" onclick="changeImage(-1); event.stopPropagation();">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+    <button class="lightbox-nav lightbox-next" onclick="changeImage(1); event.stopPropagation();">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <img id="lightbox-img" class="lightbox-image" src="" alt="">
+        <div class="lightbox-info">
+            <p class="lightbox-title" id="lightbox-title"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gallery images data
+    const galleryImages = [
+        {% if gallery_images %}
+            {% for img in gallery_images %}
+                {
+                    src: "{{ img.image.url|default:img.url }}",
+                    title: "Gallery Image {{ forloop.counter }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% elif gallery_products %}
+            {% for product in gallery_products %}
+                {% if product.image %}
+                {
+                    src: "{{ product.image.url }}",
+                    title: "{{ product.name }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    ];
+
+    let currentImageIndex = 0;
+
+    function openLightbox(index) {
+        currentImageIndex = index;
+        updateLightboxImage();
+        document.getElementById('lightbox').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(event) {
+        if (event.target.id === 'lightbox' || event.target.closest('.lightbox-close')) {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function changeImage(direction) {
+        currentImageIndex += direction;
+        if (currentImageIndex < 0) {
+            currentImageIndex = galleryImages.length - 1;
+        } else if (currentImageIndex >= galleryImages.length) {
+            currentImageIndex = 0;
+        }
+        updateLightboxImage();
+    }
+
+    function updateLightboxImage() {
+        if (galleryImages.length > 0) {
+            const img = galleryImages[currentImageIndex];
+            document.getElementById('lightbox-img').src = img.src;
+            document.getElementById('lightbox-title').textContent = img.title;
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox.classList.contains('active')) {
+            if (e.key === 'Escape') {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            } else if (e.key === 'ArrowLeft') {
+                changeImage(-1);
+            } else if (e.key === 'ArrowRight') {
+                changeImage(1);
+            }
+        }
+    });
+
+    // Lazy loading animation trigger
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.gallery-item').forEach(item => {
+        observer.observe(item);
+    });
+</script>
+{% endblock %}

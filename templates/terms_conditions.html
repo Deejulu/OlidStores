@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .terms-page {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .terms-page::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 450px;
+        height: 450px;
+        background: linear-gradient(135deg, #4A90E2, #357ABD);
+        border-radius: 0 0 100% 0;
+        opacity: 0.08;
+        z-index: 0;
+    }
+    
+    .terms-page::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+        border-radius: 100% 0 0 0;
+        opacity: 0.08;
+        z-index: 0;
+    }
+    
+    .terms-container {
+        position: relative;
+        z-index: 1;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .terms-header {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        padding: 3rem;
+        border-radius: 24px 24px 0 0;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .terms-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -20%;
+        width: 350px;
+        height: 350px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+    }
+    
+    .terms-header h1 {
+        color: white;
+        font-weight: 900;
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .terms-header .icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .terms-header .last-updated {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .terms-content {
+        background: white;
+        padding: 3rem;
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .terms-section {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+    }
+    
+    .terms-section:last-child {
+        border-bottom: none;
+    }
+    
+    .terms-section h2 {
+        color: #2c3e50;
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .terms-section h2::before {
+        content: '';
+        width: 6px;
+        height: 2rem;
+        background: linear-gradient(135deg, #4A90E2, #357ABD);
+        border-radius: 3px;
+    }
+    
+    .terms-section p {
+        color: #4a5568;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        margin-bottom: 1rem;
+    }
+    
+    .terms-section ul {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .terms-section li {
+        color: #4a5568;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        margin-bottom: 0.75rem;
+        position: relative;
+        padding-left: 1rem;
+    }
+    
+    .terms-section li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #4A90E2;
+        font-weight: 900;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, rgba(74, 144, 226, 0.05), rgba(53, 122, 189, 0.05));
+        border-left: 4px solid #4A90E2;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 2rem 0;
+    }
+    
+    .info-box p {
+        margin: 0;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .warning-box {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.05), rgba(224, 168, 0, 0.05));
+        border-left: 4px solid #ffc107;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 2rem 0;
+    }
+    
+    .warning-box p {
+        margin: 0;
+        font-weight: 600;
+        color: #856404;
+    }
+</style>
+
+<div class="terms-page">
+    <div class="terms-container">
+        <div class="terms-header">
+            <div class="icon">📋</div>
+            <h1>{{ terms_title|default:"Terms & Conditions" }}</h1>
+            <p class="last-updated">Effective Date: {% if terms_updated %}{{ terms_updated|date:"F Y" }}{% else %}February 2026{% endif %}</p>
+        </div>
+        
+        <div class="terms-content">
+            {% if terms_content %}
+            <!-- Dynamic Terms Content from Content Management -->
+            <div class="terms-section" style="line-height: 1.8; color: #4a5568;">
+                {{ terms_content|linebreaks }}
+            </div>
+            {% else %}
+            <!-- Default Terms & Conditions Content -->
+            <div class="terms-section">
+                <h2>Agreement to Terms</h2>
+                <p>By accessing and using OD, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services.</p>
+                <div class="info-box">
+                    <p>📌 Please read these terms carefully before making any purchase. Your order constitutes acceptance of these terms.</p>
+                </div>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Product Information</h2>
+                <p>We strive to provide accurate product descriptions, images, and pricing. However:</p>
+                <ul>
+                    <li>Product colors may vary slightly from images due to screen settings</li>
+                    <li>Prices are subject to change without prior notice</li>
+                    <li>Products are subject to availability</li>
+                    <li>We reserve the right to limit order quantities</li>
+                </ul>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Order Processing & Payment</h2>
+                <p>All orders are subject to acceptance and availability. We accept the following payment methods:</p>
+                <ul>
+                    <li><strong>Paystack:</strong> Secure card payments and bank transfers</li>
+                    <li><strong>Manual Bank Transfer:</strong> With receipt upload verification</li>
+                    <li><strong>Pay on Delivery:</strong> Available for eligible orders</li>
+                </ul>
+                <div class="warning-box">
+                    <p>⚠️ Orders are not confirmed until payment is received and verified. We reserve the right to cancel orders for non-payment.</p>
+                </div>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Delivery Policy</h2>
+                <p><strong>Delivery Times:</strong></p>
+                <ul>
+                    <li><strong>Standard Delivery:</strong> 3-7 business days within Lagos</li>
+                    <li><strong>24-Hour Delivery:</strong> Available for select products with additional fee</li>
+                    <li><strong>Nationwide Delivery:</strong> 5-14 business days depending on location</li>
+                </ul>
+                <p><strong>Delivery Fees:</strong> Calculated based on location and order value. Free delivery on orders above ₦50,000.</p>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Return & Refund Policy</h2>
+                <p>We want you to be completely satisfied with your purchase.</p>
+                <ul>
+                    <li><strong>Return Window:</strong> 14 days from delivery date</li>
+                    <li><strong>Condition:</strong> Items must be unused, in original packaging with tags attached</li>
+                    <li><strong>Refund Processing:</strong> 7-14 business days after return approval</li>
+                    <li><strong>Return Shipping:</strong> Customer responsibility unless product is defective</li>
+                </ul>
+                <p><strong>Non-Returnable Items:</strong> Perishable goods, custom-made products, and intimate items.</p>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Pay on Delivery Terms</h2>
+                <ul>
+                    <li>Available for orders under ₦100,000 within Lagos</li>
+                    <li>Customers must inspect items before payment</li>
+                    <li>Refusal to accept delivery may result in service restrictions</li>
+                    <li>Additional delivery fee may apply for POD orders</li>
+                </ul>
+            </div>
+            
+            <div class="terms-section">
+                <h2>User Conduct</h2>
+                <p>Users agree not to:</p>
+                <ul>
+                    <li>Provide false or misleading information</li>
+                    <li>Use the platform for fraudulent purposes</li>
+                    <li>Interfere with platform operations</li>
+                    <li>Violate any applicable laws or regulations</li>
+                </ul>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Limitation of Liability</h2>
+                <p>OD shall not be liable for indirect, incidental, or consequential damages arising from:</p>
+                <ul>
+                    <li>Product use or inability to use products</li>
+                    <li>Delivery delays due to unforeseen circumstances</li>
+                    <li>Third-party service failures (payment gateways, courier services)</li>
+                </ul>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Modifications to Terms</h2>
+                <p>We reserve the right to modify these Terms and Conditions at any time. Changes will be effective immediately upon posting. Continued use of our services constitutes acceptance of modified terms.</p>
+            </div>
+            
+            <div class="terms-section">
+                <h2>Contact Information</h2>
+                <p>For questions about these Terms and Conditions, please contact us:</p>
+                <p>📧 <strong>Email:</strong> support@od.com<br>
+                📞 <strong>Phone:</strong> +234-XXX-XXX-XXXX<br>
+                🌐 <a href="/contact/" style="color: #4A90E2; font-weight: 600;">Contact Page</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

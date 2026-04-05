@@ -1,0 +1,287 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<div class="container py-4 account-page">
+    <div class="account-header w-100 mb-3">
+        <div class="d-flex gap-3 align-items-center">
+            <div class="display-5 text-white"><i class="bi bi-receipt-cutoff"></i></div>
+            <div>
+                <h2 class="mb-0">Order History & Tracking</h2>
+                <p class="mb-0 text-white-50">View, track and manage your past orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="account-panel orders-table">
+        <!-- Orders search (server & client) -->
+        <form method="get" action="{% url 'orders:order_history' %}" class="mb-3">
+            <div class="input-group">
+                <input id="orders-search-input" name="search" value="{{ search_query }}" type="search" class="form-control form-control-lg" placeholder="Search by order ID, status, or tracking number..." aria-label="Search orders">
+                <button class="btn btn-outline-secondary" type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
+                <button id="orders-search-clear" type="button" class="btn btn-outline-secondary" title="Clear search"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </form>
+
+    {% if orders %}
+
+    <style>
+        /* ==========================
+           Order History — refined UI (mobile + laptop)
+           - clearer badges, denser table, larger tap targets
+           - subtle elevation and improved spacing
+           ========================== */
+
+        :root { --oh-radius: 12px; --oh-gap: .75rem; }
+
+        .orders-table { padding: .25rem; }
+
+        /* Card (mobile-first) */
+        .order-card {
+            border-radius: var(--oh-radius);
+            background: linear-gradient(180deg,#ffffff,#fbfbfb);
+            border: 1px solid rgba(2,6,23,0.04);
+            box-shadow: 0 12px 30px rgba(2,6,23,0.06);
+            transition: transform .18s ease, box-shadow .18s ease;
+            overflow: hidden;
+        }
+        .order-card:hover { transform: translateY(-6px); box-shadow: 0 26px 60px rgba(2,6,23,0.08); }
+
+        .order-card .card-body { padding: 1rem 1rem; display:flex; gap:.85rem; align-items:flex-start; }
+        .order-card .card-body .thumb { width:56px; height:56px; border-radius:10px; background:linear-gradient(180deg,#f6f6f6,#f3f3f3); flex-shrink:0; }
+        .order-card .card-body .info { flex:1 1 auto; min-width:0; }
+
+        .order-title { font-weight:800; letter-spacing: -0.02em; }
+        .order-meta { color: var(--gray-600, #6b7280); font-size:.95rem; margin-top:.25rem; }
+
+        /* Status badges */
+        .order-badge { display:inline-flex; align-items:center; gap:.5rem; padding:.35rem .65rem; border-radius:999px; font-weight:700; font-size:.85rem; }
+        .order-badge--pending { background: linear-gradient(180deg,#fff7ed,#fff3cd); color:#92400e; border:1px solid rgba(245,158,11,0.12); }
+        .order-badge--processing { background: linear-gradient(180deg,#f0f9ff,#e6f6ff); color:var(--info); border:1px solid rgba(59,130,246,0.08); }
+        .order-badge--shipped { background: linear-gradient(180deg,#f0fff4,#ecfdf3); color:var(--success); border:1px solid rgba(16,185,129,0.08); }
+        .order-badge--cancelled { background: linear-gradient(180deg,#fff0f0,#ffecec); color:var(--error); border:1px solid rgba(239,68,68,0.08); }
+        .order-badge--default { background:#f3f4f6; color:var(--gray-700); border:1px solid rgba(0,0,0,0.04); }
+
+        /* Actions */
+        .order-card .card-footer { display:flex; gap:.5rem; padding:.65rem 1rem; border-top:1px solid rgba(0,0,0,0.04); background:transparent; }
+        .order-actions .btn { border-radius:999px; padding:.5rem .9rem; font-weight:700; min-width:92px; }
+        .order-actions .btn-primary { box-shadow: 0 10px 30px rgba(13,110,253,0.07); }
+
+        /* Items list */
+        .items-panel { margin-top:.5rem; padding:.85rem; background: linear-gradient(180deg,#fff,#fbfbfb); border-radius:.6rem; border:1px solid rgba(0,0,0,0.03); box-shadow: 0 6px 20px rgba(2,6,23,0.04); }
+        .items-panel ul { margin:0; padding:0; list-style:none; }
+        .items-panel li { padding:.45rem 0; border-bottom:1px dashed rgba(0,0,0,0.04); font-size:.95rem; }
+        .items-panel li:last-child { border-bottom:none; }
+
+        /* Table (desktop) */
+        .order-row { background: linear-gradient(180deg,#ffffff,#fbfbfb); border-radius:10px; box-shadow:0 6px 18px rgba(2,6,23,0.03); transition: transform .18s ease; }
+        .order-row:hover { transform: translateY(-4px); box-shadow:0 18px 42px rgba(2,6,23,0.06); }
+
+        .orders-table .table { border-collapse: separate; border-spacing: 0 0.5rem; }
+        .orders-table .table thead th { background:transparent; border-bottom:none; color:var(--gray-700); font-weight:700; position:sticky; top:0; z-index:2; }
+        .orders-table .table tbody td { background:transparent; border:none; padding:.85rem 1rem; vertical-align:middle; }
+
+        @media (max-width: 767.98px) {
+            .orders-card-list { padding:.25rem 0; }
+            .order-card .card-body { padding:.9rem; }
+            .order-card .card-footer { justify-content:space-between; gap:.5rem; }
+            .order-actions .btn { min-width:110px; }
+            .order-title { font-size:1rem; }
+        }
+
+        @media (min-width: 768px) {
+            .orders-card-list { display:none; }
+            .orders-table .table-responsive { border-radius:14px; }
+            .order-actions .btn { min-width:86px; }
+        }
+
+        @media (max-width: 420px) {
+            .order-card .card-footer { flex-direction:column; align-items:stretch; gap:.5rem; }
+            .order-actions .btn { width:100%; }
+            .order-meta { font-size:.9rem; }
+        }
+
+        /* Accessibility focus */
+        .btn:focus-visible { outline: 3px solid rgba(13,110,253,0.12); outline-offset:3px; }
+    </style>
+
+    <!-- Mobile: card list -->
+    <div class="d-md-none mb-3 orders-card-list">
+        {% for order in orders %}
+        <div class="order-card card" data-search="{{ order.id }} {{ order.status }} {{ order.tracking_number|default:'' }} {% for item in order.items.all %}{{ item.product.name }} {% endfor %}">
+            <div class="card-body d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">Order</div>
+                        <div class="fw-bold">#{{ order.id }}</div>
+                        <div class="order-meta">{{ order.created_at|date:"M d, Y H:i" }} · {{ order.items.count }} item{{ order.items.count|pluralize }}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-primary">₦{{ order.grand_total }}</div>
+                        <div class="mt-1">{% if order.status == 'Shipped' %}<span class="badge bg-success">Shipped</span>{% elif order.status == 'Delivered' %}<span class="badge bg-success">Delivered</span>{% elif order.status == 'Processing' %}<span class="badge bg-info">Processing</span>{% elif order.status == 'Pending' %}<span class="badge bg-warning text-dark">Pending</span>{% elif order.status == 'Cancelled' %}<span class="badge bg-danger">Cancelled</span>{% else %}<span class="badge bg-secondary">{{ order.status }}</span>{% endif %}</div>
+                    </div>
+                </div>
+                <div class="small text-muted">{% for item in order.items.all|slice:":2" %}{{ item.quantity }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if order.items.count > 2 %} <span class="text-muted">+{{ order.items.count|add:'-2' }} more</span>{% endif %}</div>
+            </div>
+            <div class="card-footer d-flex gap-2 order-actions">
+                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary account-btn">View Details</a>
+                {% if order.status == 'Shipped' or order.status == 'Delivered' %}
+                <a href="/track/{{ order.id }}/" class="btn btn-sm btn-primary account-btn">Track</a>
+                {% endif %}
+                <button class="btn btn-sm btn-outline-secondary account-btn" type="button" data-bs-toggle="collapse" data-bs-target="#items-{{ order.id }}">Items</button>
+            </div>
+            <div class="collapse" id="items-{{ order.id }}">
+                <div class="p-3 border-top bg-white">
+                    <strong>Items</strong>
+                    <ul class="mb-0 mt-2 small">
+                        {% for item in order.items.all %}
+                            <li>{{ item.quantity }} x {{ item.product.name }}{% if item.variant %} ({{ item.variant.name }}){% endif %} — ₦{{ item.subtotal }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Desktop / Tablet: enhanced table -->
+
+    <div id="orders-no-results" class="alert alert-info d-none">No orders match your search.</div>
+
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-borderless table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for order in orders %}
+            <tr class="order-row align-middle" data-search="{{ order.id }} {{ order.status }} {{ order.tracking_number|default:'' }} {% for item in order.items.all %}{{ item.product.name }} {% endfor %}">
+                <td class="fw-bold">#{{ order.id }}</td>
+                <td class="text-muted small">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                <td>
+                    {% if order.status == 'Shipped' %}<span class="badge bg-success">Shipped</span>
+                    {% elif order.status == 'Delivered' %}<span class="badge bg-success">Delivered</span>
+                    {% elif order.status == 'Processing' %}<span class="badge bg-info">Processing</span>
+                    {% elif order.status == 'Pending' %}<span class="badge bg-warning text-dark">Pending</span>
+                    {% elif order.status == 'Cancelled' %}<span class="badge bg-danger">Cancelled</span>
+                    {% else %}<span class="badge bg-secondary">{{ order.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-end fw-bold">₦{{ order.grand_total }}</td>
+                <td class="text-end">
+                    <div class="d-flex justify-content-end gap-2 order-actions">
+                        <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                        {% if order.status == 'Shipped' or order.status == 'Delivered' %}
+                        <a href="/track/{{ order.id }}/" class="btn btn-sm btn-primary">Track</a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            <tr class="order-items-row">
+                <td colspan="5">
+                    <div class="items-panel mt-2">
+                        <strong>Items:</strong>
+                        <ul class="mb-0 mt-2 small">
+                        {% for item in order.items.all %}
+                            <li>{{ item.quantity }} x {{ item.product.name }}{% if item.variant %} ({{ item.variant.name }}){% endif %} — ₦{{ item.subtotal }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Order history pagination" class="mt-3">
+        <ul class="pagination justify-content-center">
+            {% if orders.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ orders.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+            {% endif %}
+            {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if orders.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ orders.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <script>
+    (function(){
+        'use strict';
+        function normalize(s){ return (s||'').toString().toLowerCase().trim(); }
+        document.addEventListener('DOMContentLoaded', function(){
+            const input = document.getElementById('orders-search-input');
+            const clearBtn = document.getElementById('orders-search-clear');
+            const mobileCards = Array.from(document.querySelectorAll('.orders-card-list .order-card'));
+            const tableRows = Array.from(document.querySelectorAll('.table-responsive .order-row'));
+            const noResults = document.getElementById('orders-no-results');
+
+            function applyFilter(q){
+                const ql = normalize(q);
+                let anyVisible = false;
+
+                mobileCards.forEach(card => {
+                    const hay = normalize(card.dataset.search || card.textContent);
+                    const visible = ql === '' || hay.indexOf(ql) !== -1;
+                    card.style.display = visible ? '' : 'none';
+                    anyVisible = anyVisible || visible;
+                });
+
+                tableRows.forEach(row => {
+                    const hay = normalize(row.dataset.search || row.textContent);
+                    const visible = ql === '' || hay.indexOf(ql) !== -1;
+                    const itemsRow = row.nextElementSibling;
+                    row.style.display = visible ? '' : 'none';
+                    if (itemsRow && itemsRow.classList.contains('order-items-row')) itemsRow.style.display = visible ? '' : 'none';
+                    anyVisible = anyVisible || visible;
+                });
+
+                if (ql && !anyVisible) {
+                    noResults.classList.remove('d-none');
+                } else {
+                    noResults.classList.add('d-none');
+                }
+            }
+
+            if (input) {
+                input.addEventListener('input', function(e){ applyFilter(e.target.value); });
+                // initial filter for server-filled query
+                applyFilter(input.value || '');
+            }
+            if (clearBtn) { clearBtn.addEventListener('click', function(){ if(input){ input.value=''; applyFilter(''); input.focus(); } }); }
+        });
+    })();
+    </script>
+    </div> <!-- .account-panel -->
+    {% else %}
+    <div class="alert alert-info">No orders found.</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-labelledby="title desc">
+  <title id="title">Olid Stores Color Mark</title>
+  <desc id="desc">Color monogram and wordmark with gradient accent for web and vibrant usage.</desc>
+
+  <defs>
+    <linearGradient id="g1" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#FF7A18"/>
+      <stop offset="50%" stop-color="#AF1EDE"/>
+      <stop offset="100%" stop-color="#4A00E0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon -->
+  <rect x="0" y="0" width="200" height="200" rx="28" ry="28" fill="url(#g1)" />
+  <text x="100" y="125" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="88" font-weight="900" fill="#fff">O</text>
+
+  <!-- Wordmark -->
+  <text x="240" y="120" font-family="Playfair Display, Georgia, serif" font-size="72" font-weight="700" fill="#222">Olid</text>
+  <text x="420" y="120" font-family="Poppins, Arial, sans-serif" font-size="28" font-weight="900" fill="#222">STORES</text>
+</svg>

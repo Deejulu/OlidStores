@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - E-Stores{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-page::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, {{ theme_colors.primary }}1A 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, {{ theme_colors.accent }}0D 0%, transparent 50%);
+    }
+    
+    .auth-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    .auth-card {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
+    
+    .auth-header {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        color: white;
+    }
+    
+    .auth-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .auth-icon i {
+        font-size: 2.5rem;
+    }
+    
+    .auth-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .auth-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .auth-body {
+        padding: 2.5rem 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #2D2D2D;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #E9ECEF;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: {{ theme_colors.primary }};
+        box-shadow: 0 0 0 4px {{ theme_colors.primary }}1A;
+    }
+    
+    .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .helptext {
+        font-size: 0.8125rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .btn-auth {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px {{ theme_colors.primary }}40;
+    }
+    
+    .btn-auth:active {
+        transform: translateY(0);
+    }
+    
+    .auth-divider {
+        border: 0;
+        border-top: 1px solid #E9ECEF;
+        margin: 2rem 0;
+    }
+    
+    .auth-links {
+        text-align: center;
+    }
+    
+    .auth-link {
+        color: {{ theme_colors.primary }};
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .auth-link:hover {
+        color: {{ theme_colors.primary_dark }};
+        text-decoration: underline;
+    }
+    
+    .alert-modern {
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        border: none;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .alert-modern.alert-danger {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    
+    .alert-modern.alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    
+    /* Extra Small Devices (Phones in portrait) */
+    @media (max-width: 480px) {
+        .auth-page {
+            padding: 1rem 0;
+        }
+        
+        .auth-container {
+            padding: 0 0.75rem;
+        }
+        
+        .auth-card {
+            border-radius: 16px;
+        }
+        
+        .auth-header {
+            padding: 1.5rem 1rem 1rem;
+        }
+        
+        .auth-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-icon i {
+            font-size: 2rem;
+        }
+        
+        .auth-title {
+            font-size: 1.375rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .auth-subtitle {
+            font-size: 0.875rem;
+        }
+        
+        .auth-body {
+            padding: 1.5rem 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-label {
+            font-size: 0.8125rem;
+            margin-bottom: 0.375rem;
+        }
+        
+        .form-control {
+            padding: 0.75rem 0.875rem;
+            font-size: 0.9375rem;
+            border-radius: 10px;
+            min-height: 44px; /* Better tap target */
+        }
+        
+        .btn-auth {
+            padding: 0.875rem;
+            font-size: 0.9375rem;
+            border-radius: 10px;
+            min-height: 48px; /* Optimal tap target */
+        }
+        
+        .invalid-feedback {
+            font-size: 0.8125rem;
+        }
+        
+        .auth-divider {
+            margin: 1.5rem 0;
+        }
+        
+        .auth-links .mb-2 {
+            font-size: 0.875rem;
+        }
+    }
+    
+    /* Small Devices (Phones in landscape and small tablets) */
+    @media (min-width: 481px) and (max-width: 767px) {
+        .auth-page {
+            padding: 1.5rem 0;
+        }
+        
+        .auth-container {
+            padding: 0 1rem;
+        }
+        
+        .auth-header {
+            padding: 2.25rem 1.5rem 1.75rem;
+        }
+        
+        .auth-icon {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 1.25rem;
+        }
+        
+        .auth-icon i {
+            font-size: 2.25rem;
+        }
+        
+        .auth-title {
+            font-size: 1.75rem;
+        }
+        
+        .auth-subtitle {
+            font-size: 0.9375rem;
+        }
+        
+        .auth-body {
+            padding: 2rem 1.5rem;
+        }
+        
+        .form-control {
+            padding: 0.8125rem 0.9375rem;
+            border-radius: 11px;
+        }
+        
+        .btn-auth {
+            border-radius: 11px;
+        }
+    }
+    
+    /* Medium Devices (Tablets) */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .auth-container {
+            max-width: 500px;
+        }
+        
+        .auth-card {
+            border-radius: 20px;
+        }
+        
+        .auth-header {
+            padding: 2.5rem 2rem 1.75rem;
+        }
+        
+        .auth-title {
+            font-size: 1.875rem;
+        }
+    }
+    
+    /* Landscape Mobile Optimization */
+    @media (max-height: 600px) and (orientation: landscape) {
+        .auth-page {
+            padding: 1rem 0;
+            min-height: auto;
+        }
+        
+        .auth-header {
+            padding: 1.5rem 2rem 1rem;
+        }
+        
+        .auth-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .auth-icon i {
+            font-size: 1.75rem;
+        }
+        
+        .auth-title {
+            font-size: 1.5rem;
+        }
+        
+        .auth-subtitle {
+            font-size: 0.875rem;
+        }
+        
+        .auth-body {
+            padding: 1.5rem 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .auth-divider {
+            margin: 1.25rem 0;
+        }
+    }
+    
+    /* Touch Device Optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .form-control {
+            font-size: 16px; /* Prevents iOS zoom on focus */
+            min-height: 44px; /* Apple's minimum tap target */
+        }
+        
+        .btn-auth {
+            min-height: 48px;
+            font-size: 16px;
+        }
+        
+        .auth-link {
+            padding: 0.5rem;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+        }
+    }
+    
+    /* Very Large Screens */
+    @media (min-width: 1400px) {
+        .auth-container {
+            max-width: 560px;
+        }
+        
+        .auth-card {
+            border-radius: 28px;
+        }
+        
+        .auth-header {
+            padding: 3.5rem 2.5rem 2.5rem;
+        }
+        
+        .auth-body {
+            padding: 3rem 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to continue shopping</p>
+            </div>
+            
+            <div class="auth-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert-modern alert-{{ message.tags }}">
+                            <i class="bi bi-{% if message.tags == 'error' or message.tags == 'danger' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert-modern alert-danger">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span>{{ form.non_field_errors }}</span>
+                    </div>
+                {% endif %}
+                
+                <form method="post" action="">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="id_username" class="form-label">
+                            <i class="bi bi-person"></i> Username
+                        </label>
+                        <input type="text" 
+                               name="username" 
+                               id="id_username" 
+                               class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                               placeholder="Enter your username"
+                               required
+                               autofocus>
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_password" class="form-label">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <input type="password" 
+                               name="password" 
+                               id="id_password" 
+                               class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                               placeholder="Enter your password"
+                               required>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn-auth">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Sign In</span>
+                    </button>
+                </form>
+                
+                <div class="auth-links mt-3">
+                    <a href="{% url 'users:password_reset' %}" class="auth-link">
+                        <i class="bi bi-key"></i>
+                        <span>Forgot Password?</span>
+                    </a>
+                </div>
+                
+                <hr class="auth-divider">
+                
+                <div class="auth-links">
+                    <p class="mb-2" style="color: #6c757d;">Don't have an account?</p>
+                    <a href="{% url 'users:signup' %}" class="auth-link">
+                        <i class="bi bi-person-plus"></i>
+                        <span>Create Account</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

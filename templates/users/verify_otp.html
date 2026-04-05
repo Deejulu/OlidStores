@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify {{ verification_type|title }} - E-Stores{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-page::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, {{ theme_colors.primary }}1A 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, {{ theme_colors.accent }}0D 0%, transparent 50%);
+    }
+    
+    .auth-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    .auth-card {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
+    
+    .auth-header {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        color: white;
+    }
+    
+    .auth-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .auth-icon i {
+        font-size: 2.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .auth-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .auth-body {
+        padding: 2.5rem;
+    }
+    
+    .target-info {
+        background: #f3f4f6;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .target-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    
+    .target-value {
+        font-weight: 700;
+        color: #111827;
+        font-size: 1.1rem;
+    }
+    
+    .otp-input-container {
+        margin-bottom: 1.5rem;
+    }
+    
+    .otp-input {
+        width: 100%;
+        height: 70px;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 1rem;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        background: #fafafa;
+        transition: all 0.2s;
+    }
+    
+    .otp-input:focus {
+        border-color: {{ theme_colors.primary }};
+        box-shadow: 0 0 0 4px {{ theme_colors.primary }}1A;
+        outline: none;
+        background: white;
+    }
+    
+    .btn-submit {
+        width: 100%;
+        height: 56px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        border: none;
+        color: white;
+        transition: all 0.2s;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px {{ theme_colors.primary }}40;
+    }
+    
+    .resend-section {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .resend-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+    
+    .resend-btn {
+        font-weight: 600;
+        color: {{ theme_colors.primary }};
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .resend-btn:hover:not(:disabled) {
+        background: {{ theme_colors.primary }}10;
+    }
+    
+    .resend-btn:disabled {
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    .timer {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+    
+    .error-message {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #dc2626;
+        text-align: center;
+    }
+    
+    .success-message {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #16a34a;
+        text-align: center;
+    }
+    
+    /* Step indicator for new signup */
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e5e7eb;
+    }
+    
+    .step-dot.active {
+        background: {{ theme_colors.primary }};
+    }
+    
+    .step-dot.completed {
+        background: #10b981;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    {% if verification_type == 'email' %}
+                    <i class="bi bi-envelope-check-fill"></i>
+                    {% else %}
+                    <i class="bi bi-phone-fill"></i>
+                    {% endif %}
+                </div>
+                <h1 class="auth-title">Verify {{ verification_type|title }}</h1>
+                <p class="auth-subtitle">Enter the 6-digit code we sent</p>
+            </div>
+            
+            <div class="auth-body">
+                {% if not existing_user %}
+                <!-- Step indicator for new signups -->
+                <div class="step-indicator">
+                    <div class="step-dot completed"></div>
+                    <div class="step-dot {% if verification_type == 'phone' %}completed{% else %}active{% endif %}"></div>
+                    <div class="step-dot {% if verification_type == 'phone' %}active{% endif %}"></div>
+                </div>
+                {% endif %}
+                
+                <div class="target-info">
+                    <div class="target-label">Code sent to</div>
+                    <div class="target-value">
+                        {% if verification_type == 'email' %}
+                        <i class="bi bi-envelope me-2"></i>{{ target }}
+                        {% else %}
+                        <i class="bi bi-phone me-2"></i>{{ target }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if messages %}
+                {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}error-message{% else %}success-message{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                {% if form.errors %}
+                <div class="error-message">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post" id="otp-form">
+                    {% csrf_token %}
+                    
+                    <div class="otp-input-container">
+                        <input type="text" 
+                               name="otp_code" 
+                               id="otp_code"
+                               class="otp-input" 
+                               maxlength="6" 
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               autocomplete="one-time-code"
+                               placeholder="------"
+                               autofocus
+                               required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit">
+                        <i class="bi bi-check-circle me-2"></i>Verify Code
+                    </button>
+                </form>
+                
+                <div class="resend-section">
+                    <p class="resend-text">Didn't receive the code?</p>
+                    <button type="button" class="resend-btn" id="resend-btn" disabled>
+                        <i class="bi bi-arrow-repeat me-1"></i>Resend Code
+                    </button>
+                    <p class="timer" id="timer">Wait 60 seconds...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const otpInput = document.getElementById('otp_code');
+    const resendBtn = document.getElementById('resend-btn');
+    const timerEl = document.getElementById('timer');
+    let countdown = 60;
+    
+    // Auto-format OTP input
+    otpInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        
+        // Auto-submit when 6 digits entered
+        if (this.value.length === 6) {
+            document.getElementById('otp-form').submit();
+        }
+    });
+    
+    // Countdown timer
+    function updateTimer() {
+        if (countdown > 0) {
+            countdown--;
+            timerEl.textContent = `Wait ${countdown} seconds...`;
+        } else {
+            timerEl.textContent = '';
+            resendBtn.disabled = false;
+        }
+    }
+    
+    setInterval(updateTimer, 1000);
+    
+    // Resend OTP
+    resendBtn.addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Sending...';
+        
+        fetch("{% url resend_url %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                countdown = 60;
+                timerEl.textContent = `Wait ${countdown} seconds...`;
+                this.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Resend Code';
+                alert(data.message);
+            } else {
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Resend Code';
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Resend Code';
+            alert('Failed to resend code. Please try again.');
+        });
+    });
+});
+</script>
+{% endblock %}

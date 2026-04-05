@@ -1,0 +1,776 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Admin Dashboard Premium Styles */
+    
+    :root {
+        /* primary gradient now follows the site theme accent */
+        --primary-gradient: linear-gradient(135deg, var(--accent-color, #667eea) 0%, var(--accent-dark, #764ba2) 100%);
+        --success-gradient: linear-gradient(135deg, var(--success-color, #10b981) 0%, var(--success-dark, #059669) 100%);
+        --warning-gradient: linear-gradient(135deg, var(--warning-color, #f59e0b) 0%, var(--warning-dark, #d97706) 100%);
+        --info-gradient: linear-gradient(135deg, var(--info-color, #3b82f6) 0%, var(--info-dark, #1e40af) 100%);
+        --danger-gradient: linear-gradient(135deg, var(--danger-color, #ef4444) 0%, var(--danger-dark, #dc2626) 100%);
+    }
+    
+    .admin-dashboard {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 50%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .admin-dashboard::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        right: -20%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 15s ease-in-out infinite;
+        filter: blur(60px);
+    }
+    
+    .admin-dashboard::after {
+        content: '';
+        position: fixed;
+        bottom: -30%;
+        left: -15%;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 18s ease-in-out infinite 2s;
+        filter: blur(80px);
+    }
+    
+    .admin-header {
+        background: var(--primary-gradient);
+        padding: 3.5rem;
+        border-radius: 28px;
+        margin-bottom: 3rem;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.12), 0 10px 30px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        animation: fadeInDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .admin-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 8s ease-in-out infinite;
+    }
+    
+    .admin-header::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 10s ease-in-out infinite 1s;
+    }
+    
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(20px);
+        }
+    }
+    
+    .admin-header h1 {
+        color: white;
+        font-weight: 900;
+        font-size: 3.5rem;
+        margin-bottom: 0.75rem;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        position: relative;
+        z-index: 1;
+        letter-spacing: -1px;
+    }
+    
+    .admin-header p {
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 1.3rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        font-weight: 500;
+    }
+    
+    .admin-stats-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2.5rem 1.5rem;
+        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 2px solid #e5e7eb;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+        z-index: 1;
+        opacity: 0;
+        animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .admin-stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-color), var(--accent-dark));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .admin-stats-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+    
+    .admin-stats-card:hover {
+        transform: translateY(-16px) scale(1.03);
+        box-shadow: 0 30px 70px rgba(102, 126, 234, 0.25), 0 15px 35px rgba(102, 126, 234, 0.15);
+        border-color: rgba(102, 126, 234, 0.4);
+        background: rgba(255, 255, 255, 1);
+    }
+    
+    .admin-stats-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .admin-stats-card:hover::after {
+        opacity: 1;
+    }
+    
+    .stat-icon {
+        width: 95px;
+        height: 95px;
+        margin: 0 auto 1.75rem;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .stat-icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+        opacity: 0;
+    }
+    
+    .admin-stats-card:hover .stat-icon {
+        transform: scale(1.25) rotate(8deg);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 10px 25px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.35);
+    }
+    
+    .admin-stats-card:hover .stat-icon::before {
+        opacity: 1;
+    }
+    
+    .stat-icon.icon-primary {
+        background: var(--primary-gradient);
+    }
+    
+    .stat-icon.icon-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .stat-icon.icon-info {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    }
+    
+    .stat-icon.icon-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .stat-icon.icon-secondary {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    }
+    
+    .stat-icon.icon-dark {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    }
+    
+    .admin-stats-card h5 {
+        font-weight: 800;
+        font-size: 1.4rem;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 1;
+        letter-spacing: -0.5px;
+    }
+    
+    .admin-stats-card p {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 1.75rem;
+        line-height: 1.7;
+        position: relative;
+        z-index: 1;
+        min-height: 2.8rem;
+    }
+    
+    /* IMPROVED BUTTON STYLES - FIXED TEXT VISIBILITY */
+    .admin-btn {
+        background: var(--primary-gradient);
+        color: white !important;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 100px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-size: 0.85rem;
+        transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.35), 0 4px 12px rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .admin-btn span {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .admin-btn i {
+        position: relative;
+        z-index: 2;
+        transition: transform 0.4s ease;
+        color: white !important;
+    }
+    
+    .admin-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+    }
+    
+    .admin-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+        z-index: 1;
+    }
+    
+    .admin-btn:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 18px 50px rgba(102, 126, 234, 0.55), 0 8px 20px rgba(102, 126, 234, 0.3);
+        color: white !important;
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+    
+    .admin-btn:hover::before {
+        opacity: 1;
+    }
+    
+    .admin-btn:hover::after {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .admin-btn:hover i {
+        transform: translateX(6px) scale(1.1);
+    }
+    
+    /* Force white text on hover for all elements inside button */
+    .admin-btn:hover * {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
+    
+    /* Entrance Animations */
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Stagger animation delays for cards */
+    .col-md-4:nth-child(1) .admin-stats-card { animation-delay: 0.1s; }
+    .col-md-4:nth-child(2) .admin-stats-card { animation-delay: 0.2s; }
+    .col-md-4:nth-child(3) .admin-stats-card { animation-delay: 0.3s; }
+    .col-md-4:nth-child(4) .admin-stats-card { animation-delay: 0.4s; }
+    .col-md-4:nth-child(5) .admin-stats-card { animation-delay: 0.5s; }
+    .col-md-4:nth-child(6) .admin-stats-card { animation-delay: 0.6s; }
+    .col-md-4:nth-child(7) .admin-stats-card { animation-delay: 0.7s; }
+    .col-md-4:nth-child(8) .admin-stats-card { animation-delay: 0.8s; }
+    .col-md-4:nth-child(9) .admin-stats-card { animation-delay: 0.9s; }
+    .col-md-4:nth-child(10) .admin-stats-card { animation-delay: 1s; }
+    
+    /* Enhanced Loading Animation */
+    .admin-stats-card {
+        position: relative;
+    }
+    
+    .admin-stats-card::after {
+        animation: shimmer 2s infinite linear;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+        background-size: 200% 100%;
+    }
+    
+    @keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+        100% {
+            background-position: 200% 0;
+        }
+    }
+    
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+        .admin-dashboard {
+            background: linear-gradient(135deg, #1a1d29 0%, #252a3d 50%, #2d3447 100%) !important;
+        }
+        
+        .admin-dashboard::before {
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%) !important;
+        }
+        
+        .admin-dashboard::after {
+            background: radial-gradient(circle, rgba(118, 75, 162, 0.15) 0%, transparent 70%) !important;
+        }
+        
+        .admin-header {
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .admin-stats-card {
+            background: rgba(30, 35, 50, 0.95) !important;
+            border-color: rgba(102, 126, 234, 0.2) !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        .admin-stats-card:hover {
+            background: rgba(35, 40, 60, 1) !important;
+            border-color: rgba(102, 126, 234, 0.5) !important;
+            box-shadow: 0 30px 70px rgba(102, 126, 234, 0.3), 0 15px 35px rgba(0, 0, 0, 0.5) !important;
+        }
+        
+        .admin-stats-card h5 {
+            color: #e5e7eb !important;
+        }
+        
+        .admin-stats-card p {
+            color: #9ca3af !important;
+        }
+        
+        .admin-stats-card::after {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, transparent 100%) !important;
+        }
+        
+        .admin-btn {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .admin-header h1 {
+            font-size: 2.8rem;
+        }
+        
+        .admin-header p {
+            font-size: 1.1rem;
+        }
+        
+        .admin-btn {
+            padding: 0.9rem 2rem;
+            font-size: 0.8rem;
+        }
+    }
+    
+    @media (max-width: 767.98px) {
+        .admin-header {
+            padding: 2rem 1.5rem;
+        }
+        
+        .admin-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-header p {
+            font-size: 0.95rem;
+        }
+        
+        .admin-stats-card {
+            padding: 1.5rem 1rem;
+        }
+        
+        .stat-icon {
+            width: 68px;
+            height: 68px;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .admin-stats-card h5 {
+            font-size: 1.1rem;
+        }
+        
+        .admin-stats-card p {
+            font-size: 0.82rem;
+            min-height: 2.2rem;
+        }
+        
+        .admin-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.78rem;
+        }
+    }
+    
+    /* Phones — 2-per-row compact layout */
+    @media (max-width: 575.98px) {
+        .admin-header {
+            padding: 1.25rem 1rem;
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.3rem;
+            letter-spacing: -0.3px;
+        }
+        
+        .admin-header p {
+            font-size: 0.82rem;
+        }
+        
+        .admin-stats-card {
+            padding: 0.85rem 0.6rem;
+        }
+        
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            margin-bottom: 0.6rem;
+            border-radius: 10px;
+        }
+        
+        .admin-stats-card h5 {
+            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+        }
+        
+        .admin-stats-card p {
+            font-size: 0.72rem;
+            margin-bottom: 0.6rem;
+            min-height: unset;
+        }
+        
+        .admin-btn {
+            width: 100%;
+            padding: 0.55rem 0.5rem;
+            font-size: 0.7rem;
+        }
+    }
+    
+    /* Very small phones (<360px) — hide descriptions */
+    @media (max-width: 359.98px) {
+        .admin-stats-card p {
+            display: none;
+        }
+        
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+        
+        .admin-stats-card h5 {
+            font-size: 0.78rem;
+        }
+    }
+    
+    /* Landscape phone */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .admin-header {
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.1rem;
+        }
+        
+        .admin-header p {
+            display: none;
+        }
+        
+        .admin-stats-card {
+            padding: 0.65rem 0.5rem;
+        }
+        
+        .stat-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+        }
+        
+        .admin-stats-card p {
+            display: none;
+        }
+        
+        .admin-btn {
+            padding: 0.45rem 0.5rem;
+            font-size: 0.65rem;
+        }
+    }
+    
+    /* High Contrast Mode Support */
+    @media (prefers-contrast: high) {
+        .admin-btn {
+            border: 3px solid white;
+        }
+        
+        .admin-stats-card {
+            border: 3px solid #667eea;
+        }
+    }
+    
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+        .admin-dashboard::before,
+        .admin-dashboard::after,
+        .admin-header::before,
+        .admin-header::after,
+        .stat-icon,
+        .admin-btn,
+        .admin-stats-card {
+            animation: none !important;
+            transition: none !important;
+        }
+        
+        .admin-stats-card {
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="admin-dashboard">
+    <div class="container py-4">
+        <div class="admin-header">
+            <h1>⚡ Admin Control Center</h1>
+            <p>Manage your e-commerce platform with powerful tools and insights</p>
+        </div>
+
+        <div class="row g-2 g-sm-3 g-md-4">
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h5>Products</h5>
+                    <p>Manage all products, prices, and images</p>
+                    <a href="/admin-dashboard/products/" class="admin-btn">
+                        <span><i class="fas fa-cog"></i> Manage Products</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-success">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <h5>Categories</h5>
+                    <p>Create and edit product categories</p>
+                    <a href="/admin-dashboard/categories/" class="admin-btn">
+                        <span><i class="fas fa-tags"></i> Manage Categories</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-warning">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h5>Orders</h5>
+                    <p>View and manage customer orders</p>
+                    <a href="/admin-dashboard/orders/" class="admin-btn">
+                        <span><i class="fas fa-clipboard-list"></i> Manage Orders</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-success">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h5>Payments</h5>
+                    <p>Monitor Paystack transactions and payment status</p>
+                    <a href="{% url 'admin_dashboard:payments_dashboard' %}" class="admin-btn">
+                        <span><i class="fas fa-chart-bar"></i> View Payments</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5>Customers</h5>
+                    <p>View and manage customer accounts</p>
+                    <a href="/admin-dashboard/customers/" class="admin-btn">
+                        <span><i class="fas fa-user-friends"></i> View Customers</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-primary">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5>Analytics</h5>
+                    <p>View sales, user, and product analytics</p>
+                    <a href="/admin-dashboard/analytics/" class="admin-btn">
+                        <span><i class="fas fa-chart-pie"></i> View Analytics</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-secondary">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h5>Content</h5>
+                    <p>Edit homepage banners and featured content</p>
+                    <a href="/admin-dashboard/content/" class="admin-btn">
+                        <span><i class="fas fa-edit"></i> Edit Content</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-dark">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h5>Settings</h5>
+                    <p>Site settings and configuration</p>
+                    <a href="/admin/" class="admin-btn">
+                        <span><i class="fas fa-sliders-h"></i> Settings</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-info">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h5>Feedback</h5>
+                    <p>View and manage customer feedback messages</p>
+                    <a href="/admin-dashboard/feedback/" class="admin-btn">
+                        <span><i class="fas fa-comment-dots"></i> View Feedback</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="admin-stats-card text-center">
+                    <div class="stat-icon icon-warning">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h5>Contact Messages</h5>
+                    <p>View and respond to contact form submissions</p>
+                    <a href="/admin-dashboard/contact-messages/" class="admin-btn">
+                        <span><i class="fas fa-inbox"></i> View Messages</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

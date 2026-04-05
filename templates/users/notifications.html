@@ -1,0 +1,45 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<div class="container py-4 account-page">
+    <div class="account-header w-100">
+        <div class="d-flex gap-3 align-items-center">
+            <div class="display-5 text-white"><i class="bi bi-bell-fill"></i></div>
+            <div>
+                <h2 class="mb-0">Notifications</h2>
+                <p class="mb-0 text-white-50">Important messages about your account and orders</p>
+            </div>
+        </div>
+    </div>
+    <div class="account-panel mt-3">
+    {% if notifications %}
+    <ul class="list-group mb-0">
+        {% for n in notifications %}
+        <li class="notification-item list-group-item d-flex align-items-start {% if n.is_important %}list-group-item-warning{% endif %} {% if not n.is_read %}unread{% endif %}">
+            <div class="me-3 mt-1">
+                {% if n.is_important %}<i class="fas fa-exclamation-circle text-danger"></i>{% else %}<i class="fas fa-bell text-primary"></i>{% endif %}
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold {% if not n.is_read %}text-primary{% endif %}">{{ n.title }}</div>
+                <div>{{ n.message }}</div>
+                <div class="text-muted small">{{ n.created_at|date:'M d, Y H:i' }}</div>
+            </div>
+            {% if not n.is_read and n.user == request.user %}
+            <form method="post" action="{% url 'users:notification_mark_read' n.pk %}" class="ms-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    </div> <!-- .account-panel -->
+    <style>
+    .unread { font-weight: 500; }
+    </style>
+    {% else %}
+    <div class="alert alert-info">No notifications yet. Important messages and updates will appear here.</div>
+    {% endif %}
+    <!-- Font Awesome CDN for icons (remove if already included globally) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</div>
+{% endblock %}

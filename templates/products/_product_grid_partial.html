@@ -1,0 +1,111 @@
+{% load static %}
+<div class="products-grid">
+    {% if products and products|length > 0 %}
+        {% for product in products %}
+        <div class="product-card" data-product-id="{{ product.id }}" data-stock="{{ product.display_stock|default:product.stock|default:0 }}">
+
+            <!-- Badges -->
+            <div class="product-badges">
+                {% if product.is_new %}
+                <span class="product-badge badge-new"><i class="bi bi-star-fill"></i> NEW</span>
+                {% endif %}
+                {% if product.discount_percentage %}
+                <span class="product-badge badge-sale"><i class="bi bi-percent"></i> {{ product.discount_percentage }}% OFF</span>
+                {% endif %}
+                {% with s=product.display_stock|default:product.stock|default:0 %}
+                {% if s <= 0 %}
+                <span class="product-badge badge-stock">Out of Stock</span>
+                {% elif s <= 5 %}
+                <span class="product-badge badge-stock">Only {{ s }} left</span>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- Image -->
+            <div class="product-image-container">
+                {% if product.primary_image %}
+                <img src="{{ product.primary_image.url }}" alt="{{ product.name }}" class="product-image" loading="lazy">
+                {% elif product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" loading="lazy">
+                {% else %}
+                <div class="product-image-placeholder"><i class="bi bi-image"></i></div>
+                {% endif %}
+
+                <div class="product-actions">
+                    {% if user.is_authenticated %}
+                    <button class="action-btn wishlist-btn"
+                            onclick="toggleWishlist('{{ product.id }}')"
+                            data-wishlisted="{% if product.id in wishlist_product_ids %}true{% else %}false{% endif %}">
+                        <i class="bi {% if product.id in wishlist_product_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'products:product_detail' slug=product.slug %}" class="action-btn">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="product-content">
+                <div class="product-category">{{ product.category.name }}</div>
+                <h3 class="product-title">
+                    <a href="{% url 'products:product_detail' slug=product.slug %}" style="color:inherit;text-decoration:none;">{{ product.name }}</a>
+                </h3>
+
+                {% if product.rating %}
+                <div class="product-rating">
+                    <div class="rating-stars">
+                        {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= product.rating %}
+                        <i class="bi bi-star-fill"></i>
+                        {% else %}
+                        <i class="bi bi-star"></i>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-count">({{ product.review_count }})</span>
+                </div>
+                {% endif %}
+
+                <div class="product-footer">
+                    <div class="product-price">
+                        {% if product.discount_price %}
+                        <span class="product-price-old">₦{{ product.price }}</span>
+                        <span>₦{{ product.discount_price }}</span>
+                        {% else %}
+                        <span>₦{{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                    {% with s=product.display_stock|default:product.stock|default:0 %}
+                    {% if s > 0 %}
+                    <button class="add-to-cart-btn btn-add-to-cart" data-product-id="{{ product.id }}">
+                        <i class="bi bi-cart-plus"></i>
+                        <span>Add to Cart</span>
+                    </button>
+                    {% else %}
+                    <button class="add-to-cart-btn" disabled style="opacity:.45;cursor:not-allowed;">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Sold out</span>
+                    </button>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state" style="grid-column:1/-1;">
+            <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+            <h3>No products found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+            <a href="{% url 'products:shop' %}" class="btn btn-primary">
+                <i class="bi bi-arrow-clockwise me-2"></i>Reset Filters
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% if products.has_next %}
+<div id="infinite-sentinel" data-next-page="{{ products.next_page_number }}"></div>
+{% endif %}

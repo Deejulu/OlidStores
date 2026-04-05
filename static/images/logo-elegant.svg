@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" role="img" aria-labelledby="title desc">
+  <title id="title">Olid Stores Elegant</title>
+  <desc id="desc">Elegant color wordmark with gold accent for Olid Stores.</desc>
+  <defs>
+    <linearGradient id="gold" x1="0%" x2="100%">
+      <stop offset="0%" stop-color="#F4E4C1" />
+      <stop offset="100%" stop-color="#D4AF37" />
+    </linearGradient>
+  </defs>
+
+  <g font-family="Cormorant Garamond, Georgia, serif" fill="#2a2a2a">
+    <text x="40" y="160" font-size="140" font-weight="700">Olid</text>
+  </g>
+  <g font-family="Poppins, Arial, sans-serif" fill="#2a2a2a">
+    <text x="470" y="160" font-size="52" font-weight="700">STORES</text>
+  </g>
+  <g>
+    <rect x="0" y="0" width="180" height="180" rx="22" fill="url(#gold)" />
+    <text x="90" y="120" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="96" font-weight="900" fill="#fff">O</text>
+  </g>
+</svg>

@@ -1,0 +1,2001 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="checkout-page py-5">
+    <div class="container pb-4">
+        <!-- Breadcrumb & Title -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb ck-breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'products:shop' %}" class="text-decoration-none">Shop</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'orders:cart' %}" class="text-decoration-none">Cart</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+                    </ol>
+                </nav>
+                <div class="ck-hero">
+                    <div class="ck-hero-left">
+                        <h1 class="ck-page-title mb-0">Checkout</h1>
+                        <p class="ck-page-sub">Complete your order safely and securely</p>
+                    </div>
+                    <span class="ck-secure-badge"><i class="bi bi-shield-lock-fill me-1"></i>256-bit Secure</span>
+                </div>
+                <!-- Step progress indicator -->
+                <div class="ck-steps-wrap">
+                    <div class="ck-steps">
+                        <div class="ck-step ck-step--done">
+                            <div class="ck-step-dot"><i class="bi bi-check2"></i></div>
+                            <span class="ck-step-label">Cart</span>
+                        </div>
+                        <div class="ck-step-line ck-step-line--done"></div>
+                        <div class="ck-step ck-step--active">
+                            <div class="ck-step-dot"><span>1</span></div>
+                            <span class="ck-step-label">Contact</span>
+                        </div>
+                        <div class="ck-step-line"></div>
+                        <div class="ck-step">
+                            <div class="ck-step-dot"><span>2</span></div>
+                            <span class="ck-step-label">Delivery</span>
+                        </div>
+                        <div class="ck-step-line"></div>
+                        <div class="ck-step">
+                            <div class="ck-step-dot"><span>3</span></div>
+                            <span class="ck-step-label">Payment</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if items %}
+        <form id="checkout-form" method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" id="paystack_reference" name="paystack_reference">
+
+            <div class="row g-4">
+                <!-- Left Column: Shipping & Payment Details -->
+                <div class="col-lg-7 col-xl-8">
+
+                    <!-- Contact & Shipping -->
+                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                        <div class="card-header ck-card-header">
+                            <div class="ck-section-num">01</div>
+                            <div>
+                                <h5 class="ck-section-title mb-0"><i class="bi bi-person-lines-fill me-2"></i>Contact & Shipping</h5>
+                                <p class="ck-section-sub mb-0">Your contact details and delivery address</p>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="full_name" class="form-label fw-semibold">Full Name</label>
+                                    <div class="ck-input-wrap">
+                                        <i class="bi bi-person ck-input-icon"></i>
+                                        <input type="text" class="form-control form-control-lg ck-input-icon-pad" id="full_name"
+                                            name="full_name" value="{{ user.get_full_name|default:'' }}" required
+                                            placeholder="Enter your full name">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                    <div class="ck-input-wrap">
+                                        <i class="bi bi-telephone ck-input-icon"></i>
+                                        <input type="tel" class="form-control form-control-lg ck-input-icon-pad" id="phone" name="phone"
+                                            required placeholder="Enter your phone number">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="email" class="form-label fw-semibold">Email Address</label>
+                                    <div class="ck-input-wrap">
+                                        <i class="bi bi-envelope ck-input-icon"></i>
+                                        <input type="email" class="form-control form-control-lg ck-input-icon-pad" id="email" name="email"
+                                            value="{{ user.email|default:'' }}" required placeholder="Enter your email address">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="delivery_address" class="form-label fw-semibold">Delivery Address</label>
+                                    <div class="ck-input-wrap">
+                                        <i class="bi bi-geo-alt ck-input-icon" style="top: 0.9rem;"></i>
+                                        <textarea class="form-control form-control-lg ck-input-icon-pad" id="delivery_address"
+                                            name="delivery_address" rows="3" required
+                                            placeholder="Enter your full delivery address"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="notes" class="form-label fw-semibold">Order Notes (Optional)</label>
+                                    <div class="ck-input-wrap">
+                                        <i class="bi bi-chat-left-text ck-input-icon" style="top: 0.85rem;"></i>
+                                        <textarea class="form-control ck-input-icon-pad" id="notes" name="notes" rows="2"
+                                            placeholder="Any special instructions for your order"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Method -->
+                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                        <div class="card-header ck-card-header">
+                            <div class="ck-section-num">02</div>
+                            <div>
+                                <h5 class="ck-section-title mb-0"><i class="bi bi-truck me-2"></i>Delivery Method</h5>
+                                <p class="ck-section-sub mb-0">Choose your preferred delivery speed</p>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column gap-3">
+                                <label class="delivery-option ck-delivery-card">
+                                    <div class="ck-delivery-left">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" id="delivery_24h"
+                                                name="delivery_option" value="24h" {% if selected_delivery_option == '24h' %}checked{% endif %}>
+                                        </div>
+                                        <div class="ck-delivery-icon ck-delivery-icon--express">
+                                            <i class="bi bi-lightning-charge-fill"></i>
+                                        </div>
+                                        <div>
+                                            <span class="ck-delivery-title">Express Delivery <span class="ck-fastest-badge">Fastest</span></span>
+                                            <small class="ck-delivery-desc">Delivered within 24 hours</small>
+                                        </div>
+                                    </div>
+                                    <span class="ck-delivery-price">₦{{ delivery_fee_24h|floatformat:2 }}</span>
+                                </label>
+
+                                <label class="delivery-option ck-delivery-card">
+                                    <div class="ck-delivery-left">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" id="delivery_2d"
+                                                name="delivery_option" value="2d" {% if selected_delivery_option == '2d' %}checked{% endif %}>
+                                        </div>
+                                        <div class="ck-delivery-icon ck-delivery-icon--standard">
+                                            <i class="bi bi-truck"></i>
+                                        </div>
+                                        <div>
+                                            <span class="ck-delivery-title">Standard Delivery</span>
+                                            <small class="ck-delivery-desc">2-3 business days</small>
+                                        </div>
+                                    </div>
+                                    <span class="ck-delivery-price">₦{{ delivery_fee_2d|floatformat:2 }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
+                        <div class="card-header ck-card-header">
+                            <div class="ck-section-num">03</div>
+                            <div>
+                                <h5 class="ck-section-title mb-0"><i class="bi bi-credit-card me-2"></i>Payment Method</h5>
+                                <p class="ck-section-sub mb-0">100% secure &amp; encrypted transactions</p>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                {% if PAYSTACK_PUBLIC %}
+                                <div class="col-md-6">
+                                    <label
+                                        class="payment-option h-100 p-3 border rounded-3 cursor-pointer d-flex flex-column align-items-center justify-content-center text-center hover-shadow transition-all"
+                                        for="paystack_method">
+                                        <input type="radio" class="btn-check" id="paystack_method" name="payment_method"
+                                            value="paystack" checked autocomplete="off">
+                                        <div class="check-indicator mb-2"><i
+                                                class="bi bi-check-circle-fill fs-4 text-success"></i></div>
+                                        <div class="payment-logo mb-1">
+                                            <div class="ck-pay-icon ck-pay-icon--paystack mb-2"><i class="bi bi-lightning-charge-fill"></i></div>
+                                            <span class="fw-bold text-dark">Paystack</span>
+                                        </div>
+                                        <small class="text-muted">Card, Bank Transfer, USSD</small>
+                                    </label>
+                                </div>
+                                {% endif %}
+                                <div class="col-md-6">
+                                    <label
+                                        class="payment-option h-100 p-3 border rounded-3 cursor-pointer d-flex flex-column align-items-center justify-content-center text-center hover-shadow transition-all"
+                                        for="manual_method">
+                                        <input type="radio" class="btn-check" id="manual_method" name="payment_method"
+                                            value="manual" {% if not PAYSTACK_PUBLIC %}checked{% endif %}
+                                            autocomplete="off">
+                                        <div class="check-indicator mb-2"><i
+                                                class="bi bi-check-circle-fill fs-4 text-success"></i></div>
+                                        <div class="payment-logo mb-1">
+                                            <div class="ck-pay-icon ck-pay-icon--bank mb-2"><i class="bi bi-bank2"></i></div>
+                                            <span class="fw-bold text-dark">Bank Transfer</span>
+                                        </div>
+                                        <small class="text-muted">Manual bank-to-bank transfer</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Manual Payment Details Section -->
+                            <div id="manual-payment-section" class="mt-4 p-4 bg-light rounded-3 border"
+                                style="display:none;">
+                                <h6 class="fw-bold mb-3">Bank Transfer Details</h6>
+                                <div class="d-flex flex-column gap-2 mb-4">
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">Bank Name:</span>
+                                        <span class="fw-bold">{{ bank_name }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">Account Name:</span>
+                                        <span class="fw-bold">{{ account_name }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">Account Number:</span>
+                                        <span class="fw-bold font-monospace fs-5">{{ account_number }}</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="receipt" class="form-label fw-semibold">Upload Payment Receipt</label>
+                                    <input type="file" class="form-control" id="receipt" name="receipt"
+                                        accept="image/*,application/pdf">
+                                    <div class="form-text">Please upload a screenshot or PDF of your transfer receipt.
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning d-flex align-items-center mb-0">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    <div>Your order will be processed after payment confirmation (usually within 24h).
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Checkout CTA immediately after Payment Method (hidden on mobile/tablet, only visible on desktop) -->
+                            <div class="d-none d-xl-block mt-4">
+                                <button type="button" class="mobile-checkout-trigger ck-cta-btn w-100" id="payment-inline-cta" aria-label="Confirm order">
+                                    <span class="ck-cta-inner">
+                                        <i class="bi bi-lock-fill"></i>
+                                        <span class="btn-label">Confirm Order</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Order Summary -->
+                <div class="col-lg-5 col-xl-4">
+                    <div class="card shadow-sm border-0 rounded-4 position-lg-sticky" style="top: 2rem; z-index: 10;">
+                        <div class="card-header ck-summary-header">
+                            <h5 class="ck-summary-title mb-0">Order Summary</h5>
+                            <span class="ck-item-count">{{ items|length }} item{{ items|length|pluralize }}</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Items List -->
+                            <div class="checkout-items ck-items-list mb-4">
+                                {% for item in items %}
+                                <div class="ck-item">
+                                    <div class="ck-item-img">
+                                        {% if item.product.images.all %}
+                                        <img src="{{ item.product.images.all.0.image.url }}" alt="{{ item.product.name }}">
+                                        {% elif item.product.image %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                        {% else %}
+                                        <div class="ck-item-placeholder"><i class="bi bi-image"></i></div>
+                                        {% endif %}
+                                        <span class="ck-item-qty">{{ item.quantity }}</span>
+                                    </div>
+                                    <div class="ck-item-info">
+                                        <h6 class="ck-item-name">{{ item.product.name }}</h6>
+                                        {% if item.variant %}
+                                        <small class="ck-item-variant">{{ item.variant.name }}</small>
+                                        {% endif %}
+                                        <div class="ck-item-price">₦{{ item.subtotal }}</div>
+                                        {% if item.variant and item.variant.stock < item.quantity %}
+                                        <span class="ck-stock-warn">Only {{ item.variant.stock }} left</span>
+                                        {% elif not item.variant and item.product.stock < item.quantity %}
+                                        <span class="ck-stock-warn">Only {{ item.product.stock }} left</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Calculations -->
+                            <div class="ck-totals mb-4">
+                                <div class="ck-total-row">
+                                    <span>Subtotal</span>
+                                    <span id="base-total">₦{{ base_total }}</span>
+                                </div>
+                                <div class="ck-total-row">
+                                    <span>Delivery Fee</span>
+                                    <span id="delivery-fee">₦0.00</span>
+                                </div>
+                                <div class="ck-total-row ck-total-row--grand">
+                                    <span>Total</span>
+                                    <span id="final-total">₦{{ base_total }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Desktop Buttons -->
+                            <div class="d-none d-xl-block">
+                                {% if PAYSTACK_PUBLIC %}
+                                <button type="button" id="paystack-btn"
+                                    class="ck-cta-btn w-100" {% if stock_issue %}disabled{% endif %}>
+                                    <span class="ck-cta-inner">
+                                        <i class="bi bi-lock-fill"></i>
+                                        <span>Pay Now</span>
+                                    </span>
+                                </button>
+                                {% if stock_issue %}
+                                <div class="alert alert-danger mt-3 mb-0 small">
+                                    <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                                    Some items exceed available stock.
+                                </div>
+                                {% endif %}
+                                {% endif %}
+
+                                <button type="submit" id="manual-btn"
+                                    class="ck-cta-btn w-100" {% if PAYSTACK_PUBLIC %}style="display:none;" {% endif %}>
+                                    <span class="ck-cta-inner">
+                                        <i class="bi bi-wallet2"></i>
+                                        <span>Confirm Order</span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Inline checkout CTA for mobile/tablet (inside Order Summary) - hidden, only sticky bar is visible on mobile -->
+                            <div class="d-none">
+                                <button type="button" class="mobile-checkout-trigger ck-cta-btn w-100" id="summary-mobile-checkout-btn" aria-label="Confirm order">
+                                    <span class="ck-cta-inner">
+                                        <i class="bi bi-lock-fill"></i>
+                                        <span class="summary-mobile-label">Confirm Order</span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <small class="text-muted"><i class="bi bi-shield-lock me-1"></i>Secure Checkout</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <!-- Empty Cart State -->
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+        </div>
+        <h2 class="h4 mb-3">Your cart is empty</h2>
+        <p class="text-muted mb-4">You probably haven't ordered a pizza yet.<br>To order a pizza, go to the main page.</p>
+        <a href="{% url 'products:shop' %}" class="btn btn-primary btn-lg rounded-pill px-5">Go to Shop</a>
+    </div>
+    {% endif %}
+</div>
+</div>
+
+<!-- Mobile Sticky Bottom Bar - Always visible on mobile -->
+{% if items %}
+<div id="mobile-checkout-bar" class="d-xl-none"
+    style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px; padding-bottom: max(env(safe-area-inset-bottom, 12px), 12px);">
+    <div class="container-fluid px-0">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex flex-column">
+                <small class="text-muted" style="font-size: 0.75rem;">Total to pay</small>
+                <span class="fw-bold fs-5 text-primary" id="mobile-total">₦{{ base_total }}</span>
+                <span id="mobile-cta-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></span>
+            </div>
+            <button type="button" id="mobile-checkout-btn" class="btn btn-dark btn-consistent rounded-pill py-3 px-4 fw-bold"
+                style="white-space: nowrap; min-width: 140px; font-size: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" aria-label="Confirm order">
+                <i class="bi bi-lock-fill me-2"></i><span class="btn-label">Confirm Order</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Floating CTA shown on mobile when keyboard is open -->
+<button id="floatingPlaceOrderTop" class="btn btn-dark btn-consistent rounded-pill d-xl-none"
+    style="display:none; position:fixed; left:50%; transform:translateX(-50%); top:20px; z-index:2147483647; padding:0.75rem 1.5rem; min-width:160px; box-shadow:0 8px 30px rgba(0,0,0,0.15); font-weight:600;">
+    <i class="bi bi-lock-fill me-2"></i>
+    Place Order
+</button>
+{% endif %}
+
+<style>
+    /* Checkout Page Styles */
+    /* Page tokens */
+    :root{
+           --cta-ease: cubic-bezier(.2,.8,.2,1);
+        --card-radius: 0.75rem;
+        --shadow-soft: 0 10px 38px rgba(2,6,23,0.08);
+        --shadow-deep: 0 22px 70px rgba(2,6,23,0.14);
+        --mobile-bar-shadow: 0 -12px 36px rgba(2,6,23,0.14);
+        --glass-bg: rgba(255,255,255,0.92);
+        --muted: #6c757d;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    /* Form control improvements */
+    .form-control, .form-select, textarea.form-control {
+        border-radius: 0.5rem;
+        border: 1px solid rgba(0,0,0,0.08);
+        padding: .65rem .9rem;
+        background-clip: padding-box;
+        transition: box-shadow 160ms var(--cta-ease), border-color 160ms ease;
+    }
+
+    .form-control:focus, .form-select:focus, textarea.form-control:focus {
+        border-color: rgba(212,175,55,0.7);
+        box-shadow: 0 8px 30px rgba(212,175,55,0.1);
+        outline: none;
+    }
+
+    /* Elevate cards with stronger, but soft shadows and subtle hover lift */
+    .card {
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow-soft);
+        transition: transform 220ms var(--cta-ease), box-shadow 220ms var(--cta-ease);
+        overflow: visible;
+    }
+
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-deep);
+    }
+
+    .last-border-0:last-child {
+        border-bottom: 0 !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Payment Method Styles — polished */
+    .btn-check + .check-indicator {
+        opacity: 0;
+        transition: opacity 220ms var(--transition-fast), transform 220ms var(--transition-fast), height 220ms var(--transition-fast);
+        height: 0;
+        overflow: hidden;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        margin: 0;
+        transform: translateY(-4px);
+        background: transparent;
+    }
+
+    .btn-check:checked + .check-indicator {
+        opacity: 1;
+        height: auto;
+        transform: translateY(0);
+        margin: 0;
+        color: #fff;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+        box-shadow: 0 8px 20px rgba(212,175,55,0.25);
+    }
+
+    .payment-option {
+        transition: transform 240ms var(--cta-ease), box-shadow 240ms var(--cta-ease), border-color 220ms ease, background 220ms ease;
+        position: relative;
+        overflow: hidden;
+        padding: 1.15rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: linear-gradient(180deg,#ffffff,#fbfbfb);
+        box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 120px;
+        text-align: center;
+    }
+
+    .payment-option:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-deep);
+        border-color: rgba(0,0,0,0.08);
+    }
+
+    .payment-option:focus-within, .payment-option:focus {
+        outline: 3px solid rgba(212,175,55,0.15);
+        outline-offset: 3px;
+    }
+
+    label:has(.btn-check:checked),
+    label:has(.form-check-input:checked) {
+        border-color: var(--gold, #D4AF37) !important;
+        background: linear-gradient(180deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
+        box-shadow: 0 10px 30px rgba(212,175,55,0.12);
+        outline: 2px solid rgba(212,175,55,0.1);
+    }
+
+    .payment-logo {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--gold-dark, #B8860B);
+    }
+
+    /* Manual Payment Details — card style */
+    #manual-payment-section {
+        background: linear-gradient(180deg, #ffffff, #fbfbfb);
+        border-radius: 0.75rem;
+        border: 1px solid rgba(0,0,0,0.04);
+        padding: 1rem;
+        box-shadow: 0 8px 30px rgba(2,6,23,0.04);
+    }
+
+    #manual-payment-section .bank-row {
+        display: flex;
+        justify-content: space-between;
+        gap: .75rem;
+        align-items: center;
+        padding: .5rem 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.04);
+        color: var(--gray-700, #495057);
+    }
+
+    #manual-payment-section .bank-row:last-child { border-bottom: none; }
+
+    .payment-method-note { font-size: .9rem; color: #6b6b6b; margin-top: .5rem; }
+
+    @media (max-width: 767.98px) {
+        .payment-option { min-height: 100px; padding: .85rem; }
+        .btn-check + .check-indicator { top: 8px; right: 8px; width: 30px; height: 30px; }
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+    }
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    /* Visually-hidden helper (Bootstrap has this, but ensure availability) */
+    .visually-hidden {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+    }
+
+    /* Order-summary thumbnail (responsive) */
+    .checkout-item-thumb {
+        width: 64px;
+        height: 64px;
+        flex-shrink: 0;
+        position: relative;
+        padding: 0;                /* ensure image is flush */
+        box-sizing: border-box;
+        overflow: hidden;         /* clip rounded corners */
+        border: 1px solid var(--border-color, #dee2e6); /* container border so image is flush */
+        background: #fff;
+    }
+
+    /* Order list improvements */
+    .checkout-items {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.12) transparent;
+        padding-right: 6px; /* avoid content hugging scrollbar */
+    }
+
+    .checkout-items::-webkit-scrollbar{ height:8px; width:8px }
+    .checkout-items::-webkit-scrollbar-thumb{ background: rgba(0,0,0,0.12); border-radius: 8px }
+
+    .checkout-item-thumb img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center; /* show top of image when cropped */
+        margin: 0;
+        padding: 0;
+        border: 1px solid rgba(0,0,0,0.06); /* container border so image is flush */
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(2,6,23,0.08);
+    }
+
+    /* ensure wrapper allows badge to overflow without clipping */
+    .thumb-wrapper { overflow: visible; display: inline-block; margin-right: .5rem; }
+
+    /* place badge inside the thumbnail (inset) so it never gets chopped by the border */
+    .checkout-qty-badge {
+        position: absolute;
+        top: 6px;               /* moved inside */
+        right: 6px;             /* moved inside */
+        transform: none;
+        font-size: 0.78rem;
+        padding: 0.32rem 0.55rem;
+        z-index: 1050;          /* higher to ensure visibility */
+        border: 2px solid #fff; /* white stroke for contrast */
+        box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+        background-clip: padding-box;
+        line-height: 1;
+    }
+
+    .checkout-item-title {
+        max-width: 180px;
+    }
+
+    /* Tablet / mobile reductions */
+    @media (max-width: 991.98px) {
+        .checkout-item-thumb { width: 56px; height: 56px; }
+        .thumb-wrapper { margin-right: .4rem; }
+        .checkout-qty-badge { top: 5px; right: 5px; font-size: 0.65rem; padding: 0.2rem 0.4rem; }
+        .checkout-item-title { max-width: 130px; font-size: 0.95rem; }
+        .checkout-items { max-height: 240px; }
+    }
+
+    @media (max-width: 375px) {
+        .checkout-item-thumb { width: 48px; height: 48px; }
+        .thumb-wrapper { margin-right: .3rem; }
+        .checkout-qty-badge { top: 4px; right: 4px; font-size: 0.6rem; padding: 0.15rem 0.35rem; }
+        .checkout-item-title { max-width: 110px; font-size: 0.92rem; }
+    }
+
+    /* Mobile & Tablet Optimizations */
+    @media (max-width: 1199.98px) {
+        .checkout-page {
+            padding-top: 1rem !important;
+            padding-bottom: 76px !important; /* reduced from 100px to remove excess */
+            /* Space for fixed bottom bar */
+        }
+
+        /* slightly reduced card shadows on small screens */
+        .card{
+            box-shadow: 0 6px 20px rgba(2,6,23,0.04);
+        }
+
+        h1.display-6 {
+            font-size: 1.75rem;
+        }
+
+        .card-body {
+            padding: 1.25rem !important;
+        }
+
+        .breadcrumb {
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem !important;
+        }
+
+        /* Form inputs optimization */
+        .form-control-lg {
+            font-size: 16px !important;
+            /* Prevents zoom on iOS */
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Delivery options stacking */
+        .delivery-option {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem !important;
+        }
+
+        .delivery-option .d-flex:first-child {
+            width: 100%;
+        }
+
+        .delivery-option .fw-bold.text-primary {
+            align-self: flex-end;
+        }
+
+        /* Payment options */
+        .payment-option {
+            min-height: 120px;
+            padding: 1rem !important;
+        }
+
+        /* Ensure proper spacing for notched devices */
+        #mobile-checkout-bar {
+            padding-left: max(env(safe-area-inset-left, 12px), 12px);
+            padding-right: max(env(safe-area-inset-right, 12px), 12px);
+        }
+    }
+
+    /* Desktop / Large screens improvements */
+    @media (min-width: 1200px) {
+        h1.display-6 { font-size: 2.1rem; }
+        .card-body { padding: 1.5rem; }
+        .checkout-item-title { font-size: 0.98rem; }
+        .position-lg-sticky { box-shadow: var(--shadow-soft); border-radius: var(--card-radius); }
+        #paystack-btn, #manual-btn { font-size: 1.05rem; }
+        .checkout-items { max-height: 420px; }
+    }
+
+    /* Better contrast for CTA text */
+        .btn-dark.btn-consistent { background: linear-gradient(180deg,#0b1220,#07101a); border: none; color: #fff; }
+
+        .btn-dark.btn-consistent:active { transform: translateY(0) scale(.997); box-shadow: 0 8px 26px rgba(2,6,23,0.14); }
+
+    /* Small phones */
+    @media (max-width: 375px) {
+        #mobile-checkout-btn {
+            min-width: 120px !important;
+            padding: 0.75rem 0.75rem !important;
+            font-size: 0.9rem !important;
+        }
+
+        #mobile-total {
+            font-size: 1.1rem !important;
+        }
+    }
+
+    /* Mobile CTA — improved tap target, consistent labels + microcopy */
+    .mobile-checkout-trigger, #mobile-checkout-btn, #summary-mobile-checkout-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 48px;
+        font-size: 1rem;
+        padding: 0.9rem 1.2rem;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .mobile-checkout-trigger:active, #mobile-checkout-btn:active, #summary-mobile-checkout-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    /* stronger mobile sticky bar shadow and subtle glass effect */
+    #mobile-checkout-bar {
+        transition: transform 260ms var(--cta-ease), box-shadow 260ms var(--cta-ease), background-color 220ms ease;
+        box-shadow: var(--mobile-bar-shadow);
+        background: linear-gradient(180deg, var(--glass-bg), rgba(250,250,250,0.96));
+        border-top: 1px solid rgba(0,0,0,0.06);
+        backdrop-filter: blur(6px);
+    }
+
+    #mobile-checkout-btn {
+        box-shadow: 0 12px 34px rgba(2,6,23,0.14);
+        transition: transform 180ms var(--cta-ease), box-shadow 180ms var(--cta-ease);
+    }
+
+    #floatingPlaceOrderTop {
+        transition: transform 260ms var(--cta-ease), box-shadow 260ms var(--cta-ease), opacity 180ms ease;
+        box-shadow: var(--shadow-deep);
+        will-change: transform, opacity;
+    }
+
+    .btn-amount { font-weight:600; margin-left:.25rem; color: rgba(255,255,255,0.95); }
+
+    @media (max-width: 575.98px) {
+        .mobile-checkout-trigger, #mobile-checkout-btn, #summary-mobile-checkout-btn {
+            min-height: 56px;
+            font-size: 0.98rem;
+            padding: 0.85rem 1rem;
+        }
+        /* Reduce overall checkout-bottom padding on small phones (enough space for sticky CTA only) */
+        .checkout-page { padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 72px) !important; }
+        /* Make the sticky bar and button friendlier on small phones */
+        #mobile-checkout-bar {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+            padding-top: 12px !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 12px), 12px) !important;
+        }
+
+        #mobile-checkout-btn {
+            min-width: 140px !important;
+            padding: 0.95rem 1.1rem !important;
+            font-size: 1rem !important;
+            border-radius: 999px !important;
+        }
+
+        /* Floating CTA larger and easier to tap when keyboard opens */
+        #floatingPlaceOrderTop {
+            padding: 0.9rem 1.6rem !important;
+            font-size: 1rem !important;
+            box-shadow: 0 18px 40px rgba(2,6,23,0.12) !important;
+        }
+    }
+
+    /* Consolidation: hide duplicate inline CTAs on phones & tablets — keep only the sticky bottom bar */
+    @media (max-width: 1199.98px) {
+        #payment-inline-cta,
+        #summary-mobile-checkout-btn {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+    }
+
+    /* CTA micro-interactions: give clear hover/active/focus feedback */
+    .btn-consistent {
+        transition: transform 180ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms ease, opacity 120ms ease;
+        will-change: transform;
+    }
+
+    /* Hover only on devices that support hover (avoids mobile flicker) */
+    @media (hover: hover) and (pointer: fine) {
+        .btn-consistent:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 14px 36px rgba(2,6,23,0.12);
+            opacity: 1;
+        }
+
+        /* also give the sticky mobile CTA a hover state when device supports pointer */
+        #mobile-checkout-btn:hover {
+            transform: translateY(-3px) scale(1.008);
+            box-shadow: 0 12px 30px rgba(2,6,23,0.12);
+        }
+    }
+
+    .btn-consistent:active {
+        transform: translateY(0) scale(0.996);
+        box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+    }
+
+    .btn-consistent:focus-visible {
+        outline: 3px solid rgba(13,110,253,0.15);
+        outline-offset: 3px;
+        box-shadow: 0 10px 28px rgba(13,110,253,0.08);
+    }
+
+    /* Desktop CTA enhancements (Pay Now / Confirm Order) */
+    #paystack-btn, #manual-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        min-height: 48px;
+        padding: .75rem 1rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        #paystack-btn:hover, #manual-btn:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 18px 48px rgba(2,6,23,0.14);
+        }
+    }
+
+    #paystack-btn:active, #manual-btn:active {
+        transform: translateY(0) scale(.997);
+        box-shadow: 0 8px 20px rgba(2,6,23,0.08);
+    }
+
+    #paystack-btn:focus-visible, #manual-btn:focus-visible {
+        outline: 3px solid rgba(13,110,253,0.16);
+        outline-offset: 3px;
+    }
+
+    /* Landscape mode */
+    @media (max-width: 1199.98px) and (orientation: landscape) {
+        .checkout-page {
+            padding-bottom: 80px !important;
+        }
+
+        #mobile-checkout-bar {
+            padding: 8px !important;
+            padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px) !important;
+        }
+
+        #mobile-checkout-btn {
+            padding: 0.5rem 1rem !important;
+        }
+    }
+
+    /* Keyboard open adjustments */
+    .keyboard-open #mobile-checkout-bar {
+        transform: translateY(-50%);
+    }
+
+    /* Sticky sidebar for desktop */
+    @media (min-width: 1200px) {
+        .position-lg-sticky {
+            position: sticky;
+        }
+    }
+
+    /* ══════════════════════════════════════════════════
+       PREMIUM UX OVERHAUL
+       ══════════════════════════════════════════════════ */
+
+    /* ── Page base ─────────────────────────────────────── */
+    .checkout-page {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: "kern" 1, "liga" 1;
+        background:
+            radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,175,55,0.07) 0%, transparent 70%),
+            linear-gradient(180deg, #f0ede8 0%, #f7f5f2 100%) !important;
+        min-height: 100vh;
+    }
+
+    /* Breadcrumb */
+    .ck-breadcrumb { font-size: 0.78rem; letter-spacing: 0.02em; }
+    .ck-breadcrumb a { color: var(--gray-500); text-decoration: none; }
+    .ck-breadcrumb a:hover { color: var(--gray-800); }
+    .ck-breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: var(--gray-300); }
+
+    /* Hero row */
+    .ck-hero {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+    .ck-page-title {
+        font-family: var(--font-heading);
+        font-size: 2.25rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        color: var(--gray-900);
+        line-height: 1;
+    }
+    .ck-page-sub {
+        font-size: 0.82rem;
+        color: var(--gray-400);
+        margin-top: 0.35rem;
+        margin-bottom: 0;
+        letter-spacing: 0.01em;
+    }
+    @media (max-width: 767px) {
+        .ck-page-title { font-size: 1.75rem; }
+        .ck-hero { margin-bottom: 1.1rem; }
+    }
+
+    /* Secure badge */
+    .ck-secure-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gold-dark, #B8860B);
+        background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.06));
+        border: 1px solid rgba(212,175,55,0.35);
+        border-radius: 999px;
+        padding: 0.4rem 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* ── Step bar ────────────────────────────────────────── */
+    .ck-steps-wrap {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.25rem 2rem;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    .ck-steps {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+    .ck-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        min-width: 60px;
+        position: relative;
+    }
+    .ck-step-dot {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid #e2dfd9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--gray-300);
+        background: #faf9f7;
+        transition: all 220ms ease;
+        z-index: 2;
+    }
+    .ck-step--done .ck-step-dot {
+        background: linear-gradient(135deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+        border-color: var(--gold, #D4AF37);
+        color: white;
+        box-shadow: 0 4px 12px rgba(212,175,55,0.35);
+    }
+    .ck-step--active .ck-step-dot {
+        background: linear-gradient(135deg, var(--primary, #8B7355), var(--primary-dark, #6b5a44));
+        border-color: var(--primary, #8B7355);
+        color: white;
+        box-shadow: 0 4px 16px rgba(139,115,85,0.35);
+        transform: scale(1.12);
+    }
+    .ck-step-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #bbb;
+        text-align: center;
+        white-space: nowrap;
+        transition: color 220ms ease;
+    }
+    .ck-step--done .ck-step-label { color: var(--gold-dark, #B8860B); }
+    .ck-step--active .ck-step-label { color: var(--gray-800); }
+    .ck-step-line {
+        flex: 1;
+        height: 3px;
+        background: #e8e5e0;
+        margin: 0 -4px;
+        margin-top: 17px; /* center with dot: (38px / 2) - (3px / 2) */
+        min-width: 40px;
+        border-radius: 99px;
+        position: relative;
+        z-index: 1;
+    }
+    .ck-step-line--done {
+        background: linear-gradient(90deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+    }
+    @media (max-width: 479px) {
+        .ck-steps-wrap { padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+        .ck-step { min-width: 50px; }
+        .ck-step-label { font-size: 0.55rem; }
+        .ck-step-dot { width: 32px; height: 32px; font-size: 0.72rem; }
+        .ck-step-line { margin-top: 14px; min-width: 30px; }
+    }
+
+    /* ── Cards ───────────────────────────────────────────── */
+    .checkout-page .card {
+        border: 1px solid rgba(0,0,0,0.06) !important;
+        background: white;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.03) !important;
+        border-radius: 1rem !important;
+        overflow: hidden;
+    }
+    .checkout-page .card:hover {
+        transform: none;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04) !important;
+    }
+
+    /* Section card headers */
+    .ck-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.1rem 1.5rem;
+        background: linear-gradient(180deg, #fdfcfb 0%, #f9f7f4 100%);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        border-left: 4px solid var(--gold, #D4AF37);
+    }
+    .ck-section-num {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: linear-gradient(135deg, var(--primary, #8B7355), var(--primary-dark, #6b5a44));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        flex-shrink: 0;
+        box-shadow: 0 3px 8px rgba(139,115,85,0.25);
+    }
+    .ck-section-title {
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(--gray-800);
+        line-height: 1.2;
+    }
+    .ck-section-sub {
+        font-size: 0.68rem;
+        color: var(--gray-400);
+        margin-top: 0.12rem;
+        letter-spacing: 0.01em;
+    }
+
+    /* Form label typography */
+    .checkout-page .form-label {
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.07em !important;
+        text-transform: uppercase !important;
+        color: var(--gray-500) !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    /* ── Inputs ──────────────────────────────────────────── */
+    .checkout-page .form-control,
+    .checkout-page textarea.form-control {
+        font-family: var(--font-sans);
+        font-size: 0.94rem;
+        font-weight: 500;
+        color: var(--gray-900);
+        letter-spacing: 0.01em;
+        border: 1.5px solid #e8e4de !important;
+        border-radius: 0.7rem !important;
+        padding: 0.78rem 1rem !important;
+        background: #fdfcfb;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+    .checkout-page .form-control:focus,
+    .checkout-page textarea.form-control:focus {
+        border-color: var(--gold, #D4AF37) !important;
+        box-shadow: 0 0 0 4px rgba(212,175,55,0.12) !important;
+        background: #fff;
+        outline: none;
+    }
+    .checkout-page .form-control:hover:not(:focus),
+    .checkout-page textarea.form-control:hover:not(:focus) {
+        border-color: #c8c4be !important;
+    }
+    .checkout-page .form-control::placeholder,
+    .checkout-page textarea.form-control::placeholder {
+        color: #bbb;
+        font-weight: 400;
+    }
+
+    /* ── Delivery options ─────────────────────────────────── */
+    .delivery-option {
+        border-radius: 0.85rem !important;
+        border: 1.5px solid #e8e4de !important;
+        padding: 1rem 1.25rem !important;
+        background: #fdfcfb;
+        transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+        cursor: pointer;
+    }
+    .delivery-option:has(.form-check-input:checked) {
+        border-color: var(--gold, #D4AF37) !important;
+        background: linear-gradient(180deg, #fffef8, #fffcf0) !important;
+        box-shadow: 0 6px 20px rgba(212,175,55,0.15) !important;
+    }
+    .delivery-option:hover {
+        border-color: #aaa !important;
+        background: white !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.05) !important;
+    }
+    .delivery-option .form-check-input {
+        width: 1.15em; height: 1.15em;
+        border: 1.5px solid #ccc;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .delivery-option .form-check-input:checked {
+        background-color: var(--gold, #D4AF37);
+        border-color: var(--gold, #D4AF37);
+    }
+
+    /* Fastest badge */
+    .ck-fastest-badge {
+        display: inline-block;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #92400e;
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        padding: 0.12rem 0.5rem;
+        vertical-align: middle;
+        margin-left: 0.35rem;
+        line-height: 1.5;
+    }
+
+    /* ── Payment option cards ─────────────────────────────── */
+    .payment-option {
+        border: 1.5px solid #e8e4de !important;
+        background: #fdfcfb !important;
+        border-radius: 0.85rem !important;
+        transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease !important;
+        cursor: pointer;
+    }
+    .payment-option:has(.btn-check:checked) {
+        border-color: var(--gold, #D4AF37) !important;
+        background: linear-gradient(180deg, #fffef8, #fffcf0) !important;
+        box-shadow: 0 8px 24px rgba(212,175,55,0.15) !important;
+    }
+    .payment-option:hover {
+        border-color: #aaa !important;
+        background: white !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.07) !important;
+    }
+
+    /* Payment method icons */
+    .ck-pay-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin: 0 auto;
+    }
+    .ck-pay-icon--paystack { background: linear-gradient(135deg,#00c3ff,#0052cc); color: white; }
+    .ck-pay-icon--bank     { background: linear-gradient(135deg,#6366f1,#4338ca); color: white; }
+    .payment-logo .fw-bold { font-size: 0.92rem !important; letter-spacing: 0.01em; }
+
+    /* ── Order summary ───────────────────────────────────── */
+    .ck-summary-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 1.5rem;
+        background: linear-gradient(135deg, var(--primary, #8B7355) 0%, var(--primary-dark, #6b5a44) 100%);
+        border-bottom: none;
+    }
+    .ck-summary-title {
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.95);
+    }
+    .ck-item-count {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 999px;
+        padding: 0.22rem 0.7rem;
+        letter-spacing: 0.03em;
+    }
+
+    /* ── Totals ──────────────────────────────────────────── */
+    .ck-totals { display: flex; flex-direction: column; gap: 0; }
+    .ck-total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.84rem;
+        color: var(--gray-500);
+        padding: 0.6rem 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.06);
+    }
+    .ck-total-row:last-child { border-bottom: none; }
+    .ck-total-row span:last-child {
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+    .ck-total-row--grand {
+        margin-top: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-radius: 0.85rem;
+        background: linear-gradient(135deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+        color: white;
+        border-bottom: none !important;
+        box-shadow: 0 8px 24px rgba(212,175,55,0.3);
+    }
+    .ck-total-row--grand span:first-child {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.7);
+    }
+    .ck-total-row--grand span:last-child {
+        font-size: 1.55rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -0.03em;
+    }
+
+    /* Secure checkout footer */
+    .checkout-page .text-center small {
+        font-size: 0.65rem;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--gray-300);
+    }
+
+    /* ── Input icons ────────────────────────────────────────── */
+    .ck-input-wrap {
+        position: relative;
+    }
+    .ck-input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #aaa;
+        font-size: 1rem;
+        pointer-events: none;
+        transition: color 180ms ease;
+        z-index: 2;
+    }
+    .ck-input-wrap:focus-within .ck-input-icon {
+        color: var(--gold-dark, #B8860B);
+    }
+    .ck-input-icon-pad {
+        padding-left: 2.8rem !important;
+    }
+
+    /* ── Delivery cards ───────────────────────────────────── */
+    .ck-delivery-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.1rem 1.25rem !important;
+    }
+    .ck-delivery-left {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+    }
+    .ck-delivery-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+    .ck-delivery-icon--express {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #92400e;
+    }
+    .ck-delivery-icon--standard {
+        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        color: #4338ca;
+    }
+    .ck-delivery-title {
+        display: block;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--gray-800);
+        line-height: 1.3;
+    }
+    .ck-delivery-desc {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--gray-400);
+        margin-top: 0.15rem;
+    }
+    .ck-delivery-price {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--gray-900);
+        background: var(--gray-100);
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .ck-delivery-card:has(.form-check-input:checked) .ck-delivery-price {
+        background: linear-gradient(135deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+        color: white;
+    }
+
+    /* ── CTA Button ──────────────────────────────────────── */
+    .ck-cta-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        overflow: hidden;
+        transition: transform 200ms ease, box-shadow 200ms ease;
+        box-shadow: 0 8px 24px rgba(212,175,55,0.35);
+    }
+    .ck-cta-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+        opacity: 0;
+        transition: opacity 200ms ease;
+    }
+    .ck-cta-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 36px rgba(212,175,55,0.4);
+    }
+    .ck-cta-btn:hover::before {
+        opacity: 1;
+    }
+    .ck-cta-btn:active {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(212,175,55,0.3);
+    }
+    .ck-cta-inner {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ── Order items ─────────────────────────────────────── */
+    .ck-items-list {
+        max-height: 320px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.12) transparent;
+        padding-right: 4px;
+    }
+    .ck-items-list::-webkit-scrollbar { width: 6px; }
+    .ck-items-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
+    .ck-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.9rem;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .ck-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .ck-item-img {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f5f5f5;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .ck-item-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .ck-item-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        font-size: 1.25rem;
+    }
+    .ck-item-qty {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        min-width: 22px;
+        height: 22px;
+        border-radius: 99px;
+        background: linear-gradient(135deg, var(--gold, #D4AF37), var(--gold-dark, #B8860B));
+        color: white;
+        font-size: 0.68rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        border: 2px solid white;
+        box-shadow: 0 3px 8px rgba(212,175,55,0.25);
+    }
+    .ck-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .ck-item-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0 0 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+    .ck-item-variant {
+        font-size: 0.7rem;
+        color: var(--gray-400);
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    .ck-item-price {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--gray-900);
+    }
+    .ck-stock-warn {
+        display: inline-block;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #dc2626;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 999px;
+        padding: 0.15rem 0.5rem;
+        margin-top: 0.3rem;
+    }
+
+    /* ── Bank transfer details ────────────────────────────── */
+    #manual-payment-section {
+        background: linear-gradient(180deg, #fdfcfb, #f9f7f4) !important;
+        border: 1px solid rgba(0,0,0,0.06) !important;
+        border-radius: 1rem !important;
+        padding: 1.25rem !important;
+    }
+    #manual-payment-section h6 {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        margin-bottom: 1rem;
+    }
+    #manual-payment-section .d-flex.justify-content-between {
+        padding: 0.7rem 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.08) !important;
+    }
+    #manual-payment-section .d-flex.justify-content-between:last-of-type {
+        border-bottom: none !important;
+    }
+    #manual-payment-section .font-monospace {
+        font-size: 1.15rem !important;
+        letter-spacing: 0.08em;
+        color: var(--gray-900);
+    }
+
+    /* ── Alert styling ────────────────────────────────────── */
+    .checkout-page .alert-warning {
+        background: linear-gradient(135deg, #fef3c7, #fefce8) !important;
+        border: 1px solid #fde68a !important;
+        border-radius: 0.85rem !important;
+        color: #92400e !important;
+        font-size: 0.82rem;
+    }
+    .checkout-page .alert-warning i {
+        font-size: 1.1rem;
+    }
+
+    /* ── Animations ──────────────────────────────────────── */
+    @keyframes ck-fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .checkout-page .card {
+        animation: ck-fade-in 0.4s ease backwards;
+    }
+    .checkout-page .card:nth-child(1) { animation-delay: 0.05s; }
+    .checkout-page .card:nth-child(2) { animation-delay: 0.1s; }
+    .checkout-page .card:nth-child(3) { animation-delay: 0.15s; }
+    .ck-steps-wrap {
+        animation: ck-fade-in 0.35s ease backwards;
+    }
+
+    /* ── Mobile responsive ───────────────────────────────── */
+    @media (max-width: 767px) {
+        .ck-delivery-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .ck-delivery-price {
+            align-self: flex-end;
+        }
+        .ck-item-img {
+            width: 52px;
+            height: 52px;
+        }
+        .ck-item-qty {
+            min-width: 20px;
+            height: 20px;
+            font-size: 0.62rem;
+            top: -5px;
+            right: -5px;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        'use strict';
+
+        // Helper function to parse numeric values
+        function numeric(value) {
+            return parseFloat(String(value).replace(/[^0-9.-]+/g, '')) || 0;
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get DOM elements
+            const delivery24hRadio = document.getElementById('delivery_24h');
+            const delivery2dRadio = document.getElementById('delivery_2d');
+            const deliveryFeeEl = document.getElementById('delivery-fee');
+            const finalTotalEl = document.getElementById('final-total');
+            const mobileTotalEl = document.getElementById('mobile-total');
+            const form = document.getElementById('checkout-form');
+            const mobileCheckoutBar = document.getElementById('mobile-checkout-bar');
+            const mobileCheckoutBtn = document.getElementById('mobile-checkout-btn');
+            const floatingTop = document.getElementById('floatingPlaceOrderTop');
+
+            // Payment method elements
+            const paystackRadio = document.getElementById('paystack_method');
+            const manualRadio = document.getElementById('manual_method');
+            const paystackBtn = document.getElementById('paystack-btn');
+            const manualBtn = document.getElementById('manual-btn');
+            const manualSection = document.getElementById('manual-payment-section');
+
+            // Update total based on delivery option
+            function updateTotal() {
+                if (!delivery24hRadio || !delivery2dRadio || !deliveryFeeEl || !finalTotalEl) return;
+
+                const baseTotal = numeric('{{ base_total|floatformat:2 }}');
+                const fee24 = numeric('{{ delivery_fee_24h|floatformat:2 }}');
+                const fee2 = numeric('{{ delivery_fee_2d|floatformat:2 }}');
+
+                let deliveryFee = 0;
+                if (delivery24hRadio.checked) {
+                    deliveryFee = fee24;
+                } else if (delivery2dRadio.checked) {
+                    deliveryFee = fee2;
+                }
+
+                const total = baseTotal + deliveryFee;
+                const formattedTotal = `₦${total.toFixed(2)}`;
+                const formattedDelivery = `₦${deliveryFee.toFixed(2)}`;
+
+                deliveryFeeEl.textContent = formattedDelivery;
+                finalTotalEl.textContent = formattedTotal;
+                if (mobileTotalEl) mobileTotalEl.textContent = formattedTotal;
+
+                // keep mobile CTAs in sync with the updated total
+                if (typeof setMobileCTALabel === 'function') {
+                    setMobileCTALabel(paystackRadio && paystackRadio.checked ? 'Pay Now' : 'Confirm Order');
+                }
+            }
+
+// Toggle payment method UI + update mobile CTA labels
+    function togglePaymentUI() {
+        if (!paystackRadio || !manualRadio || !manualSection) return;
+
+        if (paystackRadio.checked) {
+            if (paystackBtn) paystackBtn.style.display = '';
+            if (manualBtn) manualBtn.style.display = 'none';
+            manualSection.style.display = 'none';
+            setMobileCTALabel('Pay Now');
+        } else if (manualRadio.checked) {
+            if (paystackBtn) paystackBtn.style.display = 'none';
+            if (manualBtn) manualBtn.style.display = '';
+            manualSection.style.display = 'block';
+            setMobileCTALabel('Confirm Order');
+        }
+    }
+
+    // Helper to update mobile CTA label + include current total
+    function setMobileCTALabel(label) {
+        const totalText = (mobileTotalEl && mobileTotalEl.textContent) ? mobileTotalEl.textContent : (finalTotalEl && finalTotalEl.textContent) ? finalTotalEl.textContent : `₦{{ base_total|floatformat:2 }}`;
+        const html = `<i class="bi bi-lock-fill me-2"></i><span class="btn-label">${label}</span><span class="btn-amount d-none d-sm-inline"> • ${totalText}</span>`;
+        ['mobile-checkout-btn','summary-mobile-checkout-btn','payment-inline-cta'].forEach(id => {
+            const b = document.getElementById(id);
+            if (b) b.innerHTML = html;
+        });
+
+        // Also update desktop buttons so label and amount are consistent
+        try {
+            const amtDesktop = `<span class="btn-amount d-none d-lg-inline"> • ${totalText}</span>`;
+            if (paystackBtn) paystackBtn.innerHTML = `<i class="bi bi-lock-fill me-2"></i><span class="btn-label">${label}</span>${amtDesktop}`;
+            if (manualBtn) manualBtn.innerHTML = `<i class="bi bi-wallet2 me-2"></i><span class="btn-label">${label}</span>${amtDesktop}`;
+        } catch (e) {
+            // defensive: ignore if DOM not ready
+        }
+        // Update screen-reader announcer so AT users hear the latest label + amount on phones
+        try {
+            const announcer = document.getElementById('mobile-cta-announcer');
+            if (announcer) announcer.textContent = `${label} ${totalText}`;
+        } catch (e) {
+            // noop
+        }
+    }
+
+            // Processing guard + disable helper to prevent double submissions
+            let isProcessing = false;
+            function setProcessingButtons(val, activeButton) {
+                isProcessing = !!val;
+                const selectors = ['#paystack-btn','#manual-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop'];
+                selectors.forEach(sel => {
+                    document.querySelectorAll(sel).forEach(btn => {
+                        if (!btn) return;
+                        btn.disabled = val;
+                        if (val && activeButton === btn) {
+                            // show spinner in the active button
+                            if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+                            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (btn.dataset.origHtml || btn.innerHTML);
+                        } else if (!val && btn.dataset.origHtml) {
+                            btn.innerHTML = btn.dataset.origHtml;
+                            delete btn.dataset.origHtml;
+                        }
+                    });
+                });
+            }
+
+            // Expose small API so other script blocks (Paystack handler) can reuse the same processing guard
+            // This prevents ReferenceError when the Paystack block runs in a separate scope.
+            window.__checkout_isProcessing = function () { return isProcessing; };
+            window.__checkout_setProcessingButtons = setProcessingButtons;
+
+            // Handle mobile checkout button click
+            function handleMobileCheckout() {
+                if (!form || isProcessing) return;
+
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    // Scroll to the first invalid field
+                    const invalidElement = form.querySelector(':invalid');
+                    if (invalidElement) {
+                        invalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+
+                // Paystack flow: trigger Paystack handler first and let it manage global processing state.
+                // This avoids a race where handleMobileCheckout sets `isProcessing` and then the
+                // paystack handler bails out because it sees `isProcessing`.
+                if (paystackRadio && paystackRadio.checked) {
+                    // show immediate visual feedback on the mobile CTA (spinner) but don't set global guard
+                    if (mobileCheckoutBtn && !mobileCheckoutBtn.dataset.origHtml) mobileCheckoutBtn.dataset.origHtml = mobileCheckoutBtn.innerHTML;
+                    if (mobileCheckoutBtn) mobileCheckoutBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + (mobileCheckoutBtn.dataset.origHtml || mobileCheckoutBtn.innerHTML);
+                    if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = true;
+
+                    if (paystackBtn) paystackBtn.click();
+                    return;
+                }
+
+                // Manual flow — set processing immediately and delegate to manual button
+                setProcessingButtons(true, mobileCheckoutBtn || document.querySelector('.mobile-checkout-trigger'));
+                if (manualBtn) manualBtn.click();
+            }
+
+            // Handle keyboard visibility
+            function handleKeyboardVisibility() {
+                if (!mobileCheckoutBar) return;
+
+                if (window.visualViewport) {
+                    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+                    if (keyboardHeight > 100) {
+                        document.body.classList.add('keyboard-open');
+
+                        // hide the sticky bottom bar on very small screens when keyboard is open
+                        if (window.innerWidth <= 575.98 && mobileCheckoutBar) {
+                            if (!mobileCheckoutBar.dataset.origDisplay) mobileCheckoutBar.dataset.origDisplay = mobileCheckoutBar.style.display || '';
+                            mobileCheckoutBar.style.display = 'none';
+                        }
+
+                        if (floatingTop) {
+                            floatingTop.style.display = 'block';
+                            floatingTop.style.top = `20px`;
+                        }
+                    } else {
+                        document.body.classList.remove('keyboard-open');
+
+                        // restore sticky bar if we hid it earlier
+                        if (mobileCheckoutBar && mobileCheckoutBar.dataset.origDisplay !== undefined) {
+                            mobileCheckoutBar.style.display = mobileCheckoutBar.dataset.origDisplay;
+                            delete mobileCheckoutBar.dataset.origDisplay;
+                        }
+
+                        if (floatingTop) {
+                            floatingTop.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            // Handle input focus/blur for floating CTA
+            function handleInputFocus() {
+                if (window.innerWidth <= 1199.98 && floatingTop) {
+                    setTimeout(() => {
+                        handleKeyboardVisibility();
+                    }, 100);
+                }
+            }
+
+            function handleInputBlur() {
+                setTimeout(() => {
+                    handleKeyboardVisibility();
+                }, 300);
+            }
+
+            // Set up event listeners
+            if (delivery24hRadio && delivery2dRadio) {
+                delivery24hRadio.addEventListener('change', updateTotal);
+                delivery2dRadio.addEventListener('change', updateTotal);
+                updateTotal(); // Initialize
+            }
+
+            if (paystackRadio && manualRadio) {
+                paystackRadio.addEventListener('change', togglePaymentUI);
+                manualRadio.addEventListener('change', togglePaymentUI);
+                togglePaymentUI(); // Initialize
+            }
+
+            if (mobileCheckoutBtn) {
+                mobileCheckoutBtn.addEventListener('click', handleMobileCheckout);
+            }
+
+
+            // Also bind any inline/mobile CTA buttons inside the Order Summary
+            document.querySelectorAll('.mobile-checkout-trigger').forEach(btn => {
+                // skip hidden (consolidated) CTAs so we only attach handlers to visible primary CTA(s)
+                if (btn.offsetParent === null) return;
+                btn.addEventListener('click', handleMobileCheckout);
+            });
+
+            if (floatingTop) {
+                floatingTop.addEventListener('click', handleMobileCheckout);
+            }
+
+            // Disable manual submit button on click to prevent double-submit
+            if (manualBtn) {
+                manualBtn.addEventListener('click', function (e) {
+                    if (isProcessing) {
+                        e.preventDefault();
+                        return;
+                    }
+                    if (!form.checkValidity()) return; // don't disable when invalid
+                    setProcessingButtons(true, this);
+                });
+            }
+
+            // Also prevent duplicate clicks on inline/mobile triggers
+            document.querySelectorAll('.mobile-checkout-trigger').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    if (isProcessing) return;
+                    // If Paystack is selected, do NOT pre-set the global processing guard here —
+                    // let the Paystack handler manage processing state to avoid race conditions.
+                    if (paystackRadio && paystackRadio.checked) return;
+                    // set processing for mobile trigger
+                    setProcessingButtons(true, this);
+                });
+            });
+
+            // Handle input focus events
+            const inputElements = document.querySelectorAll('input, textarea, select');
+            inputElements.forEach(el => {
+                el.addEventListener('focus', handleInputFocus);
+                el.addEventListener('blur', handleInputBlur);
+            });
+
+            // VisualViewport API for better keyboard handling
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', handleKeyboardVisibility);
+            }
+
+            // Handle orientation and resize changes
+            window.addEventListener('orientationchange', function () {
+                setTimeout(handleKeyboardVisibility, 100);
+            });
+
+            // Initial visibility check
+            handleKeyboardVisibility();
+        });
+    })();
+</script>
+
+{% if PAYSTACK_PUBLIC %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    (function () {
+        'use strict';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const paystackBtn = document.getElementById('paystack-btn');
+            const form = document.getElementById('checkout-form');
+
+            if (paystackBtn) {
+                let paystackProcessing = false;
+                paystackBtn.onclick = function (e) {
+                    e.preventDefault();
+
+                    // use exposed guard (fallback to false if not available)
+                    if (paystackProcessing || (window.__checkout_isProcessing && window.__checkout_isProcessing())) return;
+
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    // Get form values
+                    const fullName = form.full_name.value;
+                    const email = form.email.value;
+                    const phone = form.phone.value;
+                    const address = form.delivery_address.value;
+                    const notes = form.notes.value;
+
+                    if (!fullName || !email || !phone || !address) {
+                        alert('Please fill all required fields.');
+                        return;
+                    }
+
+                    // Calculate total
+                    const baseTotal = parseFloat('{{ base_total|floatformat:2 }}');
+                    const fee24 = parseFloat('{{ delivery_fee_24h|floatformat:2 }}');
+                    const fee2 = parseFloat('{{ delivery_fee_2d|floatformat:2 }}');
+
+                    const delivery24h = document.getElementById('delivery_24h');
+                    const deliveryFee = delivery24h && delivery24h.checked ? fee24 : fee2;
+                    const total = baseTotal + (deliveryFee || 0);
+                    const amount = Math.round(total * 100); // Convert to kobo
+
+                    // mark processing locally (disable UI)
+                    paystackProcessing = true;
+                    if (window.__checkout_setProcessingButtons) {
+                        window.__checkout_setProcessingButtons(true, paystackBtn);
+                    } else {
+                        // best-effort fallback
+                        paystackBtn.disabled = true;
+                    }
+
+                    // Initialize Paystack
+                    const handler = PaystackPop.setup({
+                        key: '{{ PAYSTACK_PUBLIC }}',
+                        email: email,
+                        amount: amount,
+                        currency: 'NGN',
+                        channels: ['bank', 'ussd', 'card'],
+                        ref: 'REF_' + Math.floor((Math.random() * 1000000000) + 1),
+                        metadata: {
+                            custom_fields: [
+                                { display_name: "Full Name", variable_name: 'full_name', value: fullName },
+                                { display_name: "Phone Number", variable_name: 'phone', value: phone },
+                                { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
+                                { display_name: 'Order Notes', variable_name: 'notes', value: notes }
+                            ]
+                        },
+                        callback: function (response) {
+                            document.getElementById('paystack_reference').value = response.reference;
+                            form.submit();
+                        },
+                        onClose: function () {
+                            // restore UI when user closes the popup
+                            paystackProcessing = false;
+                            if (window.__checkout_setProcessingButtons) {
+                                window.__checkout_setProcessingButtons(false);
+                            } else if (typeof setProcessingButtons === 'function') {
+                                setProcessingButtons(false);
+                            } else {
+                                // best-effort: re-enable primary buttons
+                                ['#paystack-btn','#manual-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop']
+                                    .forEach(s => document.querySelectorAll(s).forEach(b => b && (b.disabled = false)));
+                            }
+                        }
+                    });
+
+                    handler.openIframe();
+                };
+            }
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,810 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .product-form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2.5rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        color: white;
+        border-radius: 0;
+    }
+    
+    .product-form-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .product-form-header h1 i {
+        font-size: 2.5rem;
+        opacity: 0.9;
+    }
+    
+    .product-form-header p {
+        margin: 0;
+        opacity: 0.95;
+        font-size: 1.05rem;
+    }
+    
+    .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .form-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .form-card h3 i {
+        color: #667eea;
+        font-size: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-group label .required {
+        color: #ef4444;
+        margin-left: 0.25rem;
+    }
+    
+    .form-group .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.375rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .form-group .help-text i {
+        color: #9ca3af;
+    }
+    
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-control.error {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+    
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group .input-prefix {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .input-group .form-control {
+        padding-left: 2.5rem;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .checkbox-group:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #667eea;
+    }
+    
+    .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+        flex: 1;
+    }
+    
+    .image-upload-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .main-image-upload {
+        margin-bottom: 2rem;
+    }
+    
+    .image-preview-container {
+        position: relative;
+        width: 100%;
+        height: 250px;
+        border: 3px dashed #d1d5db;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .image-preview-container:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+    
+    .image-preview-container.has-image {
+        border-style: solid;
+        border-color: #667eea;
+    }
+    
+    .image-preview-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    
+    .upload-placeholder {
+        text-align: center;
+        color: #9ca3af;
+    }
+    
+    .upload-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+        color: #d1d5db;
+    }
+    
+    .upload-placeholder .upload-text {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+    
+    .upload-placeholder .upload-hint {
+        font-size: 0.875rem;
+        color: #9ca3af;
+    }
+    
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    .file-input-wrapper input[type="file"] {
+        position: absolute;
+        left: -9999px;
+    }
+    
+    .file-input-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .file-input-btn:hover {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    
+    .gallery-images {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .gallery-item {
+        position: relative;
+        aspect-ratio: 1;
+        border: 2px dashed #d1d5db;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .gallery-item:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+    
+    .gallery-item.has-image {
+        border-style: solid;
+        border-color: #667eea;
+    }
+    
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .gallery-item .add-icon {
+        font-size: 2rem;
+        color: #d1d5db;
+    }
+    
+    .existing-images {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 10px;
+    }
+    
+    .existing-image {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .existing-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .existing-image-badge {
+        position: absolute;
+        bottom: 0.25rem;
+        right: 0.25rem;
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 2px solid #f3f4f6;
+        margin-top: 2rem;
+    }
+    
+    .btn {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.625rem;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        flex: 1;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #667eea;
+        color: #667eea;
+    }
+    
+    .stock-alert {
+        padding: 1rem;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 2px solid #fbbf24;
+        border-radius: 10px;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .stock-alert i {
+        font-size: 1.5rem;
+        color: #d97706;
+    }
+    
+    .stock-alert-text {
+        flex: 1;
+    }
+    
+    .stock-alert-text strong {
+        display: block;
+        color: #92400e;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stock-alert-text small {
+        color: #78350f;
+    }
+    
+    @media (max-width: 992px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .gallery-images {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    /* Mobile fixes to ensure header content is fully visible and not cut off */
+    @media (max-width: 576px) {
+        .gallery-images {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+
+        /* Remove horizontal bleed on very small screens so the header doesn't enter the page border */
+        .product-form-header {
+            /* keep top/bottom spacing but stop negative horizontal bleed */
+            margin: -2rem 0 1.25rem 0;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            border-radius: 0;
+        }
+
+        /* Ensure the inner container keeps comfortable padding on phones */
+        .product-form-header .container {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .product-form-header h1 {
+            font-size: 1.25rem;
+            gap: 0.5rem;
+        }
+
+        .product-form-header p {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+<div class="product-form-header">
+    <div class="container">
+        <h1>
+            <i class="bi bi-{% if form.instance.pk %}pencil-square{% else %}plus-circle{% endif %}"></i>
+            {% if form.instance.pk %}Edit Product{% else %}Create New Product{% endif %}
+        </h1>
+        <p>{% if form.instance.pk %}Update product details and images{% else %}Add a new product to your catalog{% endif %}</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <form method="post" enctype="multipart/form-data" id="productForm">
+        {% csrf_token %}
+        
+        <div class="form-container">
+            <div class="form-grid">
+                <!-- Left Column: Product Details -->
+                <div>
+                    <div class="form-card">
+                        <h3>
+                            <i class="bi bi-info-circle"></i>
+                            Product Information
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="id_name">
+                                Product Name
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.name }}
+                            <div class="help-text">
+                                <i class="bi bi-lightbulb"></i>
+                                Enter a clear, descriptive name for your product
+                            </div>
+                            {% if form.name.errors %}
+                                <div class="text-danger mt-2">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_description">
+                                Description
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.description }}
+                            <div class="help-text">
+                                <i class="bi bi-lightbulb"></i>
+                                Describe features, benefits, and specifications
+                            </div>
+                            {% if form.description.errors %}
+                                <div class="text-danger mt-2">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_category">
+                                Category
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.category }}
+                            <div class="help-text">
+                                <i class="bi bi-lightbulb"></i>
+                                Select the most relevant category
+                            </div>
+                            {% if form.category.errors %}
+                                <div class="text-danger mt-2">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-card mt-4">
+                        <h3>
+                            <i class="bi bi-currency-exchange"></i>
+                            Pricing & Inventory
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="id_price">
+                                Price (₦)
+                                <span class="required">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-prefix">₦</span>
+                                {{ form.price }}
+                            </div>
+                            <div class="help-text">
+                                <i class="bi bi-lightbulb"></i>
+                                Set your product's selling price
+                            </div>
+                            {% if form.price.errors %}
+                                <div class="text-danger mt-2">{{ form.price.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_stock">
+                                        Stock Quantity
+                                        <span class="required">*</span>
+                                    </label>
+                                    {{ form.stock }}
+                                    <div class="help-text">
+                                        <i class="bi bi-box-seam"></i>
+                                        Available units
+                                    </div>
+                                    {% if form.stock.errors %}
+                                        <div class="text-danger mt-2">{{ form.stock.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_reorder_level">
+                                        Reorder Level
+                                    </label>
+                                    {{ form.reorder_level }}
+                                    <div class="help-text">
+                                        <i class="bi bi-bell"></i>
+                                        Alert threshold
+                                    </div>
+                                    {% if form.reorder_level.errors %}
+                                        <div class="text-danger mt-2">{{ form.reorder_level.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stock-alert">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <div class="stock-alert-text">
+                                <strong>Stock Alert</strong>
+                                <small>You'll be notified when stock reaches the reorder level</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-card mt-4">
+                        <h3>
+                            <i class="bi bi-gear"></i>
+                            Settings
+                        </h3>
+                        
+                        <div class="checkbox-group">
+                            {{ form.is_editable }}
+                            <label for="id_is_editable">
+                                <strong>Product is Active</strong>
+                                <div class="help-text" style="margin-top: 0.25rem;">
+                                    Enable this to make the product visible to customers
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Images -->
+                <div>
+                    <div class="image-upload-section">
+                        <h3>
+                            <i class="bi bi-images"></i>
+                            Product Images
+                        </h3>
+                        
+                        <div class="main-image-upload">
+                            <label>
+                                Main Product Image
+                                <span class="required">*</span>
+                            </label>
+                            <div class="help-text mb-2">
+                                <i class="bi bi-lightbulb"></i>
+                                This is the primary image shown in listings
+                            </div>
+                            
+                            <div class="image-preview-container" id="mainImagePreview" onclick="document.getElementById('id_image').click()">
+                                {% if product and product.image %}
+                                    <img src="{{ product.image.url }}" alt="Main product image">
+                                {% else %}
+                                    <div class="upload-placeholder">
+                                        <i class="bi bi-cloud-upload"></i>
+                                        <div class="upload-text">Click to upload main image</div>
+                                        <div class="upload-hint">JPG, PNG or WebP (Max 5MB)</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="file-input-wrapper">
+                                {{ form.image }}
+                                <label for="id_image" class="file-input-btn">
+                                    <i class="bi bi-upload"></i>
+                                    <span>Choose Main Image</span>
+                                </label>
+                            </div>
+                            {% if form.image.errors %}
+                                <div class="text-danger mt-2">{{ form.image.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if product and product.images.all %}
+                        <div class="mb-3">
+                            <label class="d-block mb-2">
+                                <strong>Current Gallery Images:</strong>
+                            </label>
+                            <div class="existing-images">
+                                {% for img in product.images.all %}
+                                    <div class="existing-image">
+                                        <img src="{{ img.image.url }}" alt="Product gallery image">
+                                        <span class="existing-image-badge">Current</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="help-text mt-2">
+                                <i class="bi bi-info-circle"></i>
+                                Uploading new gallery images will replace these
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <label class="d-block mb-2">
+                                Additional Gallery Images
+                                <small style="color: #9ca3af; font-weight: normal;">(Optional - up to 3)</small>
+                            </label>
+                            <div class="help-text mb-3">
+                                <i class="bi bi-lightbulb"></i>
+                                Add more angles or details of your product
+                            </div>
+                            
+                            <div class="gallery-images">
+                                <div class="gallery-item" onclick="document.getElementById('id_image1').click()">
+                                    <div class="add-icon">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" onclick="document.getElementById('id_image2').click()">
+                                    <div class="add-icon">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" onclick="document.getElementById('id_image3').click()">
+                                    <div class="add-icon">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: none;">
+                                {{ form.image1 }}
+                                {{ form.image2 }}
+                                {{ form.image3 }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    <span>{% if form.instance.pk %}Update Product{% else %}Create Product{% endif %}</span>
+                </button>
+                <a href="{% url 'admin_dashboard:product_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i>
+                    <span>Cancel</span>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Image preview for main image
+    document.getElementById('id_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.getElementById('mainImagePreview');
+                container.innerHTML = `<img src="${e.target.result}" alt="Main product image">`;
+                container.classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Image preview for gallery images
+    ['image1', 'image2', 'image3'].forEach((fieldName, index) => {
+        document.getElementById(`id_${fieldName}`).addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const galleryItems = document.querySelectorAll('.gallery-item');
+                    const item = galleryItems[index];
+                    item.innerHTML = `<img src="${e.target.result}" alt="Gallery image ${index + 1}">`;
+                    item.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+    
+    // Add form-control class to form fields
+    document.querySelectorAll('input[type="text"], input[type="number"], textarea, select').forEach(field => {
+        if (!field.classList.contains('form-control') && !field.classList.contains('form-select')) {
+            if (field.tagName === 'SELECT') {
+                field.classList.add('form-select');
+            } else {
+                field.classList.add('form-control');
+            }
+        }
+    });
+    
+    // Form validation feedback
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('error');
+                isValid = false;
+            } else {
+                field.classList.remove('error');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields');
+        }
+    });
+</script>
+{% endblock %}

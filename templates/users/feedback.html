@@ -1,0 +1,26 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<div class="container py-4 account-page">
+    <div class="account-header w-100">
+        <div class="d-flex gap-3 align-items-center">
+            <div class="display-5 text-white"><i class="bi bi-chat-square-text-fill"></i></div>
+            <div>
+                <h2 class="mb-0">Feedback</h2>
+                <p class="mb-0 text-white-50">Share your experience and help us improve</p>
+            </div>
+        </div>
+    </div>
+    <div class="account-panel mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary account-btn">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

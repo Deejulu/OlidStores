@@ -1,0 +1,853 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .pending-orders-page {
+        background: #f0f2f5;
+        min-height: 100vh;
+        padding: 2rem 0 4rem;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .pending-orders-page .container {
+        max-width: 1400px;
+    }
+
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        padding: 2.5rem 3rem;
+        border-radius: 24px;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 20px 60px rgba(239, 68, 68, 0.35);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -5%;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .page-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header h1 {
+        color: white;
+        font-weight: 800;
+        font-size: 2.25rem;
+        margin: 0 0 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        letter-spacing: -0.5px;
+    }
+
+    .page-header h1 i {
+        font-size: 2rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .page-header p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-action {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 0.65rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .btn-action:hover {
+        background: white;
+        color: #ef4444;
+        border-color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .stat-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1f2937 !important;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #9ca3af !important;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 600;
+    }
+
+    .stat-urgent .stat-icon { background: #fee2e2; color: #dc2626; }
+    .stat-total .stat-icon { background: #fef3c7; color: #d97706; }
+    .stat-pending .stat-icon { background: #ffedd5; color: #ea580c; }
+    .stat-processing .stat-icon { background: #dbeafe; color: #2563eb; }
+
+    /* Orders Section */
+    .orders-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+    }
+
+    .section-header {
+        padding: 1.25rem 1.75rem;
+        background: white;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #1f2937 !important;
+    }
+
+    .section-title .title-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .urgent-icon { background: #fee2e2; color: #dc2626; }
+    .recent-icon { background: #dbeafe; color: #2563eb; }
+
+    .section-count {
+        background: #f3f4f6;
+        color: #6b7280 !important;
+        padding: 0.3rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .section-bulk-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .bulk-select-all {
+        font-size: 0.85rem;
+        color: #6366f1;
+        cursor: pointer;
+        font-weight: 600;
+        user-select: none;
+    }
+
+    .bulk-select-all:hover {
+        color: #4f46e5;
+    }
+
+    .bulk-action-btn {
+        padding: 0.45rem 1rem;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .bulk-action-btn:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+    }
+
+    .bulk-action-btn:disabled {
+        background: #d1d5db;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Order Card */
+    .order-card {
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.2s ease;
+    }
+
+    .order-card:last-child {
+        border-bottom: none;
+    }
+
+    .order-card:hover {
+        background: #fafbff;
+    }
+
+    .order-card.urgent {
+        background: #fef2f2;
+        border-left: 4px solid #dc2626;
+    }
+
+    .order-card-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.25rem 1.75rem;
+    }
+
+    .order-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .order-id-section {
+        min-width: 120px;
+    }
+
+    .order-id-link {
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: #1e40af !important;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .order-id-link:hover {
+        color: #1d4ed8 !important;
+        text-decoration: underline;
+    }
+
+    .order-date {
+        font-size: 0.75rem;
+        color: #9ca3af !important;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .order-customer {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: #374151 !important;
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .customer-contact {
+        font-size: 0.8rem;
+        color: #9ca3af !important;
+    }
+
+    .order-total {
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: #059669 !important;
+        min-width: 100px;
+        text-align: right;
+    }
+
+    .order-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        min-width: 100px;
+        justify-content: center;
+    }
+
+    .status-pending {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .status-processing {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.45rem 1rem;
+        background: white;
+        color: #6366f1;
+        border: 1.5px solid #e0e7ff;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .action-btn:hover {
+        background: #6366f1;
+        color: white;
+        border-color: #6366f1;
+        transform: translateY(-1px);
+    }
+
+    .urgent-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 0.3rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid #fca5a5;
+    }
+
+    .urgent-badge i {
+        font-size: 0.7rem;
+        animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.25rem;
+        background: #f9fafb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e5e7eb;
+    }
+
+    .empty-icon i {
+        font-size: 2rem;
+        color: #d1d5db !important;
+    }
+
+    .empty-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #6b7280 !important;
+        margin: 0 0 0.35rem;
+    }
+
+    .empty-subtitle {
+        font-size: 0.9rem;
+        color: #9ca3af !important;
+        margin: 0;
+    }
+
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .order-card-content {
+            flex-wrap: wrap;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            width: 100%;
+        }
+
+        .btn-action {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .order-card-content {
+            padding: 1rem;
+            gap: 0.75rem;
+        }
+
+        .order-checkbox {
+            display: none;
+        }
+
+        .section-bulk-actions {
+            display: none;
+        }
+    }
+    
+    /* ===== Dark Mode Overrides ===== */
+    @media (prefers-color-scheme: dark) {
+        .stat-card {
+            background: #111827 !important;
+            border-color: #334155 !important;
+        }
+        
+        .stat-value {
+            color: #e2e8f0 !important;
+        }
+        
+        .stat-label {
+            color: #94a3b8 !important;
+        }
+        
+        .orders-section {
+            background: #111827 !important;
+            border-color: #334155 !important;
+        }
+        
+        .section-header {
+            background: #0f172a !important;
+            border-color: #334155 !important;
+        }
+        
+        .section-title {
+            color: #e2e8f0 !important;
+        }
+        
+        .section-count {
+            background: #1f2937 !important;
+            color: #6b7280 !important;
+        }
+        
+        .order-card-content {
+            background: #111827 !important;
+            border-color: #334155 !important;
+        }
+        
+        .order-id-link {
+            color: #60a5fa !important;
+        }
+        
+        .order-id-link:hover {
+            color: #93c5fd !important;
+        }
+        
+        .order-date,
+        .customer-contact {
+            color: #94a3b8 !important;
+        }
+        
+        .customer-name {
+            color: #e2e8f0 !important;
+        }
+        
+        .order-total {
+            color: #059669 !important;
+        }
+        
+        .bulk-select-all,
+        .bulk-action-btn {
+            color: white !important;
+        }
+        
+        .empty-orders p,
+        .empty-icon i,
+        .empty-title,
+        .empty-subtitle {
+            color: #9ca3af !important;
+        }
+        
+        .empty-title {
+            color: #6b7280 !important;
+        }
+    }
+
+    body.dark-mode .stat-card {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .stat-value {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .stat-label {
+        color: #94a3b8 !important;
+    }
+
+    body.dark-mode .orders-section {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .section-header {
+        background: #0f172a !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .section-title {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .section-count {
+        background: #1f2937 !important;
+        color: #6b7280 !important;
+    }
+
+    body.dark-mode .order-card-content {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .order-id-link {
+        color: #60a5fa !important;
+    }
+
+    body.dark-mode .order-id-link:hover {
+        color: #93c5fd !important;
+    }
+
+    body.dark-mode .order-date,
+    body.dark-mode .customer-contact {
+        color: #94a3b8 !important;
+    }
+
+    body.dark-mode .customer-name {
+        color: #e2e8f0 !important;
+    }
+</style>
+
+<div class="pending-orders-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="page-header-content">
+                <div>
+                    <h1>
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        Pending Orders
+                    </h1>
+                    <p>Orders requiring immediate attention</p>
+                </div>
+                <div class="action-buttons">
+                    <a href="{% url 'admin_dashboard:order_list' %}" class="btn-action">
+                        <i class="bi bi-list-ul"></i> All Orders
+                    </a>
+                    <a href="{% url 'admin_dashboard:payments_dashboard' %}" class="btn-action">
+                        <i class="bi bi-credit-card"></i> Payments
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card stat-urgent">
+                <div class="stat-icon"><i class="bi bi-exclamation-circle-fill"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ urgent_count }}</div>
+                    <div class="stat-label">Urgent (>{{ urgent_threshold_hours }}h)</div>
+                </div>
+            </div>
+            <div class="stat-card stat-total">
+                <div class="stat-icon"><i class="bi bi-cart-fill"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ total_pending }}</div>
+                    <div class="stat-label">Total Pending</div>
+                </div>
+            </div>
+            <div class="stat-card stat-pending">
+                <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ pending_payment_count }}</div>
+                    <div class="stat-label">Awaiting Payment</div>
+                </div>
+            </div>
+            <div class="stat-card stat-processing">
+                <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ processing_count }}</div>
+                    <div class="stat-label">Processing</div>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Urgent Orders -->
+        {% if urgent_orders %}
+        <div class="orders-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="title-icon urgent-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <span>Urgent Orders</span>
+                    <span class="section-count">{{ urgent_count }}</span>
+                </div>
+                <div class="section-bulk-actions">
+                    <span class="bulk-select-all" onclick="selectAll('urgent')">Select All</span>
+                    <button type="button" class="bulk-action-btn" onclick="submitBulkAction('urgent', 'mark_processing')">
+                        Mark Processing
+                    </button>
+                    <button type="button" class="bulk-action-btn" onclick="submitBulkAction('urgent', 'mark_shipped')">
+                        Mark Shipped
+                    </button>
+                </div>
+            </div>
+            <form id="urgent-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="urgent-action">
+                {% for order in urgent_orders %}
+                <div class="order-card urgent">
+                    <div class="order-card-content">
+                        <input type="checkbox" name="order_ids" value="{{ order.id }}" class="order-checkbox urgent-checkbox">
+                        
+                        <div class="order-id-section">
+                            <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="order-id-link">#{{ order.id }}</a>
+                            <div class="order-date">
+                                <i class="bi bi-calendar3"></i>
+                                {{ order.created_at|date:"M d, H:i" }}
+                            </div>
+                        </div>
+
+                        <div class="urgent-badge">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            {{ order.created_at|timesince }} old
+                        </div>
+
+                        <div class="order-customer">
+                            <div class="customer-name">{{ order.full_name }}</div>
+                            <div class="customer-contact">{{ order.phone }} | {{ order.email }}</div>
+                        </div>
+
+                        <div class="order-total">₦{{ order.grand_total|floatformat:0 }}</div>
+
+                        <span class="order-status-badge status-{{ order.status|lower }}">
+                            <i class="bi bi-{% if order.status == 'Pending' %}clock-fill{% else %}arrow-repeat{% endif %}"></i>
+                            {{ order.status }}
+                        </span>
+
+                        <div class="order-actions">
+                            <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="action-btn">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Recent Pending Orders -->
+        {% if recent_orders %}
+        <div class="orders-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="title-icon recent-icon"><i class="bi bi-clock-history"></i></div>
+                    <span>Recent Pending Orders</span>
+                    <span class="section-count">{{ recent_orders.count }}</span>
+                </div>
+                <div class="section-bulk-actions">
+                    <span class="bulk-select-all" onclick="selectAll('recent')">Select All</span>
+                    <button type="button" class="bulk-action-btn" onclick="submitBulkAction('recent', 'mark_processing')">
+                        Mark Processing
+                    </button>
+                    <button type="button" class="bulk-action-btn" onclick="submitBulkAction('recent', 'mark_shipped')">
+                        Mark Shipped
+                    </button>
+                </div>
+            </div>
+            <form id="recent-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="recent-action">
+                {% for order in recent_orders %}
+                <div class="order-card">
+                    <div class="order-card-content">
+                        <input type="checkbox" name="order_ids" value="{{ order.id }}" class="order-checkbox recent-checkbox">
+                        
+                        <div class="order-id-section">
+                            <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="order-id-link">#{{ order.id }}</a>
+                            <div class="order-date">
+                                <i class="bi bi-calendar3"></i>
+                                {{ order.created_at|date:"M d, H:i" }}
+                            </div>
+                        </div>
+
+                        <div class="order-customer">
+                            <div class="customer-name">{{ order.full_name }}</div>
+                            <div class="customer-contact">{{ order.phone }}</div>
+                        </div>
+
+                        <div class="order-total">₦{{ order.grand_total|floatformat:0 }}</div>
+
+                        <span class="order-status-badge status-{{ order.status|lower }}">
+                            <i class="bi bi-{% if order.status == 'Pending' %}clock-fill{% else %}arrow-repeat{% endif %}"></i>
+                            {{ order.status }}
+                        </span>
+
+                        <div class="order-actions">
+                            <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="action-btn">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Empty State -->
+        {% if not urgent_orders and not recent_orders %}
+        <div class="orders-section">
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <p class="empty-title">All caught up!</p>
+                <p class="empty-subtitle">No pending orders requiring attention at the moment</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function selectAll(section) {
+    const checkboxes = document.querySelectorAll('.' + section + '-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
+}
+
+function submitBulkAction(section, action) {
+    const form = document.getElementById(section + '-form');
+    const actionInput = document.getElementById(section + '-action');
+    const checkboxes = form.querySelectorAll('input[name="order_ids"]:checked');
+    
+    if (checkboxes.length === 0) {
+        alert('Please select at least one order');
+        return;
+    }
+    
+    actionInput.value = action;
+    form.submit();
+}
+
+// Auto-refresh every 2 minutes to check for new orders
+setTimeout(() => {
+    location.reload();
+}, 120000);
+</script>
+{% endblock %}

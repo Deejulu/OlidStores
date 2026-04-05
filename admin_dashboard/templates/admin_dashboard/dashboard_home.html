@@ -1,0 +1,462 @@
+﻿{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* ============================================================
+       ADMIN DASHBOARD — exact same CSS structure as customer
+       dashboard (templates/users/dashboard.html)
+       ============================================================ */
+    :root {
+        --gradient-primary: linear-gradient(135deg, {{ theme_colors.primary }} 0%, {{ theme_colors.primary_dark }} 100%);
+        --gradient-bg: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%);
+        --shadow-sm:  0 1px 2px 0 rgba(0,0,0,.05);
+        --shadow-md:  0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+        --shadow-lg:  0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+        --shadow-xl:  0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04);
+        --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,.25);
+        --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --border-radius:    12px;
+        --border-radius-lg: 16px;
+    }
+
+    /* Floating background blobs */
+    .dashboard-container {
+        background: var(--gradient-bg);
+        min-height: 100vh;
+        padding: 3rem 0 5rem;
+        position: relative;
+    }
+    .dashboard-container::before,
+    .dashboard-container::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(139,115,85,.08) 0%, transparent 70%);
+        animation: floatBackground 20s ease-in-out infinite;
+        pointer-events: none;
+    }
+    .dashboard-container::before { width:600px; height:600px; top:-200px; right:-100px; }
+    .dashboard-container::after  { width:500px; height:500px; bottom:-150px; left:-75px; animation-delay:-10s; }
+    @keyframes floatBackground {
+        0%,100% { transform: translate(0,0) scale(1); }
+        33%  { transform: translate(30px,-30px) scale(1.1); }
+        66%  { transform: translate(-20px,20px) scale(0.9); }
+    }
+
+    /* Dashboard Header */
+    .dashboard-header {
+        background: var(--gradient-primary);
+        padding: 3rem 2.5rem;
+        border-radius: 20px;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow-2xl);
+        position: relative;
+        overflow: hidden;
+        animation: slideDown 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes slideDown {
+        from { opacity:0; transform:translateY(-30px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        top: -50%; right: -10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,.12) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: pulseOrb 4s ease-in-out infinite;
+    }
+    @keyframes pulseOrb {
+        0%,100% { transform:scale(1);   opacity:.5; }
+        50%      { transform:scale(1.1); opacity:.3; }
+    }
+    .dashboard-header-content { position:relative; z-index:1; }
+    .dashboard-header h2 {
+        color: white; font-weight:800; font-size:2.75rem; margin-bottom:.75rem;
+        text-shadow: 0 4px 12px rgba(0,0,0,.3);
+        animation: fadeIn .8s ease-out .2s both;
+    }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+    .dashboard-welcome-emoji {
+        display: inline-block;
+        animation: wave 2s ease-in-out infinite;
+        transform-origin: 70% 70%;
+    }
+    @keyframes wave {
+        0%,100%,40%,60% { transform:rotate(0deg); }
+        10%,30% { transform:rotate(14deg); }
+        20%     { transform:rotate(-8deg); }
+    }
+    .dashboard-subtitle { color:rgba(255,255,255,.9); font-size:1.15rem; line-height:1.6; animation:fadeIn .8s ease-out .4s both; }
+    .user-badge {
+        background: var(--gradient-primary);
+        color: white; padding:.625rem 1.5rem; border-radius:50px;
+        font-size:.875rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px;
+        box-shadow:0 4px 12px rgba(0,0,0,.4); border:2px solid rgba(255,255,255,.2);
+        backdrop-filter:blur(10px); animation:fadeIn .8s ease-out .6s both;
+        display:inline-flex; align-items:center; gap:.5rem;
+    }
+
+    /* Dashboard Cards */
+    .dashboard-card {
+        background: white; border-radius:var(--border-radius-lg); overflow:hidden;
+        transition:var(--transition-base); border:2px solid #f3f4f6;
+        height:100%; position:relative;
+        animation:fadeInUp .8s cubic-bezier(0.16,1,0.3,1); animation-fill-mode:both;
+    }
+    @keyframes fadeInUp {
+        from { opacity:0; transform:translateY(30px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .dashboard-card:nth-child(1){animation-delay:.1s;} .dashboard-card:nth-child(2){animation-delay:.2s;}
+    .dashboard-card:nth-child(3){animation-delay:.3s;} .dashboard-card:nth-child(4){animation-delay:.4s;}
+    .dashboard-card:nth-child(5){animation-delay:.5s;} .dashboard-card:nth-child(6){animation-delay:.6s;}
+    .dashboard-card::before {
+        content:''; position:absolute; inset:-2px;
+        background:var(--gradient-primary); border-radius:var(--border-radius-lg);
+        opacity:0; transition:opacity .4s ease; z-index:-1;
+    }
+    .dashboard-card::after {
+        content:''; position:absolute; inset:0;
+        background:linear-gradient(135deg,rgba(139,115,85,.03),transparent);
+        opacity:0; transition:opacity .4s ease;
+    }
+    .dashboard-card:hover { transform:translateY(-8px) scale(1.02); box-shadow:var(--shadow-2xl); border-color:transparent; }
+    .dashboard-card:hover::before{opacity:1;} .dashboard-card:hover::after{opacity:1;}
+
+    .dashboard-card-body { padding:2.5rem; text-align:center; position:relative; z-index:1; }
+
+    .card-icon {
+        width:80px; height:80px; margin:0 auto 1.75rem; border-radius:20px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:2.25rem; color:white; box-shadow:var(--shadow-lg);
+        transition:all .4s cubic-bezier(.175,.885,.32,1.275); position:relative;
+    }
+    .card-icon::before {
+        content:''; position:absolute; inset:-4px; border-radius:22px;
+        background:inherit; opacity:.3; filter:blur(8px); transition:all .4s ease;
+    }
+    .dashboard-card:hover .card-icon{transform:scale(1.15) rotate(10deg);box-shadow:var(--shadow-xl);}
+    .dashboard-card:hover .card-icon::before{opacity:.5;filter:blur(12px);}
+
+    .icon-indigo{background:linear-gradient(135deg,#6366f1,#4f46e5);}
+    .icon-green{background:linear-gradient(135deg,#10b981,#059669);}
+    .icon-amber{background:linear-gradient(135deg,#f59e0b,#d97706);}
+    .icon-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);}
+    .icon-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);}
+    .icon-pink{background:linear-gradient(135deg,#ec4899,#db2777);}
+
+    .dashboard-card h5{font-weight:800;font-size:1.5rem;color:#1a1a1a;margin-bottom:1rem;line-height:1.3;}
+    .dashboard-card p{color:#6b7280;font-size:.975rem;line-height:1.6;margin-bottom:1.75rem;}
+
+    .dashboard-btn {
+        color:white; border:none; padding:.875rem 2rem; border-radius:50px;
+        font-weight:700; text-transform:uppercase; letter-spacing:.5px; font-size:.875rem;
+        transition:var(--transition-base); text-decoration:none;
+        display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+        box-shadow:var(--shadow-md); position:relative; overflow:hidden;
+    }
+    .dashboard-btn::before {
+        content:''; position:absolute; top:50%; left:50%;
+        width:0; height:0; border-radius:50%;
+        background:rgba(255,255,255,.3);
+        transform:translate(-50%,-50%); transition:width .6s,height .6s;
+    }
+    .dashboard-btn:hover::before{width:300px;height:300px;}
+    .dashboard-btn i,.dashboard-btn span{position:relative;z-index:1;}
+    .dashboard-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-xl);color:white;}
+    .dashboard-btn:active{transform:translateY(0);}
+
+    .btn-indigo{background:linear-gradient(135deg,#6366f1,#4f46e5);}
+    .btn-green{background:linear-gradient(135deg,#10b981,#059669);}
+    .btn-amber{background:linear-gradient(135deg,#f59e0b,#d97706);}
+    .btn-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);}
+    .btn-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);}
+    .btn-pink{background:linear-gradient(135deg,#ec4899,#db2777);}
+
+    /* Feature sections */
+    .feature-section {
+        background:white; border-radius:var(--border-radius-lg); overflow:hidden;
+        box-shadow:var(--shadow-md); border:2px solid #e2e8f0;
+        transition:var(--transition-base); height:100%;
+    }
+    .feature-section:hover{transform:translateY(-8px);box-shadow:var(--shadow-2xl);}
+    .feature-header{background:var(--gradient-primary);padding:2rem 2.5rem;position:relative;overflow:hidden;}
+    .feature-header::before{content:'';position:absolute;top:-50%;right:-50%;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,.2),transparent);}
+    .feature-header h5{color:white;font-weight:800;margin:0;display:flex;align-items:center;gap:1rem;font-size:1.5rem;position:relative;z-index:2;}
+    .feature-header i{font-size:1.75rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,.2));}
+    .feature-body{padding:2.5rem;}
+    .feature-link {
+        background:linear-gradient(to right,rgba(139,115,85,.08),transparent);
+        border:2px solid rgba(139,115,85,.12); border-radius:14px;
+        padding:1.25rem 1.5rem; margin-bottom:1rem;
+        display:flex; align-items:center; gap:1.25rem;
+        transition:all .3s ease; text-decoration:none;
+        color:#1e293b; font-weight:600; font-size:1.05rem;
+        position:relative; overflow:hidden;
+    }
+    .feature-link::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gradient-primary);transform:scaleY(0);transition:transform .3s ease;}
+    .feature-link:hover{background:var(--gradient-primary);color:white;border-color:transparent;transform:translateX(8px);box-shadow:0 10px 25px rgba(139,115,85,.4);}
+    .feature-link:hover::before{transform:scaleY(1);}
+    .feature-link i{font-size:1.5rem;min-width:35px;text-align:center;transition:transform .3s ease;}
+    .feature-link:hover i{transform:scale(1.2);}
+    .feature-link:last-child{margin-bottom:0;}
+
+    /* Responsive */
+    @media(max-width:575.98px){
+        .dashboard-container{padding:1rem 0 3rem;}
+        .dashboard-header{padding:1.25rem 1rem;margin-bottom:1.25rem;border-radius:14px;}
+        .dashboard-header h2{font-size:1.3rem;margin-bottom:.3rem;}
+        .dashboard-subtitle{font-size:.82rem;}
+        .user-badge{padding:.35rem .75rem;font-size:.7rem;letter-spacing:.5px;}
+        .dashboard-card-body{padding:1rem .75rem;}
+        .card-icon{width:48px;height:48px;font-size:1.35rem;margin:0 auto .75rem;border-radius:12px;}
+        .card-icon::before{border-radius:14px;}
+        .dashboard-card h5{font-size:.9rem;font-weight:700;margin-bottom:.4rem;}
+        .dashboard-card p{font-size:.75rem;line-height:1.4;margin-bottom:.75rem;}
+        .dashboard-btn{padding:.6rem .75rem;font-size:.72rem;gap:.3rem;width:100%;}
+        .dashboard-card:hover{transform:translateY(-3px) scale(1.01);}
+        .feature-header{padding:1.25rem 1.5rem;}
+        .feature-body{padding:1.25rem;}
+    }
+    @media(max-width:359.98px){
+        .dashboard-header h2{font-size:1.1rem;}
+        .card-icon{width:40px;height:40px;font-size:1.1rem;}
+        .dashboard-card h5{font-size:.82rem;}
+        .dashboard-card p{display:none;}
+        .dashboard-btn{font-size:.68rem;padding:.5rem;}
+    }
+    @media(min-width:576px) and (max-width:767.98px){
+        .dashboard-container{padding:1.5rem 0 3rem;}
+        .dashboard-header{padding:1.75rem 1.5rem;margin-bottom:1.75rem;}
+        .dashboard-header h2{font-size:1.6rem;}
+        .dashboard-card-body{padding:1.5rem 1.25rem;}
+        .card-icon{width:56px;height:56px;font-size:1.6rem;margin-bottom:1rem;}
+        .dashboard-card h5{font-size:1.1rem;}
+        .dashboard-card p{font-size:.875rem;margin-bottom:1.25rem;}
+        .dashboard-btn{padding:.7rem 1.25rem;font-size:.8rem;}
+    }
+    @media(min-width:768px) and (max-width:991.98px){
+        .dashboard-header{padding:2.25rem 2rem;}
+        .dashboard-header h2{font-size:2.1rem;}
+        .dashboard-card-body{padding:2rem 1.75rem;}
+        .card-icon{width:68px;height:68px;font-size:1.9rem;}
+        .dashboard-card h5{font-size:1.3rem;}
+    }
+    @media(max-height:500px) and (orientation:landscape){
+        .dashboard-container{padding:.75rem 0 2rem;}
+        .dashboard-header{padding:1rem;margin-bottom:1rem;}
+        .dashboard-header h2{font-size:1.25rem;}
+        .dashboard-card-body{padding:.75rem;}
+        .card-icon{width:40px;height:40px;font-size:1.1rem;margin-bottom:.5rem;}
+        .dashboard-card p{display:none;}
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="container py-4">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div>
+                        <h2 class="mb-2">
+                            Welcome back, {{ user.username }}!
+                            <span class="dashboard-welcome-emoji">&#x26A1;</span>
+                        </h2>
+                        <p class="dashboard-subtitle mb-0">
+                            Manage your store, orders, products, and customers from here
+                        </p>
+                    </div>
+                    <div>
+                        <span class="user-badge">
+                            <i class="bi bi-shield-fill-check"></i>
+                            <span>Administrator</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Strip -->
+        <div class="row g-2 g-sm-3 mb-3 mb-md-4">
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ total_customers|default:"0" }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Customers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-cart-check-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ pending_orders|default:"0" }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Pending</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-box-seam-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ total_products|default:"0" }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Products</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center gap-2 p-3 bg-white rounded-3 shadow-sm border">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0;"><i class="bi bi-envelope-fill"></i></div>
+                    <div>
+                        <div style="font-size:1.5rem;font-weight:800;line-height:1;color:#1a1a1a;">{{ admin_unread_messages|default:"0" }}</div>
+                        <div style="font-size:.72rem;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Messages</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="row g-2 g-sm-3 g-md-4 mb-5">
+
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-indigo"><i class="bi bi-box-seam-fill"></i></div>
+                        <h5>Products <span class="badge" style="background:rgba(99,102,241,.15);color:#6366f1;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ total_products|default:"0" }}</span></h5>
+                        <p>Manage all products, prices, stock levels, and images</p>
+                        <a href="/admin-dashboard/products/" class="dashboard-btn btn-indigo">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>Manage Products</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-green"><i class="bi bi-tags-fill"></i></div>
+                        <h5>Categories</h5>
+                        <p>Create and organise product categories for your store</p>
+                        <a href="/admin-dashboard/categories/" class="dashboard-btn btn-green">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>Manage Categories</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-amber"><i class="bi bi-cart-check-fill"></i></div>
+                        <h5>Orders {% if pending_orders %}<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ pending_orders }}</span>{% endif %}</h5>
+                        <p>View, process, and manage all customer orders</p>
+                        <a href="/admin-dashboard/orders/" class="dashboard-btn btn-amber">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>Manage Orders</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-blue"><i class="bi bi-people-fill"></i></div>
+                        <h5>Customers <span class="badge" style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:.7rem;border-radius:99px;padding:.2rem .5rem;">{{ total_customers|default:"0" }}</span></h5>
+                        <p>View and manage your registered customer accounts</p>
+                        <a href="/admin-dashboard/customers/" class="dashboard-btn btn-blue">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>View Customers</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-purple"><i class="bi bi-graph-up-arrow"></i></div>
+                        <h5>Analytics</h5>
+                        <p>View sales trends, user behaviour, and product performance</p>
+                        <a href="/admin-dashboard/analytics/" class="dashboard-btn btn-purple">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>View Analytics</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-body">
+                        <div class="card-icon icon-pink"><i class="bi bi-images"></i></div>
+                        <h5>Content</h5>
+                        <p>Edit homepage banners, featured content, and announcements</p>
+                        <a href="/admin-dashboard/content/" class="dashboard-btn btn-pink">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                            <span>Edit Content</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Feature Sections -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="feature-section">
+                    <div class="feature-header">
+                        <h5><i class="bi bi-chat-dots"></i> Customer Communications</h5>
+                    </div>
+                    <div class="feature-body">
+                        <a href="/admin-dashboard/feedback/" class="feature-link">
+                            <i class="bi bi-star-fill"></i><span>Feedback</span>
+                        </a>
+                        <a href="/admin-dashboard/contact-messages/" class="feature-link">
+                            <i class="bi bi-envelope-open"></i><span>Contact Messages</span>
+                        </a>
+                        <a href="/admin-dashboard/chat/" class="feature-link">
+                            <i class="bi bi-chat-dots-fill"></i><span>Live Chat</span>
+                        </a>
+                        <a href="/admin-dashboard/notifications-admin/" class="feature-link">
+                            <i class="bi bi-bell-fill"></i><span>Send Notifications</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="feature-section">
+                    <div class="feature-header">
+                        <h5><i class="bi bi-gear-fill"></i> Site Management</h5>
+                    </div>
+                    <div class="feature-body">
+                        <a href="/admin-dashboard/content/" class="feature-link">
+                            <i class="bi bi-sliders"></i><span>Settings</span>
+                        </a>
+                        <a href="/admin/" class="feature-link">
+                            <i class="bi bi-shield-lock"></i><span>Django Admin</span>
+                        </a>
+                        <a href="/" class="feature-link">
+                            <i class="bi bi-house-door"></i><span>View Site</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify Your Account - E-Stores{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verify-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .verify-page::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, {{ theme_colors.primary }}1A 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, {{ theme_colors.accent }}0D 0%, transparent 50%);
+    }
+    
+    .verify-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    .verify-card {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
+    
+    .verify-header {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        color: white;
+    }
+    
+    .verify-icon {
+        width: 90px;
+        height: 90px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .verify-icon i {
+        font-size: 2.8rem;
+    }
+    
+    .verify-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .verify-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .verify-body {
+        padding: 2.5rem;
+    }
+    
+    .welcome-msg {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .welcome-msg h2 {
+        font-size: 1.25rem;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+    
+    .welcome-msg p {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+    
+    .verification-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .verify-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: 16px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        transition: all 0.2s;
+    }
+    
+    .verify-item:hover {
+        border-color: {{ theme_colors.primary }};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .verify-item.verified {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+    
+    .verify-item-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .verify-item:not(.verified) .verify-item-icon {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .verify-item.verified .verify-item-icon {
+        background: #d1fae5;
+        color: #059669;
+    }
+    
+    .verify-item-content {
+        flex: 1;
+    }
+    
+    .verify-item-title {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+    
+    .verify-item-desc {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+    
+    .verify-item-value {
+        font-size: 0.85rem;
+        color: #374151;
+        font-weight: 500;
+    }
+    
+    .verify-item-action {
+        flex-shrink: 0;
+    }
+    
+    .btn-verify {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: {{ theme_colors.primary }};
+        border: none;
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-verify:hover {
+        background: {{ theme_colors.primary_light }};
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px {{ theme_colors.primary }}40;
+        color: white;
+    }
+    
+    .verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #d1fae5;
+        color: #059669;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .info-note {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 2rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+    
+    .info-note i {
+        color: #3b82f6;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .info-note p {
+        color: #1e40af;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .skip-link {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+    
+    .skip-link a {
+        color: #6b7280;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+    
+    .skip-link a:hover {
+        color: {{ theme_colors.primary }};
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verify-page">
+    <div class="verify-container">
+        <div class="verify-card">
+            <div class="verify-header">
+                <div class="verify-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h1 class="verify-title">Email Verification Required</h1>
+                <p class="verify-subtitle">Secure your account with email verification</p>
+            </div>
+            
+            <div class="verify-body">
+                <div class="welcome-msg">
+                    <h2>Welcome back, {{ user.username }}!</h2>
+                    <p>For enhanced security, please verify your email address.</p>
+                </div>
+                
+                {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} rounded-3">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="verification-items">
+                    <!-- Email Verification -->
+                    <div class="verify-item {% if user.email_verified %}verified{% endif %}">
+                        <div class="verify-item-icon">
+                            {% if user.email_verified %}
+                            <i class="bi bi-envelope-check-fill"></i>
+                            {% else %}
+                            <i class="bi bi-envelope-exclamation-fill"></i>
+                            {% endif %}
+                        </div>
+                        <div class="verify-item-content">
+                            <div class="verify-item-title">Email Address</div>
+                            <div class="verify-item-value">{{ user.email }}</div>
+                            {% if not user.email_verified %}
+                            <div class="verify-item-desc">Verify your email to secure your account</div>
+                            {% endif %}
+                        </div>
+                        <div class="verify-item-action">
+                            {% if user.email_verified %}
+                            <span class="verified-badge">
+                                <i class="bi bi-check-circle-fill"></i> Verified
+                            </span>
+                            {% else %}
+                            <a href="{% url 'users:send_existing_user_email_otp' %}" class="btn-verify">
+                                <i class="bi bi-send"></i> Verify Now
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-note">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <p>
+                        Verification codes are valid for 10 minutes. We'll send a 6-digit code to your email that you'll need to enter to verify.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

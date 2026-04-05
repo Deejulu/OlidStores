@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Registration - E-Stores{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-page::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, {{ theme_colors.primary }}1A 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, {{ theme_colors.accent }}0D 0%, transparent 50%);
+    }
+    
+    .auth-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    
+    .auth-card {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+    }
+    
+    .auth-header {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        color: white;
+    }
+    
+    .auth-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .auth-icon i {
+        font-size: 2.5rem;
+    }
+    
+    .auth-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .auth-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .auth-body {
+        padding: 2.5rem;
+    }
+    
+    .verified-info {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .verified-badge {
+        flex: 1;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 0.75rem;
+        text-align: center;
+    }
+    
+    .verified-badge i {
+        color: #16a34a;
+        font-size: 1.25rem;
+    }
+    
+    .verified-badge .label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        display: block;
+        margin-top: 0.25rem;
+    }
+    
+    .verified-badge .value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #111827;
+        word-break: break-all;
+    }
+    
+    .form-floating {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-floating input {
+        height: 56px;
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        padding-left: 1rem;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .input-group .form-floating input {
+        border-radius: 12px;
+    }
+    
+    .input-group .form-floating {
+        margin-bottom: 0;
+    }
+    
+    .form-floating input:focus {
+        border-color: {{ theme_colors.primary }};
+        box-shadow: 0 0 0 4px {{ theme_colors.primary }}1A;
+    }
+    
+    .form-floating label {
+        padding-left: 1rem;
+        color: #6b7280;
+    }
+    
+    .btn-submit {
+        width: 100%;
+        height: 56px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_light }});
+        border: none;
+        color: white;
+        transition: all 0.2s;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px {{ theme_colors.primary }}40;
+    }
+    
+    .error-list {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .error-list ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #dc2626;
+    }
+    
+    .password-strength {
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .strength-bar {
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    
+    .strength-fill {
+        height: 100%;
+        transition: all 0.3s;
+        border-radius: 2px;
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e5e7eb;
+    }
+    
+    .step-dot.active {
+        background: {{ theme_colors.primary }};
+    }
+    
+    .step-dot.completed {
+        background: #10b981;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <h1 class="auth-title">Almost Done!</h1>
+                <p class="auth-subtitle">Create your account credentials</p>
+            </div>
+            
+            <div class="auth-body">
+                <!-- Step indicator -->
+                <div class="step-indicator">
+                    <div class="step-dot completed"></div>
+                    <div class="step-dot active"></div>
+                </div>
+                
+                <!-- Verified badges -->
+                <div class="verified-info">
+                    <div class="verified-badge" style="flex: 1;">
+                        <i class="bi bi-envelope-check-fill"></i>
+                        <span class="label">Email Verified</span>
+                        <span class="value">{{ email }}</span>
+                    </div>
+                    {% if phone %}
+                    <div class="verified-badge" style="flex: 1;">
+                        <i class="bi bi-phone-fill"></i>
+                        <span class="label">Phone</span>
+                        <span class="value">{{ phone }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if form.errors %}
+                <div class="error-list">
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                {{ form.first_name }}
+                                <label for="{{ form.first_name.id_for_label }}">
+                                    <i class="bi bi-person me-2"></i>First Name
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                {{ form.last_name }}
+                                <label for="{{ form.last_name.id_for_label }}">
+                                    <i class="bi bi-person me-2"></i>Last Name
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group mb-3">
+                        <div class="form-floating flex-grow-1">
+                            {{ form.username }}
+                            <label for="{{ form.username.id_for_label }}">
+                                <i class="bi bi-at me-2"></i>Your Username (Auto-generated)
+                            </label>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mb-3" style="margin-top: -0.75rem;">
+                        <i class="bi bi-info-circle me-1"></i>Your username will be: <strong id="usernamePreview">FirstnameLastname{{ next_user_id|stringformat:"03d" }}</strong>
+                    </small>
+                    
+                    <div class="form-floating">
+                        {{ form.password1 }}
+                        <label for="{{ form.password1.id_for_label }}">
+                            <i class="bi bi-lock me-2"></i>Create a Password
+                        </label>
+                    </div>
+                    
+                    <div id="password-strength" class="password-strength" style="display: none;">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strength-fill"></div>
+                        </div>
+                        <span id="strength-text"></span>
+                    </div>
+                    
+                    <div class="form-floating">
+                        {{ form.password2 }}
+                        <label for="{{ form.password2.id_for_label }}">
+                            <i class="bi bi-lock-fill me-2"></i>Confirm Password
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-submit">
+                        <i class="bi bi-check2-circle me-2"></i>Create My Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const strengthDiv = document.getElementById('password-strength');
+    const strengthFill = document.getElementById('strength-fill');
+    const strengthText = document.getElementById('strength-text');
+    
+    // Auto-generate username preview from first name and last name
+    const firstName = document.getElementById('{{ form.first_name.id_for_label }}');
+    const lastName = document.getElementById('{{ form.last_name.id_for_label }}');
+    const username = document.getElementById('{{ form.username.id_for_label }}');
+    const usernamePreview = document.getElementById('usernamePreview');
+    const nextUserId = '{{ next_user_id|stringformat:"03d" }}';
+    
+    function updateUsernamePreview() {
+        const first = firstName.value.trim().replace(/[^a-zA-Z]/g, '');
+        const last = lastName.value.trim().replace(/[^a-zA-Z]/g, '');
+        
+        if (first && last) {
+            const preview = first + last + nextUserId;
+            usernamePreview.textContent = preview;
+            username.value = preview;
+        } else if (first) {
+            usernamePreview.textContent = first + 'Lastname' + nextUserId;
+            username.value = '';
+        } else if (last) {
+            usernamePreview.textContent = 'Firstname' + last + nextUserId;
+            username.value = '';
+        } else {
+            usernamePreview.textContent = 'FirstnameLastname' + nextUserId;
+            username.value = '';
+        }
+    }
+    
+    firstName.addEventListener('input', updateUsernamePreview);
+    firstName.addEventListener('blur', updateUsernamePreview);
+    lastName.addEventListener('input', updateUsernamePreview);
+    lastName.addEventListener('blur', updateUsernamePreview);
+    
+    password1.addEventListener('input', function() {
+        const pwd = this.value;
+        
+        if (pwd.length === 0) {
+            strengthDiv.style.display = 'none';
+            return;
+        }
+        
+        strengthDiv.style.display = 'block';
+        let score = 0;
+        
+        if (pwd.length >= 8) score++;
+        if (pwd.length >= 12) score++;
+        if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+        if (/\d/.test(pwd)) score++;
+        if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+        
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+        const texts = ['Very Weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
+        
+        strengthFill.style.width = ((score / 5) * 100) + '%';
+        strengthFill.style.background = colors[Math.min(score, 4)];
+        strengthText.textContent = texts[Math.min(score, 4)];
+        strengthText.style.color = colors[Math.min(score, 4)];
+    });
+});
+</script>
+{% endblock %}

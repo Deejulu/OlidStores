@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    :root {
+        --cd-radius: 16px;
+        --cd-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    }
+    .cd-page { background:linear-gradient(135deg,#f8f9fa,#e9ecef); min-height:100vh; padding:2rem 0; }
+    .cd-back-bar {
+        display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;
+    }
+    .cd-back-btn {
+        padding:.4rem 1rem;border-radius:99px;font-size:.82rem;font-weight:700;
+        background:#fff;border:2px solid #e5e7eb;color:#374151;text-decoration:none;
+        transition:all .2s;
+    }
+    .cd-back-btn:hover { border-color:{{ theme_colors.primary }};color:{{ theme_colors.primary }}; }
+    .cd-conv-title { font-size:1.1rem;font-weight:800;color:#1a1a1a; }
+    .cd-conv-sub   { font-size:.8rem;color:#6b7280; }
+
+    .cd-layout { display:grid;grid-template-columns:1fr 280px;gap:1.5rem;align-items:start; }
+    @media(max-width:991.98px){ .cd-layout { grid-template-columns:1fr; } }
+
+    /* Chat window */
+    .cd-chat-card {
+        background:#fff;border-radius:var(--cd-radius);
+        box-shadow:var(--cd-shadow);overflow:hidden;
+        display:flex;flex-direction:column;
+    }
+    .cd-chat-header {
+        background:linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_dark }});
+        color:#fff;padding:1rem 1.25rem;
+        display:flex;align-items:center;gap:.75rem;
+    }
+    .cd-chat-avatar {
+        width:44px;height:44px;border-radius:50%;
+        background:rgba(255,255,255,.2);
+        display:flex;align-items:center;justify-content:center;
+        font-size:1.2rem;font-weight:900;flex-shrink:0;
+    }
+    .cd-chat-name { font-weight:800;font-size:.95rem; }
+    .cd-chat-email{ font-size:.75rem;opacity:.85; }
+    .cd-status-pill {
+        margin-left:auto;padding:.25rem .75rem;border-radius:99px;font-size:.73rem;font-weight:700;
+        border:2px solid rgba(255,255,255,.4);
+    }
+    .cd-status-open   { background:rgba(16,185,129,.25); }
+    .cd-status-closed { background:rgba(255,255,255,.15); }
+
+    .cd-messages-body {
+        flex:1;min-height:350px;max-height:450px;overflow-y:auto;
+        padding:1rem;display:flex;flex-direction:column;gap:.6rem;
+        background:#fdfdfd;
+    }
+    .cd-msg {
+        max-width:78%;padding:.55rem .85rem;border-radius:14px;
+        font-size:.86rem;line-height:1.45;word-break:break-word;
+    }
+    .cd-msg-customer {
+        background:#f3f4f6;color:#1a1a1a;
+        align-self:flex-start;border-bottom-left-radius:4px;
+    }
+    .cd-msg-admin {
+        background:linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_dark }});
+        color:#fff;align-self:flex-end;border-bottom-right-radius:4px;
+    }
+    .cd-msg-wrap-customer { display:flex;flex-direction:column;align-items:flex-start; }
+    .cd-msg-wrap-admin    { display:flex;flex-direction:column;align-items:flex-end; }
+    .cd-msg-sender { font-size:.7rem;font-weight:700;color:#6b7280;margin-bottom:.15rem; }
+    .cd-msg-meta   { font-size:.68rem;opacity:.55;margin-top:.2rem; }
+
+    /* Reply area */
+    .cd-reply-area {
+        border-top:2px solid #f3f4f6;padding:1rem;background:#fff;
+    }
+    .cd-reply-label { font-size:.78rem;font-weight:700;color:#374151;margin-bottom:.5rem; }
+    .cd-reply-textarea {
+        width:100%;border:1.5px solid #e5e7eb;border-radius:12px;
+        padding:.65rem .85rem;font-size:.88rem;font-family:inherit;
+        resize:vertical;min-height:80px;outline:none;transition:border-color .2s;
+    }
+    .cd-reply-textarea:focus { border-color:{{ theme_colors.primary }}; }
+    .cd-reply-send {
+        margin-top:.6rem;padding:.6rem 1.5rem;border-radius:99px;font-weight:700;
+        font-size:.88rem;border:none;cursor:pointer;
+        background:linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_dark }});
+        color:#fff;transition:opacity .2s;
+    }
+    .cd-reply-send:hover { opacity:.88; }
+    .cd-closed-banner {
+        background:#f9fafb;padding:.75rem 1rem;text-align:center;
+        font-size:.82rem;color:#6b7280;font-style:italic;border-top:1px solid #e5e7eb;
+    }
+
+    /* Suggested reply banner */
+    .cd-suggestion {
+        margin:.6rem 1rem .2rem;
+        padding:.85rem 1.1rem;
+        background:linear-gradient(135deg,#eff6ff,#dbeafe);
+        border:2px solid #bfdbfe;
+        border-radius:14px;
+        animation:cd-sug-in .25s ease;
+    }
+    @keyframes cd-sug-in { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+    .cd-sug-label {
+        font-size:.7rem;font-weight:800;text-transform:uppercase;
+        letter-spacing:.6px;color:#1d4ed8;margin-bottom:.4rem;
+        display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;
+    }
+    .cd-sug-matched { font-size:.7rem;font-weight:600;color:#3b82f6;font-style:italic; }
+    .cd-sug-text {
+        font-size:.87rem;color:#1e3a5f;line-height:1.55;
+        margin-bottom:.6rem;white-space:pre-wrap;
+    }
+    .cd-sug-actions { display:flex;gap:.5rem;flex-wrap:wrap; }
+    .cd-sug-btn {
+        padding:.3rem .9rem;border-radius:99px;font-size:.78rem;
+        font-weight:700;border:none;cursor:pointer;transition:opacity .2s;
+    }
+    .cd-sug-btn-use  { background:#1d4ed8;color:#fff; }
+    .cd-sug-btn-use:hover  { opacity:.85; }
+    .cd-sug-btn-send { background:#10b981;color:#fff; }
+    .cd-sug-btn-send:hover { opacity:.85; }
+    .cd-sug-btn-dismiss { background:#f3f4f6;color:#6b7280;border:2px solid #e5e7eb; }
+    .cd-sug-btn-dismiss:hover { background:#e5e7eb; }
+
+    /* Sidebar */
+    .cd-sidebar-card {
+        background:#fff;border-radius:var(--cd-radius);
+        box-shadow:var(--cd-shadow);overflow:hidden;
+    }
+    .cd-sidebar-header {
+        padding:.9rem 1.1rem;border-bottom:2px solid #f3f4f6;
+        font-size:.85rem;font-weight:800;color:#1a1a1a;
+        display:flex;align-items:center;gap:.5rem;
+    }
+    .cd-sidebar-header i {
+        width:32px;height:32px;border-radius:8px;
+        background:linear-gradient(135deg, {{ theme_colors.primary }}, {{ theme_colors.primary_dark }});
+        color:#fff;display:flex;align-items:center;justify-content:center;
+        font-size:.85rem;
+    }
+    .cd-info-row {
+        padding:.7rem 1.1rem;border-bottom:1px solid #f3f4f6;
+        font-size:.82rem;
+    }
+    .cd-info-row:last-child { border-bottom:none; }
+    .cd-info-label { font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9ca3af; }
+    .cd-info-val   { font-weight:600;color:#1a1a1a;margin-top:.1rem; }
+
+    .cd-action-btn {
+        display:flex;align-items:center;gap:.5rem;
+        width:100%;padding:.65rem 1.1rem;text-align:left;
+        background:none;border:none;cursor:pointer;font-size:.85rem;
+        font-weight:700;border-top:1px solid #f3f4f6;
+        transition:background .15s;
+    }
+    .cd-action-btn:first-of-type { border-top:2px solid #f3f4f6; }
+    .cd-action-btn:hover { background:#f9fafb; }
+    .cd-action-btn.danger { color:#ef4444; }
+    .cd-action-btn.success{ color:#10b981; }
+
+    /* Auto-refresh dot */
+    .cd-live-dot {
+        width:8px;height:8px;border-radius:50%;background:#10b981;
+        display:inline-block;animation:cd-live 1.5s ease-in-out infinite;
+        margin-right:.35rem;vertical-align:middle;
+    }
+    @keyframes cd-live { 0%,100%{opacity:1}50%{opacity:.3} }
+</style>
+
+<div class="cd-page">
+<div class="container-fluid px-3 px-md-4">
+
+    <!-- Back bar -->
+    <div class="cd-back-bar">
+        <a href="{% url 'admin_dashboard:chat_list' %}" class="cd-back-btn">
+            <i class="bi bi-arrow-left me-1"></i>All Chats
+        </a>
+        <div>
+            <div class="cd-conv-title">Chat #{{ conversation.pk }} – {{ conversation.display_name }}</div>
+            <div class="cd-conv-sub">{{ conversation.subject|default:"Support Request" }} &bull; Started {{ conversation.created_at|timesince }} ago</div>
+        </div>
+    </div>
+
+    <div class="cd-layout">
+
+        <!-- Chat window -->
+        <div class="cd-chat-card">
+            <div class="cd-chat-header">
+                <div class="cd-chat-avatar">{{ conversation.display_name|slice:":1"|upper }}</div>
+                <div>
+                    <div class="cd-chat-name">{{ conversation.display_name }}</div>
+                    <div class="cd-chat-email">{{ conversation.display_email|default:"Guest" }}</div>
+                </div>
+                <span class="cd-status-pill cd-status-{{ conversation.status }}">
+                    {{ conversation.status|title }}
+                </span>
+            </div>
+
+            <!-- Messages -->
+            <div class="cd-messages-body" id="cdMessagesBody">
+                {% for msg in chat_messages %}
+                <div class="cd-msg-wrap-{{ msg.sender_type }}" data-msg-id="{{ msg.pk }}">
+                    <div class="cd-msg-sender">
+                        {% if msg.sender_type == 'customer' %}{{ msg.sender_name|default:"Customer" }}{% else %}Support Team{% endif %}
+                    </div>
+                    <div class="cd-msg cd-msg-{{ msg.sender_type }}">
+                        {{ msg.message }}
+                        <div class="cd-msg-meta">{{ msg.created_at|date:"M d, H:i" }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted small text-center py-4">No messages yet.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Reply form or closed notice -->
+            {% if conversation.status == 'open' %}
+
+            {% if suggested_reply %}
+            <div class="cd-suggestion" id="cdSuggestion">
+                <div class="cd-sug-label">
+                    &#129302; Suggested reply
+                    <span class="cd-sug-matched">matched: &ldquo;{{ suggested_question }}&rdquo;</span>
+                </div>
+                <div class="cd-sug-text" id="cdSugText">{{ suggested_reply }}</div>
+                <div class="cd-sug-actions">
+                    <button class="cd-sug-btn cd-sug-btn-use"  onclick="useSuggestion()">&#9998; Edit then send</button>
+                    <button class="cd-sug-btn cd-sug-btn-send" onclick="sendSuggestion()">&#9889; Send directly</button>
+                    <button class="cd-sug-btn cd-sug-btn-dismiss" onclick="dismissSuggestion()">&#10005; Dismiss</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="cd-reply-area">
+                <div class="cd-reply-label"><span class="cd-live-dot"></span>Live &mdash; replies are sent instantly</div>
+                <form method="post" id="cdReplyForm">
+                    {% csrf_token %}
+                    <textarea class="cd-reply-textarea" name="reply_text" id="cdReplyText"
+                        placeholder="Type your reply here&hellip;" required></textarea>
+                    <button type="submit" class="cd-reply-send">
+                        <i class="bi bi-send-fill me-1"></i> Send Reply
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="cd-closed-banner">This conversation is closed. Reopen it to reply.</div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Customer info -->
+            <div class="cd-sidebar-card mb-3">
+                <div class="cd-sidebar-header"><i class="bi bi-person-fill"></i> Customer Info</div>
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Name</div>
+                    <div class="cd-info-val">{{ conversation.display_name }}</div>
+                </div>
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Email</div>
+                    <div class="cd-info-val">{{ conversation.display_email|default:"—" }}</div>
+                </div>
+                {% if conversation.user %}
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Account</div>
+                    <div class="cd-info-val">
+                        <a href="{% url 'admin_dashboard:customer_detail' conversation.user.pk %}"
+                           style="color:{{ theme_colors.primary }};font-weight:700;">View Profile</a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Account</div>
+                    <div class="cd-info-val" style="color:#9ca3af;">Guest</div>
+                </div>
+                {% endif %}
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Subject</div>
+                    <div class="cd-info-val">{{ conversation.subject|default:"Support Request" }}</div>
+                </div>
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Started</div>
+                    <div class="cd-info-val">{{ conversation.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="cd-info-row">
+                    <div class="cd-info-label">Messages</div>
+                    <div class="cd-info-val">{{ chat_messages|length }}</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="cd-sidebar-card">
+                <div class="cd-sidebar-header"><i class="bi bi-lightning-fill"></i> Actions</div>
+                {% if conversation.status == 'open' %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="close_conv" value="1" class="cd-action-btn danger">
+                        <i class="bi bi-x-circle"></i> Close Conversation
+                    </button>
+                </form>
+                {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="reopen_conv" value="1" class="cd-action-btn success">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reopen Conversation
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'admin_dashboard:chat_list' %}" class="cd-action-btn" style="color:#374151;">
+                    <i class="bi bi-list-ul"></i> All Conversations
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<script>
+(function () {
+    const body     = document.getElementById('cdMessagesBody');
+    const replyTxt = document.getElementById('cdReplyText');
+    const convId   = {{ conversation.pk }};
+
+    // Scroll to bottom on load
+    if (body) body.scrollTop = body.scrollHeight;
+
+    // Ctrl+Enter to submit
+    replyTxt && replyTxt.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('cdReplyForm').submit();
+        }
+    });
+
+    // Admin polling: check for new customer messages
+    {% if conversation.status == 'open' %}
+    let lastId = {% if chat_messages %}{{ chat_messages.last.pk|default:0 }}{% else %}0{% endif %};
+    // Use the id of the last rendered message
+    const msgs = body ? body.querySelectorAll('[data-msg-id]') : [];
+    if (msgs.length) lastId = parseInt(msgs[msgs.length-1].dataset.msgId, 10) || 0;
+
+    // ISO timestamp of last message (rough approach: use current time minus a bit)
+    let lastAt = '{% if chat_messages %}{{ chat_messages.last.created_at|date:"c"|default:"" }}{% endif %}';
+
+    function pollNew() {
+        const url = '{% url "admin_dashboard:chat_poll" conversation.pk %}' +
+                    (lastAt ? '?after=' + encodeURIComponent(lastAt) : '');
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+                if (data.messages && data.messages.length) {
+                    data.messages.forEach(function (m) {
+                        // Only show customer messages (admin's own are already rendered)
+                        if (m.sender_type === 'customer') {
+                            appendMsg(m);
+                        }
+                        lastAt = m.created_at;
+                    });
+                    body.scrollTop = body.scrollHeight;
+                    // Refresh suggestion banner for the new incoming message
+                    if (data.suggested_reply) {
+                        showSuggestion(data.suggested_reply, data.suggested_question || '');
+                    } else {
+                        hideSuggestion();
+                    }
+                }
+                if (data.status === 'closed') {
+                    clearInterval(pollTimer);
+                }
+            })
+            .catch(function () {});
+    }
+
+    function appendMsg(m) {
+        const wrap = document.createElement('div');
+        wrap.className = 'cd-msg-wrap-' + m.sender_type;
+        wrap.dataset.msgId = m.id;
+
+        const sn = document.createElement('div');
+        sn.className = 'cd-msg-sender';
+        sn.textContent = m.sender_type === 'customer' ? (m.sender_name || 'Customer') : 'Support Team';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'cd-msg cd-msg-' + m.sender_type;
+
+        const txt = document.createElement('div');
+        txt.textContent = m.message;
+        
+        const meta = document.createElement('div');
+        meta.className = 'cd-msg-meta';
+        try {
+            const d = new Date(m.created_at);
+            meta.textContent = d.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        } catch(e) { meta.textContent = ''; }
+
+        bubble.appendChild(txt);
+        bubble.appendChild(meta);
+        wrap.appendChild(sn);
+        wrap.appendChild(bubble);
+        body.appendChild(wrap);
+    }
+
+    const pollTimer = setInterval(pollNew, 5000);
+    {% endif %}
+
+    // ── Suggested reply helpers ──────────────────────────────────────
+    function useSuggestion() {
+        const text = document.getElementById('cdSugText');
+        const ta   = document.getElementById('cdReplyText');
+        if (text && ta) { ta.value = text.textContent.trim(); ta.focus(); }
+        hideSuggestion();
+    }
+    function sendSuggestion() {
+        const text = document.getElementById('cdSugText');
+        const ta   = document.getElementById('cdReplyText');
+        if (text && ta) ta.value = text.textContent.trim();
+        const form = document.getElementById('cdReplyForm');
+        if (form) form.submit();
+    }
+    function dismissSuggestion() { hideSuggestion(); }
+    function hideSuggestion() {
+        const el = document.getElementById('cdSuggestion');
+        if (el) el.style.display = 'none';
+    }
+    function showSuggestion(reply, question) {
+        let el = document.getElementById('cdSuggestion');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'cdSuggestion';
+            el.className = 'cd-suggestion';
+            const replyArea = document.querySelector('.cd-reply-area');
+            if (replyArea) replyArea.parentNode.insertBefore(el, replyArea);
+        }
+        el.innerHTML =
+            '<div class="cd-sug-label">&#129302; Suggested reply ' +
+            '<span class="cd-sug-matched">matched: &ldquo;' + (question || '') + '&rdquo;</span></div>' +
+            '<div class="cd-sug-text" id="cdSugText">' + reply + '</div>' +
+            '<div class="cd-sug-actions">' +
+            '<button class="cd-sug-btn cd-sug-btn-use" onclick="useSuggestion()">&#9998; Edit then send</button>' +
+            '<button class="cd-sug-btn cd-sug-btn-send" onclick="sendSuggestion()">&#9889; Send directly</button>' +
+            '<button class="cd-sug-btn cd-sug-btn-dismiss" onclick="dismissSuggestion()">&#10005; Dismiss</button>' +
+            '</div>';
+        el.style.display = '';
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base_customer.html' %}
+{% block content %}
+<div class="container py-4 account-page">
+    <div class="account-header w-100">
+        <div class="d-flex align-items-center gap-3">
+            <div class="display-4 text-white"><i class="fas fa-history"></i></div>
+            <div>
+                <h2 class="mb-0">Your Recent Activity</h2>
+                <p class="mb-0 text-white-50">A personalized timeline of your shopping journey</p>
+            </div>
+        </div>
+    </div>
+    <div class="account-panel mt-3">
+    {% if activities %}
+    <div class="list-group mb-0">
+        {% for activity in activities %}
+        <div class="activity-row d-flex align-items-center">
+            <span class="activity-icon me-3">
+                {% if activity.activity_type == 'view' %}<i class="fas fa-eye"></i>{% endif %}
+                {% if activity.activity_type == 'cart_add' %}<i class="fas fa-shopping-cart"></i>{% endif %}
+                {% if activity.activity_type == 'wishlist_add' %}<i class="fas fa-heart"></i>{% endif %}
+                {% if activity.activity_type == 'order' %}<i class="fas fa-receipt"></i>{% endif %}
+            </span>
+            <div>
+                <div class="fw-bold">
+                    {% if activity.activity_type == 'view' %}
+                        Viewed <a href="/product/{{ activity.product.id }}/">{{ activity.product.name }}</a>
+                    {% elif activity.activity_type == 'cart_add' %}
+                        Added <a href="/product/{{ activity.product.id }}/">{{ activity.product.name }}</a> to cart
+                    {% elif activity.activity_type == 'wishlist_add' %}
+                        Saved <a href="/product/{{ activity.product.id }}/">{{ activity.product.name }}</a> to wishlist
+                    {% elif activity.activity_type == 'order' %}
+                        Placed an order (Order #{{ activity.order_id }})
+                    {% endif %}
+                </div>
+                <div class="text-muted small">{{ activity.timestamp|date:'M d, Y H:i' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    </div> <!-- .account-panel -->
+    {% else %}
+    <div class="alert alert-info">No recent activity yet. Start shopping to see your actions here!</div>
+    {% endif %}
+</div>
+<style>
+    .activity-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 1rem;
+    }
+    .activity-card:hover {
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .activity-icon {
+        display: inline-block;
+        font-size: 2.5rem;
+        color: #007bff;
+        margin-bottom: 0.5rem;
+    }
+</style>
+<!-- Font Awesome CDN for icons (remove if already included globally) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}

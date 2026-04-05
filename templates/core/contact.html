@@ -1,0 +1,1578 @@
+﻿{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       CONTACT PAGE - MODERN PREMIUM DESIGN
+       ======================================== */
+    
+    /* Global Styles */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    body {
+        position: relative;
+    }
+    
+    /* Use global site theme variables so contact page matches the rest of the site */
+    :root {
+        --accent-primary: var(--accent-color); /* legacy alias for backward compatibility */
+        --accent-primary-light: var(--accent-light);
+        --accent-primary-dark: var(--accent-dark);
+        /* prefer the global --gradient-primary from base.html */
+    }
+    
+    /* Hero Section */
+    .contact-hero {
+        background: var(--gradient-primary);
+        padding: 5rem 0 4rem;
+        margin-bottom: 4rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+    }
+    
+    .contact-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 1;
+    }
+    
+    .contact-hero::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-dark) 50%, var(--accent-color) 100%);
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: 200% center; }
+        100% { background-position: -200% center; }
+    }
+    
+    /* Animated Gradient Orbs */
+    .hero-orb {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        animation: float 20s ease-in-out infinite;
+        filter: blur(40px);
+    }
+    
+    .hero-orb-1 {
+        width: 600px;
+        height: 600px;
+        top: -300px;
+        right: -200px;
+    }
+    
+    .hero-orb-2 {
+        width: 500px;
+        height: 500px;
+        bottom: -200px;
+        left: -150px;
+        animation-delay: -10s;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    
+    .contact-hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+    
+    .contact-hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        color: #ffffff;
+        text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+        animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .contact-hero h1 i {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        width: 75px;
+        height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        font-size: 2.25rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        animation: pulse 2s ease-in-out infinite;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .contact-hero p {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.7;
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Main Content Container */
+    .contact-container {
+        padding-bottom: 6rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+        position: relative;
+    }
+    
+    /* Form Card */
+    .contact-form-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        padding: 3rem;
+        height: 100%;
+        transition: var(--transition-base);
+        border: 2px solid #e5e7eb;
+        animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .contact-form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: var(--gradient-primary); /* uses global theme gradient */
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .contact-form-card:hover::before {
+        opacity: 1;
+    }
+    
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .contact-form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-2xl);
+    }
+    
+    .contact-form-card h3 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 1.75rem;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #f3f4f6;
+    }
+    
+    .contact-form-card h3 i {
+        width: 52px;
+        height: 52px;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    
+    /* Form Styling */
+    .contact-form .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.625rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .contact-form .form-label i {
+        color: var(--accent-color);
+        font-size: 1.1rem;
+    }
+    
+    .contact-form input,
+    .contact-form textarea {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 0.875rem 1.125rem;
+        transition: var(--transition-base);
+        width: 100%;
+        font-size: 1rem;
+        background: #f9fafb;
+    }
+    
+    .contact-form input:hover,
+    .contact-form textarea:hover {
+        border-color: #d1d5db;
+        background: white;
+    }
+    
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
+        outline: none;
+        background: white;
+        transform: translateY(-2px);
+    }
+    
+    .contact-form textarea {
+        min-height: 160px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    /* Field Error Messages */
+    .field-error {
+        margin-top: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-left: 3px solid #dc2626;
+        border-radius: 6px;
+        animation: slideDown 0.3s ease;
+    }
+    
+    .field-error small {
+        color: #dc2626;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .field-error i {
+        font-size: 1rem;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Highlight invalid fields */
+    .contact-form input.is-invalid,
+    .contact-form textarea.is-invalid,
+    .contact-form input:invalid:not(:placeholder-shown),
+    .contact-form textarea:invalid:not(:placeholder-shown) {
+        border-color: #dc2626;
+        background: #fef2f2;
+    }
+    
+    /* Submit Button */
+    .contact-form .btn-submit {
+        background: var(--gradient-primary);
+        border: none;
+        padding: 1.125rem 2.5rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        transition: var(--transition-base);
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .contact-form .btn-submit::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .contact-form .btn-submit:hover::before {
+        width: 400px;
+        height: 400px;
+    }
+    
+    .contact-form .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    }
+    
+    .contact-form .btn-submit:active {
+        transform: translateY(0);
+    }
+    
+    .contact-form .btn-submit i,
+    .contact-form .btn-submit span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .contact-form .btn-submit i {
+        font-size: 1.25rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .contact-form .btn-submit:hover i {
+        transform: translateX(3px);
+    }
+    
+    /* Contact Info Card */
+    .contact-info-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        border-radius: var(--border-radius-lg);
+        padding: 3rem;
+        border: 2px solid #e5e7eb;
+        height: 100%;
+        box-shadow: var(--shadow-xl);
+        animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .contact-info-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .contact-info-card:hover::before {
+        opacity: 1;
+    }
+    
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .contact-info-card h3 {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 1.75rem;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #f3f4f6;
+    }
+    
+    .contact-info-card h3 i {
+        color: var(--accent-color);
+        font-size: 1.5rem;
+    }
+    
+    /* Contact Info Items */
+    .contact-info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.25rem;
+        border: 2px solid #f3f4f6;
+        transition: var(--transition-base);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .contact-info-item:hover {
+        border-color: var(--accent-light);
+        transform: translateX(8px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+    }
+    
+    .contact-info-item .icon {
+        width: 58px;
+        height: 58px;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        transition: var(--transition-base);
+    }
+    
+    .contact-info-item:hover .icon {
+        transform: scale(1.15) rotate(5deg);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    }
+    
+    /* WhatsApp Contact Item Special Hover */
+    .contact-info-item.whatsapp-contact:hover {
+        border-color: #25D366 !important;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+    
+    .contact-info-item.whatsapp-contact:hover .icon {
+        box-shadow: 0 8px 20px rgba(37, 211, 102, 0.5) !important;
+    }
+    
+    .contact-info-item .content {
+        flex: 1;
+    }
+    
+    .contact-info-item .content strong {
+        display: block;
+        color: #6b7280;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+    
+    .contact-info-item .content a,
+    .contact-info-item .content .value {
+        color: #1a1a1a;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: var(--transition-base);
+        display: inline-block;
+    }
+    
+    .contact-info-item .content a:hover {
+        color: var(--accent-color);
+        transform: translateX(5px);
+    }
+    
+    /* Social Links */
+    .social-links {
+        display: flex;
+        gap: 0.875rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+    
+    .social-link {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.75rem 1.25rem;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 50px;
+        text-decoration: none;
+        color: #1a1a1a;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: var(--transition-base);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .social-link::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.5s, height 0.5s;
+    }
+    
+    .social-link:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .social-link:hover {
+        background: var(--gradient-primary);
+        border-color: var(--accent-color);
+        color: white;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    
+    /* WhatsApp Special Styling */
+    .social-link.whatsapp-link {
+        border-color: #25D366;
+    }
+    
+    .social-link.whatsapp-link:hover {
+        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        border-color: #25D366;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(37, 211, 102, 0.3);
+    }
+    
+    /* WhatsApp Enhanced CTA Card */
+    .whatsapp-cta-card-enhanced {
+        background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+        border: 3px solid #25D366;
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(37, 211, 102, 0.25);
+        transition: all 0.4s ease;
+        animation: cardPulse 3s ease-in-out infinite;
+        margin-top: 1.5rem;
+    }
+    
+    @keyframes cardPulse {
+        0%, 100% { box-shadow: 0 10px 40px rgba(37, 211, 102, 0.25); }
+        50% { box-shadow: 0 15px 50px rgba(37, 211, 102, 0.4); }
+    }
+    
+    .whatsapp-cta-card-enhanced:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 15px 50px rgba(37, 211, 102, 0.4);
+    }
+    
+    .whatsapp-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .whatsapp-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
+        animation: iconBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes iconBounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .whatsapp-icon-wrapper i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .whatsapp-text h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #128C7E;
+    }
+    
+    .whatsapp-text p {
+        margin: 0.25rem 0 0 0;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+    
+    .whatsapp-mega-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        width: 100%;
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        border: none;
+        border-radius: 16px;
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: 0 6px 25px rgba(37, 211, 102, 0.4);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .whatsapp-mega-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .whatsapp-mega-btn:hover::before {
+        width: 500px;
+        height: 500px;
+    }
+    
+    .whatsapp-mega-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 35px rgba(37, 211, 102, 0.5);
+        background: linear-gradient(135deg, #128C7E 0%, #25D366 100%);
+    }
+    
+    .btn-icon-pulse {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+        }
+    }
+    
+    .btn-icon-pulse i {
+        font-size: 1.5rem;
+        color: white;
+    }
+    
+    .btn-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex-grow: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .btn-content strong {
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.125rem;
+    }
+    
+    .btn-content small {
+        font-size: 0.85rem;
+        opacity: 0.95;
+        font-weight: 400;
+    }
+    
+    .btn-arrow {
+        font-size: 1.75rem;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .whatsapp-mega-btn:hover .btn-arrow {
+        transform: translateX(5px);
+    }
+    
+    .whatsapp-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: rgba(37, 211, 102, 0.1);
+        border-radius: 12px;
+        color: #128C7E;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .whatsapp-number i {
+        font-size: 1.1rem;
+    }
+    
+    /* Twitter Styling */
+    .social-link.twitter-link:hover {
+        background: linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%);
+        border-color: #1DA1F2;
+        box-shadow: 0 6px 16px rgba(29, 161, 242, 0.3);
+    }
+    
+    /* Instagram Styling */
+    .social-link.instagram-link:hover {
+        background: linear-gradient(135deg, #E1306C 0%, #C13584 50%, #833AB4 100%);
+        border-color: #E1306C;
+        box-shadow: 0 6px 16px rgba(225, 48, 108, 0.3);
+    }
+    
+    /* Facebook Styling */
+    .social-link.facebook-link:hover {
+        background: linear-gradient(135deg, #1877F2 0%, #0d5dbd 100%);
+        border-color: #1877F2;
+        box-shadow: 0 6px 16px rgba(24, 119, 242, 0.3);
+    }
+    
+    .social-link i,
+    .social-link span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .social-link i {
+        font-size: 1.375rem;
+        transition: var(--transition-base);
+    }
+    
+    .social-link:hover i {
+        transform: scale(1.2);
+    }
+    
+    /* Map Section */
+    .map-section {
+        margin-top: 4rem;
+        margin-bottom: 5rem;
+        padding-bottom: 2rem;
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .map-container {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-2xl);
+        border: 4px solid white;
+        background: white;
+    }
+    
+    .map-container iframe {
+        width: 100%;
+        height: 450px;
+        border: none;
+        display: block;
+    }
+    
+    .map-info {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 2rem 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .map-info .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .map-info i {
+        color: white;
+        font-size: 1.75rem;
+    }
+    
+    .map-info .content strong {
+        display: block;
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.375rem;
+    }
+    
+    .map-info .content .address {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    /* â”€â”€ Trust Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .contact-trust-strip {
+        display: flex;
+        justify-content: center;
+        gap: 2.5rem;
+        flex-wrap: wrap;
+        margin-top: 2.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: rgba(255,255,255,.9);
+        font-size: .93rem;
+        font-weight: 600;
+    }
+    .trust-item i {
+        width: 34px; height: 34px;
+        background: rgba(255,255,255,.15);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        border: 1px solid rgba(255,255,255,.25);
+    }
+
+    /* â”€â”€ Char counter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .char-counter {
+        text-align: right;
+        font-size: .78rem;
+        color: #9ca3af;
+        margin-top: 0.3rem;
+        transition: color .2s;
+    }
+    .char-counter.warn { color: #f59e0b; }
+    .char-counter.over  { color: #ef4444; font-weight: 600; }
+
+    /* â”€â”€ Addr info item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    .contact-info-item.addr-contact:hover {
+        border-color: var(--accent-light);
+        background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+    }
+    .alert {
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .alert i {
+        font-size: 1.25rem;
+    }
+    
+    .alert-success {
+        background: #d1fae5;
+        border-color: #10b981;
+        color: #065f46;
+    }
+    
+    .alert-danger,
+    .alert-error {
+        background: #fee2e2;
+        border-color: #ef4444;
+        color: #991b1b;
+    }
+    
+    .alert-info {
+        background: #dbeafe;
+        border-color: #3b82f6;
+        color: #1e40af;
+    }
+    
+    .alert .btn-close {
+        margin-left: auto;
+    }
+    
+    /* ========================================
+       DARK MODE OVERRIDES
+       ======================================== */
+
+    @media (prefers-color-scheme: dark) {
+        .contact-form-card,
+        .contact-info-card,
+        .contact-info-item,
+        .social-link,
+        .whatsapp-cta-card-enhanced {
+            background: #111827 !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+
+        .contact-form-card h3,
+        .contact-info-card h3,
+        .contact-form .form-label,
+        .contact-info-item .content strong,
+        .contact-info-item .content a,
+        .contact-info-item .content .value,
+        .whatsapp-text h4,
+        .whatsapp-text p {
+            color: #e2e8f0 !important;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            background: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+
+        .contact-form input:focus,
+        .contact-form textarea:focus {
+            background: #111827 !important;
+            border-color: #64748b !important;
+        }
+
+        .contact-info-item {
+            background: #111827 !important;
+            border-color: #334155 !important;
+        }
+
+        .social-link {
+            background: #111827 !important;
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+
+        .whatsapp-cta-card-enhanced {
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.04) 100%) !important;
+            color: #e2e8f0 !important;
+        }
+
+        .map-container {
+            border-color: #475569 !important;
+        }
+    }
+
+    body.dark-mode .contact-form-card,
+    body.dark-mode .contact-info-card,
+    body.dark-mode .contact-info-item,
+    body.dark-mode .social-link,
+    body.dark-mode .whatsapp-cta-card-enhanced {
+        background: #111827 !important;
+        border-color: #334155 !important;
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .contact-form-card h3,
+    body.dark-mode .contact-info-card h3,
+    body.dark-mode .contact-form .form-label,
+    body.dark-mode .contact-info-item .content strong,
+    body.dark-mode .contact-info-item .content a,
+    body.dark-mode .contact-info-item .content .value,
+    body.dark-mode .whatsapp-text h4,
+    body.dark-mode .whatsapp-text p {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .contact-form input,
+    body.dark-mode .contact-form textarea {
+        background: #0f172a !important;
+        color: #e2e8f0 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .contact-form input:focus,
+    body.dark-mode .contact-form textarea:focus {
+        background: #111827 !important;
+        border-color: #64748b !important;
+    }
+
+    body.dark-mode .social-link {
+        background: #111827 !important;
+        color: #e2e8f0 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .whatsapp-cta-card-enhanced {
+        background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.04) 100%) !important;
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .map-container {
+        border-color: #475569 !important;
+    }
+
+    /* ========================================
+       RESPONSIVE DESIGN
+       ======================================== */
+    
+    /* Small Mobile (â‰¤ 480px) */
+    @media (max-width: 480px) {
+        .contact-hero {
+            padding: 3rem 0 2.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .contact-hero h1 {
+            font-size: 2rem;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .contact-hero h1 i {
+            width: 60px;
+            height: 60px;
+            font-size: 1.75rem;
+        }
+        
+        .contact-hero p {
+            font-size: 1rem;
+        }
+        
+        .contact-form-card,
+        .contact-info-card {
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-form-card h3,
+        .contact-info-card h3 {
+            font-size: 1.375rem;
+        }
+        
+        .contact-form-card h3 i {
+            width: 40px;
+            height: 40px;
+            font-size: 1.25rem;
+        }
+        
+        .contact-info-item {
+            padding: 1.25rem;
+        }
+        
+        .contact-info-item .icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+        }
+        
+        .social-link {
+            flex: 0 1 auto;
+            justify-content: center;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            min-width: fit-content;
+        }
+        
+        .social-link span {
+            display: inline;
+        }
+        
+        .map-container iframe {
+            height: 300px;
+        }
+        
+        .map-info {
+            padding: 1.25rem 1.5rem;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .map-info .icon-wrapper {
+            width: 48px;
+            height: 48px;
+        }
+        
+        .map-info i {
+            font-size: 1.5rem;
+        }
+    }
+    
+    /* Medium Mobile (481px - 767px) */
+    @media (min-width: 481px) and (max-width: 767px) {
+        .contact-hero {
+            padding: 3rem 0 2.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .contact-hero h1 {
+            font-size: 2.25rem;
+        }
+        
+        .contact-hero h1 i {
+            width: 65px;
+            height: 65px;
+            font-size: 1.875rem;
+        }
+        
+        .contact-form-card,
+        .contact-info-card {
+            padding: 2rem;
+        }
+        
+        .social-link {
+            flex: 1 1 calc(50% - 0.5rem);
+            justify-content: center;
+        }
+        
+        .map-container iframe {
+            height: 350px;
+        }
+    }
+    
+    /* Tablets (768px - 991px) */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .contact-hero h1 {
+            font-size: 2.5rem;
+        }
+        
+        .map-container iframe {
+            height: 400px;
+        }
+    }
+    
+    /* Large Desktops (â‰¥ 1400px) */
+    @media (min-width: 1400px) {
+        .contact-hero {
+            padding: 5rem 0 4rem;
+        }
+        
+        .contact-hero h1 {
+            font-size: 3.5rem;
+        }
+        
+        .contact-hero h1 i {
+            width: 80px;
+            height: 80px;
+            font-size: 2.25rem;
+        }
+        
+        .contact-hero p {
+            font-size: 1.375rem;
+        }
+        
+        .contact-form-card,
+        .contact-info-card {
+            padding: 3rem;
+        }
+        
+        .map-container iframe {
+            height: 500px;
+        }
+    }
+    
+    /* Landscape Mode */
+    @media (max-height: 700px) and (orientation: landscape) {
+        .contact-hero {
+            padding: 2rem 0 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .contact-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .contact-hero h1 i {
+            width: 55px;
+            height: 55px;
+            font-size: 1.5rem;
+        }
+        
+        .contact-form-card,
+        .contact-info-card {
+            padding: 2rem;
+        }
+        
+        .map-container iframe {
+            height: 350px;
+        }
+    }
+    
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+    
+    /* Print Styles */
+    @media print {
+        .contact-hero {
+            background: white;
+            color: black;
+            padding: 2rem 0;
+        }
+        
+        .contact-form-card,
+        .contact-info-card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+        
+        .contact-form .btn-submit,
+        .social-links {
+            display: none;
+        }
+        
+        .map-container iframe {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<!-- Hero Section -->
+<div class="contact-hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    
+    <div class="container contact-hero-content">
+        <h1>
+            <i class="bi bi-chat-dots-fill"></i>
+            <span>{{ contact_title|default:"Contact Us" }}</span>
+        </h1>
+        {% with sub=contact_content|default:""|striptags %}
+        {% if sub and sub|length > 15 and sub|wordcount >= 3 %}
+        <p>{{ sub }}</p>
+        {% else %}
+        <p>Weâ€™d love to hear from you. Send us a message and weâ€™ll get back to you as soon as possible.</p>
+        {% endif %}
+        {% endwith %}
+        <!-- Trust strip -->
+        <div class="contact-trust-strip">
+            <div class="trust-item"><i class="bi bi-clock"></i><span>Replies within 24 h</span></div>
+            <div class="trust-item"><i class="bi bi-shield-check"></i><span>100% secure &amp; private</span></div>
+            <div class="trust-item"><i class="bi bi-whatsapp"></i><span>WhatsApp support</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container contact-container">
+    <div class="row g-4">
+        <!-- Contact Form -->
+        <div class="col-lg-6">
+            <div class="contact-form-card">
+                <h3>
+                    <i class="bi bi-envelope-fill"></i>
+                    <span>Send Us a Message</span>
+                </h3>
+                
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-{% if msg.tags == 'success' %}check-circle-fill{% elif msg.tags == 'error' or msg.tags == 'danger' %}exclamation-circle-fill{% else %}info-circle-fill{% endif %}"></i>
+                            <span>{{ msg }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" action="" novalidate class="contact-form">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-person-fill"></i>
+                            <span>Your Name</span>
+                        </label>
+                        {{ contact_form.name }}
+                        {% if contact_form.name.errors %}
+                            <div class="field-error">
+                                {% for error in contact_form.name.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-envelope-fill"></i>
+                            <span>Email Address</span>
+                        </label>
+                        {{ contact_form.email }}
+                        {% if contact_form.email.errors %}
+                            <div class="field-error">
+                                {% for error in contact_form.email.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-tag-fill"></i>
+                            <span>Subject</span>
+                            <small style="color: #9ca3af; font-weight: 400; margin-left: auto;">(Optional)</small>
+                        </label>
+                        {{ contact_form.subject }}
+                        {% if contact_form.subject.errors %}
+                            <div class="field-error">
+                                {% for error in contact_form.subject.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="id_message">
+                            <i class="bi bi-chat-left-text-fill"></i>
+                            <span>Your Message</span>
+                        </label>
+                        {{ contact_form.message }}
+                        <div class="char-counter" id="msgCounter">0 / 2000 characters</div>
+                        {% if contact_form.message.errors %}
+                            <div class="field-error">
+                                {% for error in contact_form.message.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {{ contact_form.honeypot }}
+                    <button type="submit" class="btn-submit" id="contactSubmitBtn">
+                        <i class="bi bi-send-fill"></i>
+                        <span>Send Message</span>
+                    </button>
+                    <p class="text-center mt-3 mb-0" style="font-size:.82rem;color:#9ca3af;">
+                        <i class="bi bi-lock-fill me-1"></i>Your information is kept private and secure.
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="col-lg-6">
+            <div class="contact-info-card">
+                <h3>
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Contact Information</span>
+                </h3>
+                
+                {% if contact_phone %}
+                <div class="contact-info-item">
+                    <div class="icon">
+                        <i class="bi bi-telephone-fill"></i>
+                    </div>
+                    <div class="content">
+                        <strong>Phone</strong>
+                        <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if contact_email %}
+                <div class="contact-info-item">
+                    <div class="icon">
+                        <i class="bi bi-envelope-fill"></i>
+                    </div>
+                    <div class="content">
+                        <strong>Email</strong>
+                        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Store Address -->
+                <div class="contact-info-item addr-contact">
+                    <div class="icon">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div class="content">
+                        <strong>Visit Our Store</strong>
+                        <a href="https://maps.google.com/?q=5.5700932,5.7433583" target="_blank" rel="noopener noreferrer" class="value" style="font-size:.97rem;line-height:1.5;display:block;">
+                            Express Junction near BON Hotel,<br>Ekpan, Warri, Delta State, Nigeria
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- WhatsApp Contact -->
+                <div class="whatsapp-cta-card-enhanced">
+                    <div class="whatsapp-header">
+                        <div class="whatsapp-icon-wrapper">
+                            <i class="bi bi-whatsapp"></i>
+                        </div>
+                        <div class="whatsapp-text">
+                            <h4>Chat With Us on WhatsApp</h4>
+                            <p>Get instant replies and personalized help</p>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/2348037105898?text=Hi!%20I'm%20interested%20in%20your%20products" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       class="whatsapp-mega-btn" 
+                       title="Chat with us on WhatsApp">
+                        <span class="btn-icon-pulse">
+                            <i class="bi bi-chat-dots-fill"></i>
+                        </span>
+                        <span class="btn-content">
+                            <strong>Start Conversation</strong>
+                            <small>We typically reply instantly</small>
+                        </span>
+                        <span class="btn-arrow">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                        </span>
+                    </a>
+                    <div class="whatsapp-number">
+                        <i class="bi bi-phone-fill"></i>
+                        <span>+234 803 710 5898</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-section">
+        <div class="map-container">
+            <iframe 
+                src="https://maps.google.com/maps?q=5.5700932,5.7433583&z=15&output=embed" 
+                allowfullscreen 
+                loading="lazy"
+                title="Store Location Map"
+            ></iframe>
+            <div class="map-info">
+                <div class="icon-wrapper">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <div class="content">
+                    <strong>Visit Our Store</strong>
+                    <div class="address">Express Junction near BON Hotel, Ekpan, Warri, Delta State, Nigeria</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  /* â”€â”€ Character counter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  var textarea = document.querySelector('#id_message');
+  var counter  = document.getElementById('msgCounter');
+  var MAX = 2000;
+
+  function updateCounter() {
+    if (!textarea || !counter) return;
+    var len = textarea.value.length;
+    counter.textContent = len + ' / ' + MAX + ' characters';
+    counter.className = 'char-counter';
+    if (len > MAX * 0.9) counter.classList.add('warn');
+    if (len > MAX)       counter.classList.add('over');
+  }
+
+  if (textarea) {
+    textarea.addEventListener('input', updateCounter);
+    textarea.setAttribute('maxlength', MAX);
+    updateCounter();
+  }
+
+  /* â”€â”€ Submit button loading state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  var form      = document.querySelector('.contact-form');
+  var submitBtn = document.getElementById('contactSubmitBtn');
+
+  if (form && submitBtn) {
+    form.addEventListener('submit', function () {
+      // Basic client-side guard: don't lock if there are visible errors
+      var errors = form.querySelectorAll('.field-error');
+      if (errors.length) return;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><span>Sendingâ€¦</span>';
+    });
+  }
+})();
+</script>
+{% endblock %}

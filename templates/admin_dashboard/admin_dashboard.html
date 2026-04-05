@@ -1,0 +1,368 @@
+{% extends 'base_admin.html' %}
+
+{% block extra_css %}
+<style>
+/* Button hover/focus improvements for admin dashboard ✅ */
+.card .card-footer .card-action-btn {
+  transition: transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.28s, background 0.28s, color 0.28s;
+  border-radius: 10px;
+  padding: .4rem .8rem;
+  font-weight: 600;
+  will-change: transform, box-shadow;
+}
+
+/* Outline buttons keep clear text on hover and get a subtle filled gradient */
+.card .card-footer .btn-outline-primary.card-action-btn {
+  position: relative;
+  z-index: 1;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important; /* Safari/Chromium explicit fill to prevent paint issues */
+  -webkit-font-smoothing: antialiased;
+}
+
+..card .card-footer .btn-outline-primary.card-action-btn:hover,
+.card .card-footer .btn-outline-primary.card-action-btn:focus {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: linear-gradient(90deg, var(--accent-color), var(--accent-dark)) !important;
+  border-color: transparent !important;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  outline: none;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35); /* improve contrast on gradient */
+  mix-blend-mode: normal;
+}
+
+/* Active (press) state for tactile feedback */
+.card .card-footer .btn-outline-primary.card-action-btn:active {
+  transform: translateY(-1px) scale(0.995);
+  box-shadow: 0 6px 18px rgba(31,38,135,0.12);
+}
+
+/* Ensure focus-visible remains clear for keyboard users */
+.card .card-footer .btn-outline-primary.card-action-btn:focus-visible {
+  outline: 3px solid rgba(118,75,162,0.24);
+  outline-offset: 3px;
+}
+
+/* Hard override for any accidental transparency that might hide text */
+.card .card-footer .btn-outline-primary.card-action-btn * {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+
+/* Provide a visible focus outline for keyboard users */
+.card .card-footer .card-action-btn:focus-visible {
+  outline: 3px solid rgba(118,75,162,0.24);
+  outline-offset: 3px;
+}
+
+/* Make entire stat cards slightly lift on hover (for clear affordance) */
+.stat-card {
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+.stat-card:hover,
+.stat-card:focus-within {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 50px rgba(31,38,135,0.12);
+}
+
+/* Ensure link/button content doesn't disappear on hover (fix for quick hover bug) */
+.card .btn, .card a {
+  -webkit-text-stroke: 0;
+  text-decoration: none;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .card .card-footer .card-action-btn,
+  .stat-card { transition: none; transform: none; box-shadow: none; }
+}
+
+/* Dashboard action buttons: consistent hover/focus with guaranteed visible labels */
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  align-items: stretch;
+}
+.dashboard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.94);
+  color: var(--text-primary);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, background 0.28s ease, color 0.28s ease;
+  position: relative;
+  z-index: 10; /* Increased to ensure visibility */
+}
+.dashboard-btn .btn-label {
+  -webkit-text-fill-color: inherit;
+  color: inherit;
+}
+.dashboard-btn:hover,
+.dashboard-btn:focus {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: linear-gradient(90deg, var(--accent-color), var(--accent-dark)) !important;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  outline: none;
+  mix-blend-mode: normal;
+}
+.dashboard-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(31,38,135,0.12);
+}
+.dashboard-btn:focus-visible {
+  outline: 3px solid rgba(118,75,162,0.22);
+  outline-offset: 3px;
+}
+/* Ensure child elements keep visible color */
+.dashboard-btn * { color: inherit !important; -webkit-text-fill-color: inherit !important; }
+
+/* Deep override to prevent accidental gradient text clipping on buttons */
+.card .card-footer .card-action-btn,
+.card .card-footer .card-action-btn .btn-label,
+.dashboard-btn,
+.dashboard-btn .btn-label {
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: inherit !important;
+  mix-blend-mode: normal !important;
+  background: none !important;
+}
+
+.dashboard-btn .btn-label { display: inline-block; }
+
+/* Ensure buttons remain visible on hover with increased z-index */
+.dashboard-btn,
+.card .card-footer .card-action-btn {
+  position: relative;
+  z-index: 2;
+}
+
+.dashboard-btn:hover,
+.dashboard-btn:focus,
+.card .card-footer .card-action-btn:hover,
+.card .card-footer .card-action-btn:focus {
+  z-index: 3;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* Match stat-card colors to site theme and improve small-screen layout */
+.stat-card.bg-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+.stat-card.bg-success { background: linear-gradient(135deg, var(--accent-color), var(--accent-dark)); }
+.stat-card.bg-info { background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); }
+.stat-card.bg-danger { background: linear-gradient(135deg, var(--theme-accent), var(--accent-dark)); }
+
+.stat-card .card-header,
+.stat-card .card-body { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+
+.dashboard-actions { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+
+/* Mobile adjustments */
+@media (max-width: 576px) {
+  .dashboard-actions { grid-template-columns: 1fr; gap: 0.5rem; }
+  .dashboard-btn { width: 100%; justify-content: flex-start; padding: 0.8rem 1rem; }
+  .dashboard-btn .btn-label { margin-left: 0.4rem; }
+  .stat-card { margin-bottom: 0.75rem; padding: 1rem; }
+  .stat-card .card-title { font-size: 1.05rem; }
+  .card { overflow: visible; }
+
+  /* two-per-row on smallest screens for admin stat cards */
+  .container.mt-4 .row > .col-6 { padding-left: 0.35rem; padding-right: 0.35rem; box-sizing: border-box; }
+  .container.mt-4 .row > .col-6 .stat-card { padding: 0.85rem 0.9rem; }
+  .container.mt-4 .row > .col-6 .card-header { font-size: 0.85rem; }
+}
+
+@media (max-width: 380px) {
+  .dashboard-btn .btn-label { display: inline-block; }
+  .dashboard-actions { gap: 0.4rem; }
+}
+
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Admin Dashboard</h2>
+    
+    <div class="row">
+        <!-- Sales Summary Card -->
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card text-white bg-primary stat-card">
+                <div class="card-header">Total Sales</div>
+                <div class="card-body">
+                    <h5 class="card-title">${{ total_sales|default:"0.00" }}</h5>
+                    <p class="card-text">Last 30 days</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Card -->
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card text-white bg-success stat-card">
+                <div class="card-header">Orders</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ order_count|default:"0" }}</h5>
+                    <p class="card-text">Last 30 days</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customers Card -->
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card text-white bg-info stat-card">
+                <div class="card-header">Customers</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ customer_count|default:"0" }}</h5>
+                    <p class="card-text">Total registered</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Low Stock Card -->
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card text-white bg-danger stat-card">
+                <div class="card-header">Low Stock</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ low_stock_count|default:"0" }}</h5>
+                    <p class="card-text">Items to restock</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Control Center Quick Actions -->
+    <div class="row mt-3">
+      <div class="col-12 mb-4">
+        <div class="card">
+          <div class="card-header">Admin Control Center</div>
+          <div class="card-body">
+            <div class="dashboard-actions" role="toolbar" aria-label="Admin quick actions">
+              <a href="{% url 'admin_products' %}" class="dashboard-btn" role="button" aria-label="Manage Products">
+                <i class="bi bi-box-seam" aria-hidden="true"></i>
+                <span class="btn-label">Manage Products</span>
+              </a>
+              <a href="{% url 'admin_categories' %}" class="dashboard-btn" role="button" aria-label="Manage Categories">
+                <i class="bi bi-tags" aria-hidden="true"></i>
+                <span class="btn-label">Manage Categories</span>
+              </a>
+              <a href="{% url 'admin_orders' %}" class="dashboard-btn" role="button" aria-label="Manage Orders">
+                <i class="bi bi-basket" aria-hidden="true"></i>
+                <span class="btn-label">Manage Orders</span>
+              </a>
+              <a href="{% url 'admin_payments' %}" class="dashboard-btn" role="button" aria-label="View Payments">
+                <i class="bi bi-credit-card-2-front" aria-hidden="true"></i>
+                <span class="btn-label">View Payments</span>
+              </a>
+              <a href="{% url 'admin_customers' %}" class="dashboard-btn" role="button" aria-label="View Customers">
+                <i class="bi bi-people" aria-hidden="true"></i>
+                <span class="btn-label">View Customers</span>
+              </a>
+              <a href="{% url 'admin_analytics' %}" class="dashboard-btn" role="button" aria-label="View Analytics">
+                <i class="bi bi-graph-up" aria-hidden="true"></i>
+                <span class="btn-label">View Analytics</span>
+              </a>
+              <a href="{% url 'admin_content' %}" class="dashboard-btn" role="button" aria-label="Edit Content">
+                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                <span class="btn-label">Edit Content</span>
+              </a>
+              <a href="{% url 'admin_settings' %}" class="dashboard-btn" role="button" aria-label="Settings">
+                <i class="bi bi-gear" aria-hidden="true"></i>
+                <span class="btn-label">Settings</span>
+              </a>
+              <a href="{% url 'admin_feedback' %}" class="dashboard-btn" role="button" aria-label="View Feedback">
+                <i class="bi bi-chat-left-dots" aria-hidden="true"></i>
+                <span class="btn-label">View Feedback</span>
+              </a>
+              <a href="{% url 'admin_messages' %}" class="dashboard-btn" role="button" aria-label="View Messages">
+                <i class="bi bi-envelope" aria-hidden="true"></i>
+                <span class="btn-label">View Messages</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Sales Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    Sales Overview
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Orders -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    Recent Orders
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% if recent_orders %}
+                            {% for order in recent_orders %}
+                                <li class="list-group-item">
+                                    <strong>#{{ order.id }}</strong> - ₦{{ order.grand_total|floatformat:2 }}
+                                    <br>
+                                    <small class="text-muted">{{ order.created_at }}</small>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">No recent orders</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'admin_orders' %}" class="btn btn-sm btn-outline-primary card-action-btn" aria-label="View all orders" tabindex="0"><span class="btn-label">View All Orders</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Sample chart data - replace with actual data from backend
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: [1200, 1900, 3000, 5000, 2000, 3000, 7000],
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

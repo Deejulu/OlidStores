@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Modern flat wordmark + icon for Olid Stores -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" role="img" aria-label="Olid Stores — Timeless Elegance">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1">
+      <stop offset="0" stop-color="#8B7355"/>
+      <stop offset="1" stop-color="#D4AF37"/>
+    </linearGradient>
+    <style>
+      /* use brand bronze/gold for wordmark */
+      .t-serif{ font-family: 'Cormorant Garamond', Georgia, serif; font-weight:700; fill:#8B7355 }
+      .t-sans { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight:700; fill:#0b1220 }
+      .tag { font-family: 'Lora', Georgia, serif; font-size:12px; fill:#6c757d; letter-spacing:2px }
+    </style>
+  </defs>
+
+  <!-- Icon: rounded bag with monogram -->
+  <g transform="translate(12,8)">
+    <rect x="0" y="14" width="70" height="64" rx="14" fill="#ffffff" stroke="url(#g1)" stroke-width="4"/>
+    <path d="M14 14c0-8 6-14 14-14s14 6 14 14" fill="none" stroke="#0b1220" stroke-width="3" opacity="0.08"/>
+    <path d="M19 6c2.5-4 7-6 12-6s9.5 2 12 6" fill="none" stroke="#0b1220" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="35" cy="46" r="18" fill="url(#g1)" opacity="0.95"/>
+    <text x="35" y="52" text-anchor="middle" class="t-serif" font-size="26">O</text>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(110,56)">
+    <text x="0" y="-6" class="t-serif" font-size="42">Olid</text>
+    <text x="120" y="-6" class="t-sans" font-size="18">Stores</text>
+    <text x="0" y="20" class="tag">Timeless Elegance</text>
+  </g>
+</svg>
