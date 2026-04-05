@@ -66,12 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'e_stores.wsgi.application'
 
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    DATABASE_URL = f'sqlite:///{BASE_DIR / "db.sqlite3"}'
+
 DATABASES = {
-	'default': dj_database_url.parse(
-		os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
-		conn_max_age=600,
-		ssl_require=not os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes'),
-	)
+    'default': dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=not os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes'),
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [

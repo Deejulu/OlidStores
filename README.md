@@ -31,6 +31,9 @@ Set these in Render:
 - `DJANGO_DEBUG` = `False`
 - `DJANGO_ALLOWED_HOSTS` = `yourapp.onrender.com`
 - `DATABASE_URL` = Supabase connection string
+- `DJANGO_ADMIN_USERNAME` = admin username for hosted mode
+- `DJANGO_ADMIN_PASSWORD` = admin password for hosted mode
+- `DJANGO_ADMIN_EMAIL` = admin email for hosted mode (optional)
 - `CONTACT_NOTIFY_EMAIL` (optional)
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (if used)
 
