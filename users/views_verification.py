@@ -15,7 +15,7 @@ from .otp_utils import send_email_otp, send_sms_otp
 
 def signup_step1(request):
     """
-    Step 1: Collect email (phone optional), send email OTP.
+    Step 1: Collect email and/or phone, send OTP via email or phone.
     """
     if request.user.is_authenticated:
         return redirect('core:home')
@@ -23,31 +23,46 @@ def signup_step1(request):
     if request.method == 'POST':
         form = SignupStep1Form(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
+            email = form.cleaned_data.get('email', '')
             phone = form.cleaned_data.get('phone', '')
             
-            # Create OTP for email only
-            email_otp = OTPVerification.create_otp(
-                otp_type='email',
-                email=email,
-                expiry_minutes=settings.OTP_EXPIRY_MINUTES
-            )
+            # Determine OTP delivery method
+            if email:
+                otp = OTPVerification.create_otp(
+                    otp_type='email',
+                    email=email,
+                    expiry_minutes=settings.OTP_EXPIRY_MINUTES
+                )
+                sent = send_email_otp(email, otp.otp_code)
+                method = 'email'
+                session_key = 'email_otp_id'
+                redirect_url = 'users:signup_verify_email'
+                message_text = 'Verification code sent to your email!'
+            else:
+                otp = OTPVerification.create_otp(
+                    otp_type='phone',
+                    phone=phone,
+                    expiry_minutes=settings.OTP_EXPIRY_MINUTES
+                )
+                sent = send_sms_otp(phone, otp.otp_code)
+                method = 'phone'
+                session_key = 'phone_otp_id'
+                redirect_url = 'users:signup_verify_phone'
+                message_text = 'Verification code sent to your phone!'
             
-            # Send email OTP
-            email_sent = send_email_otp(email, email_otp.otp_code)
-            
-            if not email_sent:
+            if not sent:
                 messages.error(request, "Failed to send verification code. Please try again.")
                 return render(request, 'users/signup_step1.html', {'form': form})
             
-            # Store in session for next steps
             request.session['signup_email'] = email
             request.session['signup_phone'] = phone
-            request.session['email_otp_id'] = email_otp.id
+            request.session[session_key] = otp.id
+            request.session['signup_method'] = method
             request.session['email_verified'] = False
+            request.session['phone_verified'] = False
             
-            messages.success(request, "Verification code sent to your email!")
-            return redirect('users:signup_verify_email')
+            messages.success(request, message_text)
+            return redirect(redirect_url)
     else:
         form = SignupStep1Form()
     
@@ -68,7 +83,6 @@ def signup_verify_email(request):
         messages.error(request, "Session expired. Please start over.")
         return redirect('users:signup')
     
-    # Check if already verified
     if request.session.get('email_verified'):
         return redirect('users:signup_complete')
     
@@ -101,10 +115,50 @@ def signup_verify_email(request):
     })
 
 
-# Keep for backwards compatibility but redirect to complete
 def signup_verify_phone(request):
-    """Phone verification skipped - redirect to complete."""
-    return redirect('users:signup_complete')
+    """
+    Step 2: Verify phone OTP, then go to account creation.
+    """
+    if request.user.is_authenticated:
+        return redirect('core:home')
+    
+    phone = request.session.get('signup_phone')
+    phone_otp_id = request.session.get('phone_otp_id')
+    
+    if not phone or not phone_otp_id:
+        messages.error(request, "Session expired. Please start over.")
+        return redirect('users:signup')
+    
+    if request.session.get('phone_verified'):
+        return redirect('users:signup_complete')
+    
+    if request.method == 'POST':
+        form = OTPVerifyForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['otp_code']
+            
+            try:
+                otp = OTPVerification.objects.get(id=phone_otp_id)
+                success, message = otp.verify(code)
+                
+                if success:
+                    request.session['phone_verified'] = True
+                    messages.success(request, "Phone verified successfully!")
+                    return redirect('users:signup_complete')
+                else:
+                    messages.error(request, message)
+            except OTPVerification.DoesNotExist:
+                messages.error(request, "Invalid verification session.")
+                return redirect('users:signup')
+    else:
+        form = OTPVerifyForm()
+    
+    return render(request, 'users/verify_otp.html', {
+        'form': form,
+        'verification_type': 'phone',
+        'target': phone,
+        'resend_url': 'users:resend_phone_otp'
+    })
 
 
 def generate_username(first_name, last_name):
@@ -137,47 +191,47 @@ def signup_complete(request):
     if request.user.is_authenticated:
         return redirect('core:home')
     
-    email = request.session.get('signup_email')
+    email = request.session.get('signup_email', '')
     phone = request.session.get('signup_phone', '')
-    email_verified = request.session.get('email_verified')
+    email_verified = request.session.get('email_verified', False)
+    phone_verified = request.session.get('phone_verified', False)
     
-    if not email or not email_verified:
-        messages.error(request, "Please verify your email first.")
+    if not email and not phone:
+        messages.error(request, "Session expired. Please start over.")
+        return redirect('users:signup')
+    
+    if not email_verified and not phone_verified:
+        messages.error(request, "Please verify your contact method first.")
         return redirect('users:signup')
     
     if request.method == 'POST':
         form = SignupStep2Form(request.POST)
         if form.is_valid():
-            # Generate username from first name + last name + customer ID
             username = generate_username(
                 form.cleaned_data['first_name'],
                 form.cleaned_data['last_name']
             )
             
-            # Create the user (phone_verified=True since we skip phone OTP)
             user = CustomUser.objects.create_user(
                 username=username,
                 email=email,
                 password=form.cleaned_data['password1'],
                 phone=phone,
-                email_verified=True,
-                phone_verified=True,  # Auto-verify since we skip phone OTP
+                email_verified=email_verified,
+                phone_verified=phone_verified,
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name']
             )
             
-            # Clean up session
-            for key in ['signup_email', 'signup_phone', 'email_otp_id', 'email_verified']:
+            for key in ['signup_email', 'signup_phone', 'email_otp_id', 'phone_otp_id', 'email_verified', 'phone_verified', 'signup_method']:
                 request.session.pop(key, None)
             
-            # Log the user in
             login(request, user)
             messages.success(request, f"Welcome to E-Stores! Your username is: {user.username}")
             return redirect('core:home')
     else:
         form = SignupStep2Form()
     
-    # Get next user ID for preview
     next_user_id = CustomUser.objects.count() + 1
     
     return render(request, 'users/signup_complete.html', {

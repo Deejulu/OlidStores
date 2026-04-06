@@ -108,6 +108,7 @@ import re
 class SignupStep1Form(forms.Form):
     """Step 1: Collect email and phone for OTP verification."""
     email = forms.EmailField(
+        required=False,
         widget=forms.EmailInput(attrs={
             'class': 'form-control form-control-lg',
             'placeholder': 'example@email.com',
@@ -116,7 +117,7 @@ class SignupStep1Form(forms.Form):
     )
     phone = forms.CharField(
         max_length=20,
-        required=False,  # Phone is optional
+        required=False,  # Phone is optional, but one contact method is required
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-lg',
             'placeholder': '+234 801 234 5678'
@@ -125,6 +126,8 @@ class SignupStep1Form(forms.Form):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        if not email:
+            return ''
         # Check proper email format
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_pattern, email):
@@ -151,13 +154,20 @@ class SignupStep1Form(forms.Form):
         if not cleaned_digits.isdigit():
             raise forms.ValidationError("Phone number can only contain digits, +, spaces, or dashes.")
         
-        # Validate length (Nigerian numbers: 11 digits starting with 0, or 13 with 234)
         if len(cleaned_digits) < 10 or len(cleaned_digits) > 14:
             raise forms.ValidationError("Please enter a valid phone number (e.g., +234 801 234 5678 or 0801 234 5678)")
         
         from .otp_utils import normalize_phone_number
         normalized = normalize_phone_number(phone)
         return normalized or ''
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        phone = cleaned_data.get('phone')
+        if not email and not phone:
+            raise forms.ValidationError("Please provide either an email address or a phone number.")
+        return cleaned_data
 
 
 class OTPVerifyForm(forms.Form):
