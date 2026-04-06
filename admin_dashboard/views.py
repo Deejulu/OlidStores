@@ -462,9 +462,6 @@ def product_list(request):
 def product_populate_sample(request):
     from django.core.management import call_command
     from django.db import transaction
-    if Product.objects.exists():
-        messages.warning(request, 'Sample products already exist. Delete existing products first if you want to regenerate sample inventory.')
-        return redirect('admin_dashboard:product_list')
 
     try:
         with transaction.atomic():

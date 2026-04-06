@@ -44,10 +44,12 @@ class Command(BaseCommand):
             ('Laptop Stand', 'Adjustable laptop stand for desk use.'),
         ]
 
+        # Remove any existing products first so the sample data is regenerated cleanly.
+        Product.objects.all().delete()
+        self.stdout.write(self.style.WARNING('Deleted existing products before populating sample inventory.'))
+
         target_count = 100
-        existing_count = Product.objects.count()
-        start_index = 0
-        while Product.objects.count() < target_count:
+        for start_index in range(target_count):
             base_name, desc = sample_products[start_index % len(sample_products)]
             repeat_index = start_index // len(sample_products)
             if repeat_index == 0:
@@ -77,7 +79,5 @@ class Command(BaseCommand):
                 category=category,
                 slug=slug
             )
-            start_index += 1
 
-        created_total = Product.objects.count() - existing_count
-        self.stdout.write(self.style.SUCCESS(f'Sample products created: {created_total}. Total products now: {Product.objects.count()}'))
+        self.stdout.write(self.style.SUCCESS(f'Sample products created: {target_count}. Total products now: {Product.objects.count()}'))
