@@ -20,6 +20,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='customuser',
+            name='phone',
+            field=models.CharField(
+                max_length=20,
+                blank=True,
+                null=True,
+                unique=False,
+                default=None,
+                help_text='Phone number for delivery updates',
+            ),
+        ),
         migrations.RunPython(set_blank_phone_to_null, set_null_phone_to_blank),
         migrations.AlterField(
             model_name='customuser',
