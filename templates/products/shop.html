@@ -2767,7 +2767,11 @@ document.addEventListener('DOMContentLoaded', function() {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !loadingMore && {{ products.has_next|yesno:"true,false" }}) {
                     loadingMore = true;
-                    const nextPage = {{ products.next_page_number|default:"0" }};
+                    {% if products.has_next %}
+                    const nextPage = {{ products.next_page_number }};
+                    {% else %}
+                    const nextPage = 0;
+                    {% endif %}
                     
                     fetch(`?${query_string({page: nextPage})}&ajax=1`)
                     .then(response => response.text())
