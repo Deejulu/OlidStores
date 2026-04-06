@@ -139,7 +139,7 @@ class SignupStep1Form(forms.Form):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
         if not phone:
-            return ''  # Allow empty phone
+            return None  # Allow empty phone and preserve null uniqueness
         
         # Remove spaces, dashes, and brackets
         cleaned = re.sub(r'[\s\-\(\)]', '', phone)
@@ -159,9 +159,13 @@ class SignupStep1Form(forms.Form):
         
         from .otp_utils import normalize_phone_number
         normalized = normalize_phone_number(phone)
-        if normalized and CustomUser.objects.filter(phone=normalized).exists():
+        if not normalized:
+            raise forms.ValidationError("Please enter a valid phone number.")
+        
+        if CustomUser.objects.filter(phone=normalized).exists():
             raise forms.ValidationError("An account with this phone number already exists.")
-        return normalized or None
+        
+        return normalized
 
     def clean(self):
         cleaned_data = super().clean()
