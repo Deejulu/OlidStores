@@ -1362,13 +1362,15 @@
 
     .user-actions .dropdown-menu {
         position: fixed !important;
-        top: 5.5rem !important;
-        right: 1rem !important;
+        top: 5rem !important;
+        right: 0.75rem !important;
         left: auto !important;
         z-index: 100002 !important;
-        min-width: 260px;
+        width: min(320px, calc(100vw - 1.5rem)) !important;
+        min-width: 240px;
+        max-height: calc(100vh - 5rem);
         margin-top: 0;
-        overflow: visible !important;
+        overflow-y: auto !important;
         transform: none !important;
     }
 
@@ -1386,10 +1388,28 @@
             border-radius: 1rem;
         }
 
+        .user-actions .dropdown-menu,
+        .main-header .user-actions .dropdown-menu,
+        .main-header .user-actions .dropdown-menu.show,
+        .header-action-dropdown {
+            position: fixed !important;
+            top: 4.8rem !important;
+            right: 0.35rem !important;
+            left: auto !important;
+            transform: none !important;
+            width: min(260px, calc(100vw - 0.75rem)) !important;
+            min-width: 200px;
+            max-height: calc(100vh - 5rem) !important;
+            overflow-y: auto !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            z-index: 2147483647 !important;
+        }
+
         .dropdown-item {
-            padding: 0.875rem 1rem;
-            font-size: 1rem;
-            min-height: 44px;
+            padding: 0.75rem 0.95rem;
+            font-size: 0.98rem;
+            min-height: 42px;
         }
 
         .dropdown-section-title {
@@ -1409,6 +1429,28 @@
 
         .admin-badge {
             font-size: 0.75rem;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .main-header .user-actions .dropdown-menu {
+            position: fixed !important;
+            top: 4.8rem !important;
+            right: 0.35rem !important;
+            left: auto !important;
+            transform: none !important;
+            width: min(240px, calc(100vw - 0.75rem)) !important;
+            min-width: 200px;
+            max-height: calc(100vh - 5rem) !important;
+            overflow-y: auto !important;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .main-header .user-actions .dropdown-menu {
+            top: 4.5rem !important;
+            right: 0.25rem !important;
+            width: min(220px, calc(100vw - 0.5rem)) !important;
         }
     }
 
@@ -4298,21 +4340,22 @@
                     try {
                         const menu = dd.querySelector('.dropdown-menu');
                         const header = document.querySelector('.main-header');
-                        if (menu && header && window.innerWidth <= 992) {
+                        const isHeaderAction = dd.closest('.user-actions');
+                        if (menu && header && window.innerWidth <= 992 && isHeaderAction) {
                             const headerBottom = Math.ceil(header.getBoundingClientRect().bottom);
-                            // place menu just below header and keep it inside viewport
-                            menu.style.top = (headerBottom + 8) + 'px';
-                            menu.style.left = 'var(--space-sm)';
-                            menu.style.right = 'var(--space-sm)';
-                            menu.style.zIndex = '2147483647'; /* front-most */
+                            // place the header action menu below the header and pin it to the right
+                            menu.classList.add('header-action-dropdown');
+                            menu.style.setProperty('position', 'fixed', 'important');
+                            menu.style.setProperty('top', (headerBottom + 8) + 'px', 'important');
+                            menu.style.setProperty('left', 'auto', 'important');
+                            menu.style.setProperty('right', '0.25rem', 'important');
+                            menu.style.setProperty('width', 'min(240px, calc(100vw - 0.75rem))', 'important');
+                            menu.style.setProperty('max-width', '240px', 'important');
+                            menu.style.setProperty('transform', 'none', 'important');
+                            menu.style.setProperty('margin', '0', 'important');
+                            menu.style.setProperty('z-index', '2147483647', 'important'); /* front-most */
 
-                            // Move the menu into <body> on small screens so stacking contexts won't clip it
-                            if (!menu.__movedToBody) {
-                                menu.__originalParent = menu.parentNode;
-                                menu.__originalNext = menu.nextSibling;
-                                document.body.appendChild(menu);
-                                menu.__movedToBody = true;
-                            }
+                            // Keep header action menus in place; do not move them to body.
                         }
                     } catch (err) {
                         /* safe fail */
@@ -4327,7 +4370,11 @@
                         menu.style.top = '';
                         menu.style.left = '';
                         menu.style.right = '';
+                        menu.style.width = '';
+                        menu.style.maxWidth = '';
+                        menu.style.transform = '';
                         menu.style.zIndex = '';
+                        menu.classList.remove('header-action-dropdown');
 
                         if (menu.__movedToBody && menu.__originalParent) {
                             try {
