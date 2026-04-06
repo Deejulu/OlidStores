@@ -32,7 +32,14 @@ class CustomUser(AbstractUser):
 	]
 	# Default role should be 'customer' for new users
 	role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
-	phone = models.CharField(max_length=20, blank=True, default='', help_text='Phone number for delivery updates')
+	phone = models.CharField(
+		max_length=20,
+		unique=True,
+		null=True,
+		blank=True,
+		default=None,
+		help_text='Phone number for delivery updates'
+	)
 	
 	# Verification fields
 	email_verified = models.BooleanField(default=False, help_text='Has the user verified their email?')

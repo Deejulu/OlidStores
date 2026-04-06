@@ -159,7 +159,9 @@ class SignupStep1Form(forms.Form):
         
         from .otp_utils import normalize_phone_number
         normalized = normalize_phone_number(phone)
-        return normalized or ''
+        if normalized and CustomUser.objects.filter(phone=normalized).exists():
+            raise forms.ValidationError("An account with this phone number already exists.")
+        return normalized or None
 
     def clean(self):
         cleaned_data = super().clean()
