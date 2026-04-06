@@ -43,12 +43,24 @@ class Command(BaseCommand):
             ('Bluetooth Speaker', 'Portable Bluetooth speaker with rich bass.'),
             ('Laptop Stand', 'Adjustable laptop stand for desk use.'),
         ]
-        for name, desc in sample_products:
+
+        target_count = 100
+        existing_count = Product.objects.count()
+        start_index = 0
+        while Product.objects.count() < target_count:
+            base_name, desc = sample_products[start_index % len(sample_products)]
+            repeat_index = start_index // len(sample_products)
+            if repeat_index == 0:
+                name = base_name
+            else:
+                name = f"{base_name} #{repeat_index + 1}"
+
             # Assign Electronics products to the correct category
-            if name in ['Rechargeable Fan', 'Powerpoint', 'Solar Charger']:
+            if base_name in ['Rechargeable Fan', 'Powerpoint', 'Solar Charger']:
                 category = Category.objects.get(name='Electronics')
             else:
                 category = random.choice([cat for cat in created_cats if cat.name != 'Electronics'])
+
             price = round(random.uniform(10, 100), 2)
             stock = random.randint(5, 50)
             base_slug = slugify(name)
@@ -65,4 +77,7 @@ class Command(BaseCommand):
                 category=category,
                 slug=slug
             )
-        self.stdout.write(self.style.SUCCESS('Sample products created.'))
+            start_index += 1
+
+        created_total = Product.objects.count() - existing_count
+        self.stdout.write(self.style.SUCCESS(f'Sample products created: {created_total}. Total products now: {Product.objects.count()}'))
