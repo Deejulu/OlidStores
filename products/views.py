@@ -2,7 +2,7 @@ from django.views.generic import ListView, DetailView
 from .models import Product, Category
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Count, Prefetch
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
 from django.core.paginator import Page
@@ -14,7 +14,7 @@ class ShopListView(ListView):
 	paginate_by = 24
 
 	def get_queryset(self):
-		queryset = Product.objects.all()
+		queryset = Product.objects.all().select_related('category').prefetch_related('variants', 'images')
 		category_slug = self.request.GET.get('category')
 		stock = self.request.GET.get('stock')
 		sort = self.request.GET.get('sort')
@@ -54,7 +54,7 @@ class ShopListView(ListView):
 		if page_obj is not None and isinstance(page_obj, Page):
 			context['products'] = page_obj
 		# Show canonical categories list (limit to 11 for the sidebar)
-		cats = list(Category.objects.all())
+		cats = list(Category.objects.annotate(product_count=Count('products')).all())
 		# Take up to 11, and if fewer exist, repeat existing ones to pad to 11 (keeps UI stable in tests)
 		cats_display = cats[:11]
 		if len(cats_display) < 11 and cats:
@@ -63,15 +63,10 @@ class ShopListView(ListView):
 				cats_display.append(cats[i % len(cats)])
 				i += 1
 		context['categories'] = cats_display
-		# Include product counts for each category for sidebar display
-		try:
-			for c in context['categories']:
-				# Count products in the category (includes all products regardless of filters)
-				c.product_count = Product.objects.filter(category=c).count()
-		except Exception:
-			pass
+		for c in context['categories']:
+			c.product_count = getattr(c, 'product_count', 0)
 		# Suggested products (used when no results)
-		context['suggested_products'] = Product.objects.order_by('-created_at')[:6]
+		context['suggested_products'] = Product.objects.select_related('category').prefetch_related('variants', 'images').order_by('-created_at')[:6]
 		context['page_title'] = "Shop All Products - E-Stores"
 		context['search_query'] = self.request.GET.get('search', '')
 		
@@ -85,7 +80,7 @@ class ShopListView(ListView):
 		if self.request.user.is_authenticated:
 			try:
 				from users.models import Wishlist
-				wishlist = Wishlist.objects.filter(user=self.request.user).first()
+				wishlist = Wishlist.objects.filter(user=self.request.user).prefetch_related('products').first()
 				if wishlist:
 					context['wishlist_product_ids'] = list(wishlist.products.values_list('id', flat=True))
 					context['user_wishlist'] = list(wishlist.products.all())
@@ -134,18 +129,26 @@ class ProductDetailView(DetailView):
 	slug_field = 'slug'
 	slug_url_kwarg = 'slug'
 
+	def get_queryset(self):
+		from .models import ProductReview
+		return Product.objects.select_related('category').prefetch_related(
+			'variants',
+			'images',
+			Prefetch('reviews', queryset=ProductReview.objects.select_related('user'))
+		)
+
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		context['related_products'] = Product.objects.filter(
 			category=self.object.category
-		).exclude(id=self.object.id)[:4]
+		).exclude(id=self.object.id).select_related('category')[:4]
 		context['page_title'] = self.object.name
 		
 		# Check if product is in user's wishlist
 		if self.request.user.is_authenticated:
 			try:
 				from users.models import Wishlist
-				wishlist = Wishlist.objects.filter(user=self.request.user).first()
+				wishlist = Wishlist.objects.filter(user=self.request.user).prefetch_related('products').first()
 				context['in_wishlist'] = wishlist and wishlist.products.filter(id=self.object.id).exists()
 			except:
 				context['in_wishlist'] = False
@@ -153,15 +156,14 @@ class ProductDetailView(DetailView):
 			context['in_wishlist'] = False
 		
 		# Get product reviews
-		from .models import ProductReview
 		from .forms import ProductReviewForm
-		reviews = self.object.reviews.all().select_related('user')
+		reviews = self.object.reviews.all()
 		context['reviews'] = reviews
 		context['review_form'] = ProductReviewForm()
 		
 		# Check if user has already reviewed this product
 		if self.request.user.is_authenticated:
-			context['user_has_reviewed'] = reviews.filter(user=self.request.user).exists()
+			context['user_has_reviewed'] = reviews.filter(user_id=self.request.user.id).exists()
 		else:
 			context['user_has_reviewed'] = False
 		
@@ -179,20 +181,15 @@ class ProductDetailView(DetailView):
 			images = [self.object.image] + images
 		context['product_images'] = images
 		# Variant helpers for template logic
-		# `has_variants` indicates if any variants exist
-		# `variants_in_stock` is true when at least one variant has stock > 0
 		try:
-			variants_qs = self.object.variants.all()
-			context['has_variants'] = variants_qs.exists()
-			context['variants_in_stock'] = variants_qs.filter(stock__gt=0).exists()
+			variants = list(self.object.variants.all())
+			context['has_variants'] = bool(variants)
+			context['variants_in_stock'] = any(v.stock > 0 for v in variants)
+			variant_stock = sum(v.stock for v in variants)
+			self.object.display_stock = (self.object.stock or 0) + variant_stock
 		except Exception:
 			context['has_variants'] = False
 			context['variants_in_stock'] = False
-		# Attach display_stock to product detail (include variants)
-		try:
-			variant_stock = sum(v.stock for v in self.object.variants.all()) if hasattr(self.object, 'variants') else 0
-			self.object.display_stock = (self.object.stock or 0) + (variant_stock or 0)
-		except Exception:
 			self.object.display_stock = self.object.stock or 0
 		return context
 

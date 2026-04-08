@@ -1,5 +1,6 @@
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
+from django.db.models import Count, Prefetch
 from products.models import Product
 from core.models import SiteContent
 
@@ -44,10 +45,11 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['featured_products'] = Product.objects.order_by('-created_at')[:8]
+        context['featured_products'] = Product.objects.select_related('category').prefetch_related('images', 'variants').order_by('-created_at')[:8]
         # Add homepage banner content and banner images
         from core.models import SiteContent, BannerImage
-        banner = SiteContent.objects.filter(key='homepage_banner').first()
+        content_map = {item.key: item for item in SiteContent.objects.filter(key='homepage_banner')}
+        banner = content_map.get('homepage_banner')
         context['homepage_banner_title'] = banner.title if banner else 'Homepage Banner'
         context['homepage_banner_content'] = banner.content if banner else ''
         context['banner_background_style'] = banner.background_style if banner else 'gradient_blue'
@@ -60,12 +62,16 @@ class HomeView(TemplateView):
         from products.models import Category
         slugs = ['electronics', 'cosmetics', 'fashion', 'home']
         previews = {}
+        categories = Category.objects.filter(slug__in=slugs).prefetch_related(
+            Prefetch('products', queryset=Product.objects.filter(image__isnull=False).only('id', 'image'), to_attr='image_products')
+        ).annotate(product_count=Count('products'))
+        category_map = {cat.slug: cat for cat in categories}
         for s in slugs:
-            cat = Category.objects.filter(slug=s).first()
+            cat = category_map.get(s)
             if cat:
-                prod = cat.products.filter(image__isnull=False).first()
+                prod = cat.image_products[0] if getattr(cat, 'image_products', None) else None
                 img_url = prod.image.url if prod and prod.image else None
-                previews[s] = {'category': cat, 'image_url': img_url, 'count': cat.products.count()}
+                previews[s] = {'category': cat, 'image_url': img_url, 'count': getattr(cat, 'product_count', 0)}
             else:
                 previews[s] = {'category': None, 'image_url': None, 'count': 0}
         context['categories_preview'] = previews
@@ -234,18 +240,10 @@ class GalleryView(TemplateView):
     def get_context_data(self, **kwargs):
         from products.models import Product, ProductImage
         context = super().get_context_data(**kwargs)
-        # Get all products with images, or all products if none have images
-        products_with_images = Product.objects.filter(images__isnull=False).distinct()
-        if products_with_images.exists():
-            # Use ProductImage if available, else fallback to main image
-            images = []
-            for product in products_with_images:
-                imgs = list(product.images.all())
-                if imgs:
-                    images.extend(imgs)
-                elif product.image:
-                    images.append(product.image)
-            context['gallery_images'] = images
+        # Get all product images, or fallback to products if none exist
+        product_images = ProductImage.objects.select_related('product').all()
+        if product_images.exists():
+            context['gallery_images'] = list(product_images)
         else:
             # fallback: show all products (even if no image)
             context['gallery_products'] = Product.objects.all()
