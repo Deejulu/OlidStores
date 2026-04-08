@@ -1,8 +1,26 @@
+import os
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.db.models import Count, Prefetch
+from django.core.cache import cache
+import threading
 from products.models import Product
 from core.models import SiteContent
+
+
+CACHE_TTL = int(os.getenv('CACHE_TTL', '300'))
+
+
+def _get_sitecontent(key):
+    return cache.get_or_set(f'site_content_{key}', lambda: SiteContent.objects.filter(key=key).first(), CACHE_TTL)
+
+
+def _async_send_mail(subject, message, from_email, recipient_list):
+    try:
+        from django.core.mail import send_mail
+        send_mail(subject, message, from_email, recipient_list)
+    except Exception:
+        pass
 
 
 class FAQView(TemplateView):
@@ -10,7 +28,7 @@ class FAQView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        faq = SiteContent.objects.filter(key='faq').first()
+        faq = _get_sitecontent('faq')
         context['faq_title'] = faq.title if faq else 'Frequently Asked Questions'
         context['faq_content'] = faq.content if faq else ''
         context['faq_updated'] = faq.updated_at if faq else None
@@ -22,7 +40,7 @@ class PrivacyPolicyView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        privacy = SiteContent.objects.filter(key='privacy').first()
+        privacy = _get_sitecontent('privacy')
         context['privacy_title'] = privacy.title if privacy else 'Privacy Policy'
         context['privacy_content'] = privacy.content if privacy else ''
         context['privacy_updated'] = privacy.updated_at if privacy else None
@@ -34,7 +52,7 @@ class TermsConditionsView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        terms = SiteContent.objects.filter(key='terms').first()
+        terms = _get_sitecontent('terms')
         context['terms_title'] = terms.title if terms else 'Terms & Conditions'
         context['terms_content'] = terms.content if terms else ''
         context['terms_updated'] = terms.updated_at if terms else None
@@ -47,9 +65,8 @@ class HomeView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['featured_products'] = Product.objects.select_related('category').prefetch_related('images', 'variants').order_by('-created_at')[:8]
         # Add homepage banner content and banner images
-        from core.models import SiteContent, BannerImage
-        content_map = {item.key: item for item in SiteContent.objects.filter(key='homepage_banner')}
-        banner = content_map.get('homepage_banner')
+        from core.models import BannerImage
+        banner = _get_sitecontent('homepage_banner')
         context['homepage_banner_title'] = banner.title if banner else 'Homepage Banner'
         context['homepage_banner_content'] = banner.content if banner else ''
         context['banner_background_style'] = banner.background_style if banner else 'gradient_blue'
@@ -87,7 +104,7 @@ class AboutView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        about = SiteContent.objects.filter(key='about').first()
+        about = _get_sitecontent('about')
         context['about_content'] = about.content if about else ''
         context['about_title'] = about.title if about else 'About Us'
         # Team members
@@ -118,7 +135,7 @@ class ContactView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        contact = SiteContent.objects.filter(key='contact').first()
+        contact = _get_sitecontent('contact')
         context['contact_content'] = contact.content if contact else ''
         context['contact_title'] = contact.title if contact else 'Contact Us'
         context['contact_phone'] = contact.phone if contact else ''
@@ -225,10 +242,13 @@ class ContactView(TemplateView):
         cache.set(key, count + 1, 3600)
         # Optional email notification
         try:
-            from django.core.mail import send_mail
             notify_to = getattr(settings, 'CONTACT_NOTIFY_EMAIL', None)
             if notify_to:
-                send_mail(f'New contact: {cm.subject or "(no subject)"}', cm.message, settings.DEFAULT_FROM_EMAIL, [notify_to])
+                threading.Thread(
+                    target=_async_send_mail,
+                    args=(f'New contact: {cm.subject or "(no subject)"}', cm.message, settings.DEFAULT_FROM_EMAIL, [notify_to]),
+                    daemon=True,
+                ).start()
         except Exception:
             pass
         messages.success(request, 'Thank you — your message has been received. We will get back to you soon.')

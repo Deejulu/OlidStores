@@ -1,8 +1,16 @@
+import os
+from django.core.cache import cache
 from core.models import SiteContent
+
+CACHE_TTL = int(os.getenv('CACHE_TTL', '300'))
+
+
+def _cached_sitecontent(key):
+    return cache.get_or_set(f'site_content_{key}', lambda: SiteContent.objects.filter(key=key).first(), CACHE_TTL)
 
 
 def site_contact(request):
-    contact = SiteContent.objects.filter(key='contact').first()
+    contact = _cached_sitecontent('contact')
     contact_email = contact.email if contact else ''
 
     def _normalize(platform, val):
@@ -65,12 +73,16 @@ def site_contact(request):
     
     # Get announcement text from any SiteContent that has it (typically homepage_banner)
     announcement_text = ''
-    content_with_announcement = SiteContent.objects.filter(announcement_text__isnull=False).exclude(announcement_text='').first()
+    content_with_announcement = cache.get_or_set(
+        'site_content_announcement',
+        lambda: SiteContent.objects.filter(announcement_text__isnull=False).exclude(announcement_text='').first(),
+        CACHE_TTL
+    )
     if content_with_announcement:
         announcement_text = content_with_announcement.announcement_text
 
     # Get background style for global theming
-    homepage_banner = SiteContent.objects.filter(key='homepage_banner').first()
+    homepage_banner = _cached_sitecontent('homepage_banner')
     background_style = homepage_banner.background_style if homepage_banner else 'gradient_blue'
     
     # Get announcement bar items (from homepage_banner)
@@ -155,7 +167,7 @@ def site_contact(request):
     active_theme = theme_colors.get(background_style, theme_colors['particles'])
 
     # Get site settings for global use across all templates
-    site_settings = SiteContent.objects.filter(key='site_settings').first()
+    site_settings = _cached_sitecontent('site_settings')
     site_name = site_settings.site_name if site_settings and site_settings.site_name else 'E-Stores'
     site_tagline = site_settings.site_tagline if site_settings and site_settings.site_tagline else ''
     site_logo = site_settings.site_logo if site_settings and site_settings.site_logo else None

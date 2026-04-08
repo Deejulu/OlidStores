@@ -78,6 +78,14 @@ DATABASES = {
     )
 }
 
+CACHE_TTL = int(os.getenv('CACHE_TTL', '300'))
+CACHES = {
+    'default': {
+        'BACKEND': os.getenv('DJANGO_CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.getenv('DJANGO_CACHE_LOCATION', 'e-stores-cache'),
+    }
+}
+
 AUTH_PASSWORD_VALIDATORS = [
 	{
 		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

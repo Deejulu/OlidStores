@@ -3,6 +3,7 @@ from .models import Product, Category
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from django.db.models import Q, Count, Prefetch
+from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
 from django.core.paginator import Page
