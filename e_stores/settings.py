@@ -71,19 +71,21 @@ if not DATABASE_URL:
     DATABASE_URL = f'sqlite:///{BASE_DIR / "db.sqlite3"}'
 
 DATABASE_SSL_MODE = os.getenv('DATABASE_SSL_MODE', '').strip() or None
+DATABASE_CONNECT_TIMEOUT = int(os.getenv('DATABASE_CONNECT_TIMEOUT', '10'))
 DATABASES = {
     'default': dj_database_url.parse(
         DATABASE_URL,
-        conn_max_age=600,
+        conn_max_age=0,
         ssl_require=False,
     )
 }
 
+DATABASES['default'].setdefault('OPTIONS', {})
+DATABASES['default']['OPTIONS']['connect_timeout'] = DATABASE_CONNECT_TIMEOUT
+
 if DATABASE_SSL_MODE:
-    DATABASES['default'].setdefault('OPTIONS', {})
     DATABASES['default']['OPTIONS']['sslmode'] = DATABASE_SSL_MODE
 elif not os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes'):
-    DATABASES['default'].setdefault('OPTIONS', {})
     DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 
 CACHE_TTL = int(os.getenv('CACHE_TTL', '300'))
