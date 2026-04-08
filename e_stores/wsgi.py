@@ -1,4 +1,5 @@
 import os
+import threading
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'e_stores.settings')
@@ -45,4 +46,4 @@ def _create_or_update_admin_user():
         # Ignore failures during startup if migrations are not yet applied.
         pass
 
-_create_or_update_admin_user()
+threading.Thread(target=_create_or_update_admin_user, daemon=True).start()
