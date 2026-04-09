@@ -136,12 +136,26 @@ CONTACT_RATE_LIMIT_PER_HOUR = int(os.getenv('CONTACT_RATE_LIMIT_PER_HOUR', '6'))
 
 # Email Configuration
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+backend_name = EMAIL_BACKEND.lower()
+if backend_name == 'sendgrid':
+    EMAIL_BACKEND = 'e_stores.email_backends.SendGridEmailBackend'
+elif backend_name == 'brevo':
+    EMAIL_BACKEND = 'e_stores.email_backends.BrevoEmailBackend'
+
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() in ('1', 'true', 'yes')
+
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
+SENDGRID_SENDER_EMAIL = os.getenv('SENDGRID_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
+SENDGRID_SENDER_NAME = os.getenv('SENDGRID_SENDER_NAME', 'E-Stores')
+BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
+BREVO_SENDER_EMAIL = os.getenv('BREVO_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
+BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'E-Stores')
+EMAIL_SEND_TIMEOUT = int(os.getenv('EMAIL_SEND_TIMEOUT', '10'))
 
 # Default from email
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
