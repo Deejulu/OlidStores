@@ -5,6 +5,23 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load local environment variables from a .env file in the project root.
+# This makes local development easier and avoids repeated manual shell export.
+ENV_PATH = BASE_DIR / '.env'
+if ENV_PATH.exists():
+    with ENV_PATH.open() as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and not os.getenv(key):
+                os.environ[key] = value
+
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-please-change-this-key')
 DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if host.strip()]
@@ -81,12 +98,13 @@ DATABASES = {
 }
 
 DATABASES['default'].setdefault('OPTIONS', {})
-DATABASES['default']['OPTIONS']['connect_timeout'] = DATABASE_CONNECT_TIMEOUT
+if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
+    DATABASES['default']['OPTIONS']['connect_timeout'] = DATABASE_CONNECT_TIMEOUT
 
-if DATABASE_SSL_MODE:
-    DATABASES['default']['OPTIONS']['sslmode'] = DATABASE_SSL_MODE
-elif not os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes'):
-    DATABASES['default']['OPTIONS']['sslmode'] = 'require'
+    if DATABASE_SSL_MODE:
+        DATABASES['default']['OPTIONS']['sslmode'] = DATABASE_SSL_MODE
+    elif not os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes'):
+        DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 
 CACHE_TTL = int(os.getenv('CACHE_TTL', '300'))
 CACHES = {
@@ -141,6 +159,8 @@ if backend_name == 'sendgrid':
     EMAIL_BACKEND = 'e_stores.email_backends.SendGridEmailBackend'
 elif backend_name == 'brevo':
     EMAIL_BACKEND = 'e_stores.email_backends.BrevoEmailBackend'
+elif backend_name == 'resend':
+    EMAIL_BACKEND = 'e_stores.email_backends.ResendEmailBackend'
 
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
@@ -155,10 +175,16 @@ SENDGRID_SENDER_NAME = os.getenv('SENDGRID_SENDER_NAME', 'E-Stores')
 BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
 BREVO_SENDER_EMAIL = os.getenv('BREVO_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
 BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'E-Stores')
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
+RESEND_SENDER_EMAIL = os.getenv('RESEND_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
+RESEND_SENDER_NAME = os.getenv('RESEND_SENDER_NAME', 'E-Stores')
 EMAIL_SEND_TIMEOUT = int(os.getenv('EMAIL_SEND_TIMEOUT', '10'))
 
 # Default from email
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
+DEFAULT_FROM_EMAIL = os.getenv(
+    'DEFAULT_FROM_EMAIL',
+    SENDGRID_SENDER_EMAIL or BREVO_SENDER_EMAIL or RESEND_SENDER_EMAIL or EMAIL_HOST_USER or 'webmaster@localhost'
+)
 EMAIL_SUBJECT_PREFIX = os.getenv('EMAIL_SUBJECT_PREFIX', '[E-Stores] ')
 
 # Twilio SMS Configuration
@@ -169,8 +195,8 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')  # e.g., '+1234567890
 # OTP Verification Settings
 OTP_EXPIRY_MINUTES = int(os.getenv('OTP_EXPIRY_MINUTES', '10'))
 OTP_MAX_ATTEMPTS = 5
-# Set to False to send real emails via SendGrid
-OTP_DEBUG_MODE = False
+# Set to True to print OTP codes instead of sending real emails
+OTP_DEBUG_MODE = os.getenv('OTP_DEBUG_MODE', 'False').lower() in ('1', 'true', 'yes')
 
 LOGGING = {
     'version': 1,

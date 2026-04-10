@@ -71,13 +71,10 @@ E-Stores Team
 """
     
     try:
+        logger.info('Preparing to send OTP email to %s from %s', email, settings.DEFAULT_FROM_EMAIL)
         if getattr(settings, 'OTP_DEBUG_MODE', False):
-            logger.info(f"[DEBUG] Email OTP for {email}: {otp_code}")
-            print(f"\n{'='*50}")
-            print(f"EMAIL OTP DEBUG")
-            print(f"To: {email}")
-            print(f"Code: {otp_code}")
-            print(f"{'='*50}\n")
+            logger.debug('[DEBUG] Email OTP for %s: %s', email, otp_code)
+            logger.debug('OTP sender: %s', settings.DEFAULT_FROM_EMAIL)
         
         send_mail(
             subject=subject,
@@ -87,10 +84,11 @@ E-Stores Team
             html_message=html_message,
             fail_silently=False
         )
-        return True
+        logger.info('OTP email send_mail call completed for %s', email)
+        return True, None
     except Exception as e:
-        logger.error(f"Failed to send email OTP to {email}: {e}")
-        return False
+        logger.error(f"Failed to send email OTP to {email}: {e}", exc_info=True)
+        return False, str(e)
 
 
 def send_sms_otp(phone, otp_code):

@@ -219,6 +219,24 @@
                     </div>
                 </div>
                 
+                {% if messages %}
+                <div class="error-list">
+                    <ul>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if error_message %}
+                <div class="error-list">
+                    <ul>
+                        <li>{{ error_message }}</li>
+                    </ul>
+                </div>
+                {% endif %}
+
                 {% if form.errors %}
                 <div class="error-list">
                     <ul>
@@ -234,7 +252,7 @@
                 </div>
                 {% endif %}
                 
-                <form method="post">
+                <form method="post" id="signup-step1-form">
                     {% csrf_token %}
                     
                     <div class="form-floating">
@@ -251,7 +269,7 @@
                         </label>
                     </div>
                     
-                    <button type="submit" class="btn btn-submit">
+                    <button type="submit" class="btn btn-submit" id="signup-submit-button">
                         <i class="bi bi-send me-2"></i>Send Verification Code
                     </button>
                 </form>
@@ -260,6 +278,19 @@
                     <i class="bi bi-shield-check me-1"></i>
                     We'll send a verification code to your email or phone based on the contact method you provide.
                 </p>
+
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.getElementById('signup-step1-form');
+                    const submitBtn = document.getElementById('signup-submit-button');
+                    if (!form || !submitBtn) return;
+
+                    form.addEventListener('submit', function() {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Sending...';
+                    });
+                });
+                </script>
             </div>
             
             <div class="login-link">

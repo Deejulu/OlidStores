@@ -33,11 +33,11 @@ def signup_step1(request):
                     email=email,
                     expiry_minutes=settings.OTP_EXPIRY_MINUTES
                 )
-                sent = send_email_otp(email, otp.otp_code)
+                sent, error_message = send_email_otp(email, otp.otp_code)
                 method = 'email'
                 session_key = 'email_otp_id'
                 redirect_url = 'users:signup_verify_email'
-                message_text = 'Verification code sent to your email!'
+                message_text = f'Verification code sent to {email}!'
             else:
                 otp = OTPVerification.create_otp(
                     otp_type='phone',
@@ -45,14 +45,18 @@ def signup_step1(request):
                     expiry_minutes=settings.OTP_EXPIRY_MINUTES
                 )
                 sent = send_sms_otp(phone, otp.otp_code)
+                error_message = None
                 method = 'phone'
                 session_key = 'phone_otp_id'
                 redirect_url = 'users:signup_verify_phone'
-                message_text = 'Verification code sent to your phone!'
+                message_text = f'Verification code sent to {phone}!'
             
             if not sent:
-                messages.error(request, "Failed to send verification code. Please try again.")
-                return render(request, 'users/signup_step1.html', {'form': form})
+                error_text = "Failed to send verification code. Please try again."
+                if error_message:
+                    error_text += f" ({error_message})"
+                messages.error(request, error_text)
+                return render(request, 'users/signup_step1.html', {'form': form, 'error_message': error_message})
             
             request.session['signup_email'] = email
             request.session['signup_phone'] = phone
@@ -259,10 +263,14 @@ def resend_email_otp(request):
     request.session['email_otp_id'] = otp.id
     
     # Send OTP
-    if send_email_otp(email, otp.otp_code):
+    sent, error_message = send_email_otp(email, otp.otp_code)
+    if sent:
         return JsonResponse({'success': True, 'message': 'New code sent to your email.'})
     else:
-        return JsonResponse({'success': False, 'message': 'Failed to send code.'})
+        message = 'Failed to send code.'
+        if error_message and (settings.DEBUG or settings.OTP_DEBUG_MODE):
+            message += f' {error_message}'
+        return JsonResponse({'success': False, 'message': message})
 
 
 @require_http_methods(["POST"])
@@ -341,11 +349,15 @@ def send_existing_user_email_otp(request):
         expiry_minutes=settings.OTP_EXPIRY_MINUTES
     )
     
-    if send_email_otp(user.email, otp.otp_code):
+    sent, error_message = send_email_otp(user.email, otp.otp_code)
+    if sent:
         request.session['existing_email_otp_id'] = otp.id
         messages.success(request, f"Verification code sent to {user.email}")
     else:
-        messages.error(request, "Failed to send verification code.")
+        error_text = "Failed to send verification code."
+        if error_message and (settings.DEBUG or settings.OTP_DEBUG_MODE):
+            error_text += f" ({error_message})"
+        messages.error(request, error_text)
     
     return redirect('users:verify_existing_email')
 
