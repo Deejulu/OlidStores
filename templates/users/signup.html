@@ -546,7 +546,7 @@
                         {% endif %}
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label for="id_password1" class="form-label">
                             <i class="bi bi-lock"></i> Password
                         </label>
@@ -556,6 +556,9 @@
                                class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
                                placeholder="Create a password"
                                required>
+                        <button type="button" class="password-toggle" data-target="id_password1" aria-label="Toggle password visibility" style="position:absolute; right:0.9rem; top:50%; transform:translateY(-50%); border:none; background:transparent; color:#6b7280; cursor:pointer; padding:.25rem;">
+                            <i class="bi bi-eye-slash-fill"></i>
+                        </button>
                         <div class="password-strength" id="passwordStrength">
                             <div class="password-strength-bar" id="passwordStrengthBar"></div>
                         </div>
@@ -571,7 +574,7 @@
                         {% endif %}
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label for="id_password2" class="form-label">
                             <i class="bi bi-lock-fill"></i> Confirm Password
                         </label>
@@ -581,6 +584,9 @@
                                class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
                                placeholder="Confirm your password"
                                required>
+                        <button type="button" class="password-toggle" data-target="id_password2" aria-label="Toggle password visibility" style="position:absolute; right:0.9rem; top:50%; transform:translateY(-50%); border:none; background:transparent; color:#6b7280; cursor:pointer; padding:.25rem;">
+                            <i class="bi bi-eye-slash-fill"></i>
+                        </button>
                         {% if form.password2.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.password2.errors %}
@@ -598,6 +604,23 @@
                         <span>Create Account</span>
                     </button>
                 </form>
+                <script>
+                    document.querySelectorAll('.password-toggle').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const targetId = this.dataset.target;
+                            const input = document.getElementById(targetId);
+                            if (!input) return;
+                            const icon = this.querySelector('i');
+                            if (input.type === 'password') {
+                                input.type = 'text';
+                                if (icon) icon.className = 'bi bi-eye-fill';
+                            } else {
+                                input.type = 'password';
+                                if (icon) icon.className = 'bi bi-eye-slash-fill';
+                            }
+                        });
+                    });
+                </script>
                 
                 <hr class="auth-divider">
                 

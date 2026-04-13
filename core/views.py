@@ -341,7 +341,7 @@ def chat_start(request):
 @require_POST
 def chat_send(request):
     """Send a subsequent message inside an existing conversation (customer side)."""
-    from core.models import ChatConversation, ChatMessage, ChatAutoReply
+    from core.models import ChatConversation, ChatMessage
 
     data = _json_body(request)
     conv_id = data.get('conversation_id')
@@ -382,6 +382,50 @@ def chat_send(request):
         'message_id': msg.pk,
         'created_at': msg.created_at.isoformat(),
     })
+
+
+def _ensure_default_auto_replies():
+    """Create a minimal baseline set of auto-reply rules when none exist."""
+    from core.models import ChatAutoReply
+
+    if ChatAutoReply.objects.filter(is_active=True).exists():
+        return
+
+    defaults = [
+        {
+            'category': 'general',
+            'question': 'Greeting - Hello',
+            'keywords': 'hello, hi, hey, good morning, good afternoon, good evening',
+            'response': 'Hello! Welcome to our store. How can I help you today?',
+            'priority': 10,
+            'is_active': True,
+        },
+        {
+            'category': 'orders',
+            'question': 'Order Tracking / Status',
+            'keywords': 'track my order, order status, where is my order, track order, order update',
+            'response': (
+                'To track your order, visit My Orders in your account and click on the order details. '
+                'If you share your order number here, we can help check the latest status for you.'
+            ),
+            'priority': 20,
+            'is_active': True,
+        },
+        {
+            'category': 'payment',
+            'question': 'Payment Help',
+            'keywords': 'payment failed, payment declined, unable to pay, card declined, payment not successful',
+            'response': (
+                'If your payment failed, please double-check your card details, try a different payment method, '
+                'or contact your bank. If money was taken but your order did not go through, let us know with your transaction reference.'
+            ),
+            'priority': 18,
+            'is_active': True,
+        },
+    ]
+
+    for rule in defaults:
+        ChatAutoReply.objects.get_or_create(question=rule['question'], defaults=rule)
 
 
 def _try_auto_reply(conv, customer_text):
@@ -440,6 +484,7 @@ def _try_auto_reply(conv, customer_text):
         return
     customer_tokens = tokenize(customer_lower)
 
+    _ensure_default_auto_replies()
     rules = ChatAutoReply.objects.filter(is_active=True).order_by('-priority')
 
     best_rule = None

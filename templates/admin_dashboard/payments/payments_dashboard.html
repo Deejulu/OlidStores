@@ -274,6 +274,27 @@
         min-width: 0;
     }
 
+    .table-wrapper {
+        overflow-x: auto;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .transactions-table {
+        width: 100%;
+        max-width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 0;
+        table-layout: fixed;
+    }
+
+    .transactions-table th,
+    .transactions-table td {
+        white-space: normal;
+        word-break: break-word;
+    }
+
     .table-header {
         padding: 1.25rem 1.5rem;
         background: #ffffff;
@@ -675,8 +696,8 @@
         }
 
         .filters-form {
-            flex-direction: column;
-            gap: 0;
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
         .filter-group {
@@ -1935,7 +1956,7 @@
             </div>
 
             {% if transactions %}
-            <div style="overflow-x: auto;">
+            <div class="table-wrapper">
                 <table class="transactions-table">
                     <thead>
                         <tr>
