@@ -783,11 +783,15 @@
 
     /* ── Edit Profile Modal form styles ── */
     #editProfileModal .modal-content { border-radius: 20px; overflow: hidden; }
+    #editProfileModal .modal-dialog { max-height: calc(100vh - 2rem); }
     #editProfileModal .modal-header  { background: var(--gradient-primary); padding: 1.4rem 1.75rem; }
     #editProfileModal .modal-header .modal-title { color: white; font-weight: 800; font-size: 1.1rem; }
     #editProfileModal .btn-close { filter: brightness(0) invert(1); opacity: 0.85; }
-    #editProfileModal .modal-body  { padding: 1.75rem; }
+    #editProfileModal .modal-body  { padding: 1.75rem; max-height: calc(100vh - 18rem); overflow-y: auto; }
     #editProfileModal .modal-footer { padding: 0 1.75rem 1.5rem; border-top: none; }
+    @media (max-width: 767px) {
+        #editProfileModal .modal-dialog { max-width: 100%; margin: 0.75rem; }
+    }
     #editProfileModal .form-label   { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #6b7280; margin-bottom: 0.35rem; }
     #editProfileModal .form-control {
         border-radius: 10px; border: 2px solid #e5e7eb;

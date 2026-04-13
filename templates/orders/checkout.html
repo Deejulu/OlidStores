@@ -52,6 +52,8 @@
             {% csrf_token %}
             <input type="hidden" id="paystack_reference" name="paystack_reference">
 
+            <div id="paystack-debug-alert" class="alert alert-danger d-none rounded-4 mb-4" role="alert"></div>
+
             <div class="row g-4">
                 <!-- Left Column: Shipping & Payment Details -->
                 <div class="col-lg-7 col-xl-8">
@@ -1931,6 +1933,13 @@
         document.addEventListener('DOMContentLoaded', function () {
             const paystackBtn = document.getElementById('paystack-btn');
             const form = document.getElementById('checkout-form');
+            const paystackDebugAlert = document.getElementById('paystack-debug-alert');
+
+            function showPaystackDebug(message) {
+                if (!paystackDebugAlert) return;
+                paystackDebugAlert.innerText = message;
+                paystackDebugAlert.classList.remove('d-none');
+            }
 
             if (paystackBtn) {
                 let paystackProcessing = false;
@@ -1967,6 +1976,10 @@
                     const total = baseTotal + (deliveryFee || 0);
                     const amount = Math.round(total * 100); // Convert to kobo
 
+                    // clear old Paystack debug messages
+                    if (paystackDebugAlert) {
+                        paystackDebugAlert.classList.add('d-none');
+                    }
                     // mark processing locally (disable UI)
                     paystackProcessing = true;
                     if (window.__checkout_setProcessingButtons) {
@@ -1977,13 +1990,23 @@
                     }
 
                     // Initialize Paystack
+                    const paystackRef = 'REF_' + Math.floor((Math.random() * 1000000000) + 1);
+                    console.log('Paystack init', {
+                        key: '{{ PAYSTACK_PUBLIC }}',
+                        email: email,
+                        amount: amount,
+                        currency: 'NGN',
+                        channels: ['bank', 'ussd', 'card'],
+                        ref: paystackRef,
+                    });
+
                     const handler = PaystackPop.setup({
                         key: '{{ PAYSTACK_PUBLIC }}',
                         email: email,
                         amount: amount,
                         currency: 'NGN',
                         channels: ['bank', 'ussd', 'card'],
-                        ref: 'REF_' + Math.floor((Math.random() * 1000000000) + 1),
+                        ref: paystackRef,
                         metadata: {
                             custom_fields: [
                                 { display_name: "Full Name", variable_name: 'full_name', value: fullName },
@@ -1993,10 +2016,20 @@
                             ]
                         },
                         callback: function (response) {
+                            console.log('Paystack callback received', response);
+                            if (!response || !response.reference) {
+                                showPaystackDebug('Paystack returned no reference. Please try again.');
+                                paystackProcessing = false;
+                                if (window.__checkout_setProcessingButtons) {
+                                    window.__checkout_setProcessingButtons(false);
+                                }
+                                return;
+                            }
                             document.getElementById('paystack_reference').value = response.reference;
                             form.submit();
                         },
                         onClose: function () {
+                            console.log('Paystack popup closed by user');
                             // restore UI when user closes the popup
                             paystackProcessing = false;
                             if (window.__checkout_setProcessingButtons) {
@@ -2011,7 +2044,16 @@
                         }
                     });
 
-                    handler.openIframe();
+                    try {
+                        handler.openIframe();
+                    } catch (paystackErr) {
+                        console.error('Paystack iframe open error:', paystackErr);
+                        showPaystackDebug('Unable to open Paystack payment window. Please try again or use another payment method. ' + (paystackErr && paystackErr.message ? paystackErr.message : ''));
+                        paystackProcessing = false;
+                        if (window.__checkout_setProcessingButtons) {
+                            window.__checkout_setProcessingButtons(false);
+                        }
+                    }
                 };
             }
         });

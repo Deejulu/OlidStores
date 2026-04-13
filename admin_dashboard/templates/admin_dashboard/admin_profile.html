@@ -411,14 +411,14 @@
         <div class="ap-alert ap-alert-red">
             <i class="bi bi-x-circle-fill"></i>
             <span><strong>{{ out_of_stock }} product{{ out_of_stock|pluralize }}</strong> out of stock.
-            <a href="/admin-dashboard/products/">Manage Products →</a></span>
+            <a href="{% if first_out_of_stock_product %}{% url 'admin_dashboard:product_edit' first_out_of_stock_product.pk %}{% else %}/admin-dashboard/products/{% endif %}">Manage Products →</a></span>
         </div>
         {% endif %}
         {% if low_stock %}
         <div class="ap-alert ap-alert-amber">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span><strong>{{ low_stock }} product{{ low_stock|pluralize }}</strong> running low on stock (≤5 remaining).
-            <a href="/admin-dashboard/products/">Check Stock →</a></span>
+            <a href="{% if first_low_stock_product %}{% url 'admin_dashboard:product_edit' first_low_stock_product.pk %}{% else %}/admin-dashboard/products/{% endif %}">Check Stock →</a></span>
         </div>
         {% endif %}
         {% if unread_messages %}
@@ -439,7 +439,7 @@
         <div class="ap-alert ap-alert-blue">
             <i class="bi bi-chat-dots-fill"></i>
             <span><strong>{{ unread_chats }} unread live chat message{{ unread_chats|pluralize }}</strong> from customers.
-            <a href="/admin-dashboard/chat/">View Live Chat →</a></span>
+            <a href="{% if first_unread_chat %}{% url 'admin_dashboard:chat_detail' first_unread_chat.pk %}{% else %}/admin-dashboard/chat/{% endif %}">View Live Chat →</a></span>
         </div>
         {% endif %}
     </div>
