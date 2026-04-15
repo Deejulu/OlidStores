@@ -15,3 +15,5 @@ tzdata==2025.3
 urllib3==2.6.3
 webencodings==0.5.1
 whitenoise==6.4.0
+django-storages[boto3]==1.16.1
+boto3==1.28.0

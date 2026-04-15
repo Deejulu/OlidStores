@@ -144,6 +144,26 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default file storage (use filesystem by default; override with env for S3)
 DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
 
+# --- Supabase storage (S3-compatible) configuration ---
+# If you want to use Supabase Storage, set the following env vars in Render:
+# SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET
+SUPABASE_URL = os.getenv('SUPABASE_URL')  # e.g. https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+SUPABASE_STORAGE_BUCKET = os.getenv('SUPABASE_STORAGE_BUCKET')
+
+if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET:
+	# Use S3Boto3 backend pointed at Supabase storage endpoint
+	DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'storages.backends.s3boto3.S3Boto3Storage')
+	AWS_ACCESS_KEY_ID = SUPABASE_SERVICE_ROLE_KEY
+	AWS_SECRET_ACCESS_KEY = SUPABASE_SERVICE_ROLE_KEY
+	AWS_STORAGE_BUCKET_NAME = SUPABASE_STORAGE_BUCKET
+	AWS_S3_ENDPOINT_URL = SUPABASE_URL.rstrip('/') + '/storage/v1'
+	AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+	AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1', 'true', 'yes')
+
+	# Public URL pattern for Supabase Storage public objects
+	MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}/"
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Paystack keys (set via environment variables in production)
