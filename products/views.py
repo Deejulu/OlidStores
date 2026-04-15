@@ -180,7 +180,17 @@ class ProductDetailView(DetailView):
 		images = list(self.object.images.all())
 		if self.object.image:
 			images = [self.object.image] + images
-		context['product_images'] = images
+
+		def _image_url(item):
+			if hasattr(item, 'url'):
+				return item.url
+			if hasattr(item, 'image') and getattr(item.image, 'url', None):
+				return item.image.url
+			return None
+
+		context['product_images'] = [
+			{'url': _image_url(img)} for img in images if _image_url(img)
+		]
 		# Variant helpers for template logic
 		try:
 			variants = list(self.object.variants.all())

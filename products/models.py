@@ -83,10 +83,24 @@ class Product(models.Model):
     @property
     def primary_image(self):
         """Get the primary image for the product (main image or first additional image)"""
-        if self.image:
-            return self.image
-        elif self.images.exists():
-            return self.images.first().image
+        # Return an ImageFieldFile only if the underlying file exists in storage.
+        try:
+            if self.image and getattr(self.image, 'name', None):
+                if self.image.storage.exists(self.image.name):
+                    return self.image
+
+            # Check additional product images
+            qs = self.images.all()
+            if qs.exists():
+                first = qs.first().image
+                if first and getattr(first, 'name', None) and first.storage.exists(first.name):
+                    return first
+        except Exception:
+            # If storage is misconfigured (missing credentials, unreachable backend, etc.)
+            # accessing storage may raise; swallow errors and fall back to None so templates
+            # don't blow up with a 500 when trying to access `.url`.
+            pass
+
         return None
 
 class ProductVariant(models.Model):

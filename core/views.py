@@ -422,6 +422,17 @@ def _ensure_default_auto_replies():
             'priority': 18,
             'is_active': True,
         },
+        {
+            'category': 'products',
+            'question': 'Pricing / Cost Concerns',
+            'keywords': 'price is high, too expensive, price too high, expensive, overpriced, your prices are high, ur prices are high, can you lower the price, can you reduce the price, discount',
+            'response': (
+                'We aim to keep our prices fair and competitive. If you are looking for a better deal, please check for current promo codes, flash sales, or bulk pricing options. '
+                'We also offer free delivery on orders over 20,000 and special discounts for large orders. Let us know what you need and we can help find the best value for you.'
+            ),
+            'priority': 18,
+            'is_active': True,
+        },
     ]
 
     for rule in defaults:

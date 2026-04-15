@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 import dj_database_url
@@ -142,6 +141,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Default file storage (use filesystem by default; override with env for S3)
+DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Paystack keys (set via environment variables in production)
@@ -198,34 +200,15 @@ OTP_MAX_ATTEMPTS = 5
 # Set to True to print OTP codes instead of sending real emails
 OTP_DEBUG_MODE = os.getenv('OTP_DEBUG_MODE', 'False').lower() in ('1', 'true', 'yes')
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '[%(levelname)s] %(asctime)s %(name)s: %(message)s',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        '': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-        },
-    },
-}
+# S3 storage (django-storages)
+DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'storages.backends.s3boto3.S3Boto3Storage')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', None)
+AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', None)
+AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1','true','yes')
+if AWS_S3_CUSTOM_DOMAIN:
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+else:
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'

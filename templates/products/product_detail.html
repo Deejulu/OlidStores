@@ -148,19 +148,21 @@
     <div class="col-md-6">
       <div class="pd-gallery-wrap">
         {% if product_images %}
+          {% with first=product_images.0 %}
           <img id="mainProductImage"
-               src="{{ product_images.0.image.url|default:product_images.0.url }}"
+               src="{% if first.image %}{{ first.image.url }}{% elif first.url %}{{ first.url }}{% else %}{{ first }}{% endif %}"
                class="pd-main-img mb-3"
                alt="{{ product.name }}"
                title="Click to enlarge">
+          {% endwith %}
           {% if product_images|length > 1 %}
           <div class="d-flex flex-wrap gap-2 mt-1">
-            {% for img in product_images %}
-            <img src="{{ img.image.url|default:img.url }}"
-                 class="pd-thumb {% if forloop.first %}active{% endif %}"
-                 alt="{{ product.name }}"
-                 data-full="{{ img.image.url|default:img.url }}">
-            {% endfor %}
+              {% for img in product_images %}
+              <img src="{% if img.image %}{{ img.image.url }}{% elif img.url %}{{ img.url }}{% else %}{{ img }}{% endif %}"
+                class="pd-thumb {% if forloop.first %}active{% endif %}"
+                alt="{{ product.name }}"
+                data-full="{% if img.image %}{{ img.image.url }}{% elif img.url %}{{ img.url }}{% else %}{{ img }}{% endif %}">
+              {% endfor %}
           </div>
           {% endif %}
         {% else %}
