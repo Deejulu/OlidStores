@@ -141,28 +141,47 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default file storage (use filesystem by default; override with env for S3)
+# Storage configuration: prefer Supabase (S3-compatible) or AWS S3 when env vars present.
+# Default to local filesystem storage to avoid accidental S3 attempts.
 DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
 
-# --- Supabase storage (S3-compatible) configuration ---
-# If you want to use Supabase Storage, set the following env vars in Render:
-# SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_STORAGE_BUCKET
-SUPABASE_URL = os.getenv('SUPABASE_URL')  # e.g. https://<project-ref>.supabase.co
+# Supabase-specific envs (S3-compatible endpoint)
+SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 SUPABASE_STORAGE_BUCKET = os.getenv('SUPABASE_STORAGE_BUCKET')
 
+# AWS / S3-compatible envs (for real AWS or other S3 providers)
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME') or SUPABASE_STORAGE_BUCKET
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', None)
+AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', None)
+AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1','true','yes')
+
+# Choose storage backend based on available env vars. Supabase (if configured) takes precedence.
 if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET:
-	# Use S3Boto3 backend pointed at Supabase storage endpoint
-	DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'storages.backends.s3boto3.S3Boto3Storage')
+	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+	# For Supabase we use the service role key server-side. Set both AWS_* values so
+	# django-storages / boto3 can authenticate against the S3-compatible endpoint.
 	AWS_ACCESS_KEY_ID = SUPABASE_SERVICE_ROLE_KEY
 	AWS_SECRET_ACCESS_KEY = SUPABASE_SERVICE_ROLE_KEY
 	AWS_STORAGE_BUCKET_NAME = SUPABASE_STORAGE_BUCKET
 	AWS_S3_ENDPOINT_URL = SUPABASE_URL.rstrip('/') + '/storage/v1'
 	AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
 	AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1', 'true', 'yes')
-
-	# Public URL pattern for Supabase Storage public objects
 	MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}/"
+elif AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+	# Allow custom endpoint for S3-compatible providers via AWS_S3_ENDPOINT_URL env var
+	AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', None)
+	if AWS_S3_CUSTOM_DOMAIN:
+		MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+	else:
+		MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
+else:
+	# Local filesystem storage (development / fallback)
+	DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+	MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -220,15 +239,3 @@ OTP_MAX_ATTEMPTS = 5
 # Set to True to print OTP codes instead of sending real emails
 OTP_DEBUG_MODE = os.getenv('OTP_DEBUG_MODE', 'False').lower() in ('1', 'true', 'yes')
 
-# S3 storage (django-storages)
-DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'storages.backends.s3boto3.S3Boto3Storage')
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', None)
-AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', None)
-AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1','true','yes')
-if AWS_S3_CUSTOM_DOMAIN:
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
-else:
-    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
