@@ -15,5 +15,6 @@ tzdata==2025.3
 urllib3==2.6.3
 webencodings==0.5.1
 whitenoise==6.4.0
-django-storages[boto3]==1.16.1
+# pin a django-storages release available on PyPI (1.16.1 not available in this environment)
+django-storages[boto3]==1.14.6
 boto3==1.28.0
