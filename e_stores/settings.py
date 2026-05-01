@@ -161,19 +161,12 @@ AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1
 
 # Choose storage backend based on available env vars. Supabase (if configured) takes precedence.
 if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET:
-	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-	# For Supabase we use the service role key server-side. Set both AWS_* values so
-	# django-storages / boto3 can authenticate against the S3-compatible endpoint.
-	AWS_ACCESS_KEY_ID = SUPABASE_SERVICE_ROLE_KEY
-	AWS_SECRET_ACCESS_KEY = SUPABASE_SERVICE_ROLE_KEY
-	AWS_STORAGE_BUCKET_NAME = SUPABASE_STORAGE_BUCKET
-	AWS_S3_ENDPOINT_URL = SUPABASE_URL.rstrip('/') + '/storage/v1'
-	AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
-	AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1', 'true', 'yes')
-	MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}/"
+	# Use custom Supabase storage backend (not S3-compatible)
+	DEFAULT_FILE_STORAGE = 'e_stores.storage_backends.SupabaseStorage'
+	MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{SUPABASE_STORAGE_BUCKET}/"
 elif AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+	# Use real S3 or S3-compatible storage (DigitalOcean Spaces, Backblaze, etc.)
 	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-	# Allow custom endpoint for S3-compatible providers via AWS_S3_ENDPOINT_URL env var
 	AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', None)
 	if AWS_S3_CUSTOM_DOMAIN:
 		MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
