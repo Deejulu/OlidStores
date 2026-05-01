@@ -1965,16 +1965,7 @@
                             <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:image.title }}" class="img-fluid">
                         </div>
                         {% endfor %}
-                    {% else %}
-                    <div class="floating-product" style="--rotation: 5deg">
-                        <img src="{% static 'images/hero-product-1.jpg' %}" alt="Premium Watch" class="img-fluid">
-                    </div>
-                    <div class="floating-product" style="--rotation: -3deg">
-                        <img src="{% static 'images/hero-product-2.jpg' %}" alt="Designer Bag" class="img-fluid">
-                    </div>
-                    <div class="floating-product" style="--rotation: 2deg">
-                        <img src="{% static 'images/hero-product-3.jpg' %}" alt="Luxury Shoes" class="img-fluid">
-                    </div>
+                    {# Fallback images removed - upload banner images via admin #}
                     {% endif %}
                 </div>
             </div>
@@ -2042,7 +2033,9 @@
                     {% if product.primary_image %}
                     <img src="{{ product.primary_image.url }}" class="product-image" alt="{{ product.name }}">
                     {% else %}
-                    <img src="{% static 'images/product-placeholder.jpg' %}" class="product-image" alt="Product Image">
+                    <div class="product-image" style="background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:300px;color:#999;">
+                        <i class="bi bi-image" style="font-size:3rem;"></i>
+                    </div>
                     {% endif %}
                     
                     <div class="product-overlay"></div>
