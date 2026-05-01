@@ -142,11 +142,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Storage configuration: prefer Supabase (S3-compatible) or AWS S3 when env vars present.
-# Default to local filesystem storage to avoid accidental S3 attempts.
-DEFAULT_FILE_STORAGE = os.getenv('DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
-
-# Supabase-specific envs (S3-compatible endpoint)
+# Supabase-specific envs
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 SUPABASE_STORAGE_BUCKET = os.getenv('SUPABASE_STORAGE_BUCKET')
@@ -159,14 +155,14 @@ AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', None)
 AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', None)
 AWS_QUERYSTRING_AUTH = os.getenv('AWS_QUERYSTRING_AUTH', 'False').lower() in ('1','true','yes')
 
-# Choose storage backend based on available env vars. Supabase (if configured) takes precedence.
+# Determine storage backend and MEDIA_URL
 if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_STORAGE_BUCKET:
-	# Use custom Supabase storage backend (not S3-compatible)
-	DEFAULT_FILE_STORAGE = 'e_stores.storage_backends.SupabaseStorage'
+	# Use custom Supabase storage backend
+	STORAGE_BACKEND = 'e_stores.storage_backends.SupabaseStorage'
 	MEDIA_URL = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{SUPABASE_STORAGE_BUCKET}/"
 elif AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
-	# Use real S3 or S3-compatible storage (DigitalOcean Spaces, Backblaze, etc.)
-	DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+	# Use S3-compatible storage
+	STORAGE_BACKEND = 'storages.backends.s3boto3.S3Boto3Storage'
 	AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', None)
 	if AWS_S3_CUSTOM_DOMAIN:
 		MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
@@ -174,8 +170,21 @@ elif AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
 		MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 else:
 	# Local filesystem storage (development / fallback)
-	DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+	STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
 	MEDIA_URL = '/media/'
+
+# Django 6+ STORAGES configuration (replaces deprecated DEFAULT_FILE_STORAGE)
+STORAGES = {
+	'default': {
+		'BACKEND': STORAGE_BACKEND,
+	},
+	'staticfiles': {
+		'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+	},
+}
+
+# Keep for backwards compatibility with older code
+DEFAULT_FILE_STORAGE = STORAGE_BACKEND
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

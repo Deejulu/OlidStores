@@ -158,10 +158,10 @@ class SupabaseStorage(Storage):
         try:
             response = requests.head(url, timeout=10)
             exists = response.status_code == 200
-            logger.debug(f"File exists check for {cleaned_name}: {exists}")
+            logger.info(f"File exists check for {cleaned_name}: status={response.status_code}, exists={exists}")
             return exists
-        except requests.RequestException:
-            logger.debug(f"File exists check failed for {cleaned_name}")
+        except requests.RequestException as e:
+            logger.warning(f"File exists check failed for {cleaned_name}: {e}")
             return False
 
     def url(self, name):
