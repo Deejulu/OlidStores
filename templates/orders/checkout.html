@@ -391,7 +391,7 @@
 <!-- Mobile Sticky Bottom Bar - Always visible on mobile -->
 {% if items %}
 <div id="mobile-checkout-bar" class="d-xl-none"
-    style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px; padding-bottom: max(env(safe-area-inset-bottom, 12px), 12px);">
+    style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px 14px; padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px); padding-bottom: max(env(safe-area-inset-bottom, 0px) + 16px, 16px);">
     <div class="container-fluid px-0">
         <div class="d-flex align-items-center justify-content-between gap-2">
             <div class="d-flex flex-column">
@@ -802,18 +802,19 @@
             font-size: 0.98rem;
             padding: 0.85rem 1rem;
         }
-        /* Reduce overall checkout-bottom padding on small phones (enough space for sticky CTA only) */
-        .checkout-page { padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 72px) !important; }
-        /* Make the sticky bar and button friendlier on small phones */
+        /* Reduce overall checkout-bottom padding on small phones */
+        .checkout-page { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 90px) !important; }
+        /* Make the sticky bar taller and friendlier on small phones */
         #mobile-checkout-bar {
             padding-left: 14px !important;
             padding-right: 14px !important;
             padding-top: 12px !important;
-            padding-bottom: max(env(safe-area-inset-bottom, 12px), 12px) !important;
+            /* Safe area on real phones — extra room for iOS home indicator / Android gesture bar */
+            padding-bottom: max(env(safe-area-inset-bottom, 0px) + 16px, 16px) !important;
         }
 
         #mobile-checkout-btn {
-            min-width: 140px !important;
+            min-width: 130px !important;
             padding: 0.95rem 1.1rem !important;
             font-size: 1rem !important;
             border-radius: 999px !important;
