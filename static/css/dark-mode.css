@@ -1099,3 +1099,114 @@
         color: black !important;
     }
 }
+
+/* ======================================================
+   DARK MODE — Small-phone responsive overrides
+   These re-enforce the layout breakpoints from base.html
+   using [data-theme="dark"] specificity so they always
+   win over any conflicting dark-mode styles above.
+   ====================================================== */
+
+@media (max-width: 480px) {
+    /* Reset body font-size (767px block above raised it to 16.5px) */
+    [data-theme="dark"] body { font-size: 16px !important; }
+
+    /* Container gutters */
+    [data-theme="dark"] .container,
+    [data-theme="dark"] .container-fluid,
+    [data-theme="dark"] .page-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* Sections */
+    [data-theme="dark"] .section { padding: 2rem 0 !important; }
+
+    /* Headings */
+    [data-theme="dark"] h1 { font-size: clamp(1.5rem, 7.5vw, 2rem) !important; }
+    [data-theme="dark"] h2 { font-size: clamp(1.25rem, 6vw, 1.75rem) !important; }
+    [data-theme="dark"] h3 { font-size: clamp(1.1rem, 5vw, 1.4rem) !important; }
+    [data-theme="dark"] h4 { font-size: clamp(1rem, 4.5vw, 1.2rem) !important; }
+
+    /* Header */
+    [data-theme="dark"] .header-container {
+        min-height: 60px !important;
+        padding: 0.4rem 0.75rem !important;
+    }
+    [data-theme="dark"] .logo-olid   { font-size: 1.45rem !important; }
+    [data-theme="dark"] .logo-stores { font-size: 1.3rem !important; }
+    [data-theme="dark"] .logo-tagline { display: none !important; }
+
+    /* Action icons */
+    [data-theme="dark"] .action-item {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* Cards */
+    [data-theme="dark"] .card-body { padding: 0.9rem !important; }
+
+    /* Section titles */
+    [data-theme="dark"] .section-title,
+    [data-theme="dark"] .page-title {
+        font-size: clamp(1.4rem, 6.5vw, 1.9rem) !important;
+    }
+    [data-theme="dark"] .section-subtitle,
+    [data-theme="dark"] .lead { font-size: 0.95rem !important; }
+
+    /* Footer */
+    [data-theme="dark"] .footer-section h5 { font-size: 0.9rem !important; }
+    [data-theme="dark"] .footer-links a    { font-size: 0.82rem !important; }
+    [data-theme="dark"] .main-footer       { padding: 1.75rem 0 1rem !important; }
+
+    /* Forms — iOS zoom prevention */
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+        font-size: 1rem !important;
+        padding: 0.65rem 0.85rem !important;
+    }
+    [data-theme="dark"] .form-label { font-size: 0.875rem !important; }
+
+    /* Buttons keep inline layout */
+    [data-theme="dark"] .btn:not(.btn-block):not(.w-100) { width: auto !important; }
+
+    /* Modals */
+    [data-theme="dark"] .modal-dialog  { margin: 0.5rem !important; }
+    [data-theme="dark"] .modal-body    { padding: 1.25rem !important; }
+}
+
+@media (max-width: 390px) {
+    [data-theme="dark"] .container,
+    [data-theme="dark"] .container-fluid,
+    [data-theme="dark"] .page-container {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    [data-theme="dark"] .logo-olid   { font-size: 1.25rem !important; }
+    [data-theme="dark"] .logo-stores { font-size: 1.1rem !important; }
+    [data-theme="dark"] .action-item {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+    }
+    [data-theme="dark"] h1 { font-size: clamp(1.3rem, 8vw, 1.7rem) !important; }
+    [data-theme="dark"] h2 { font-size: clamp(1.1rem, 6.5vw, 1.5rem) !important; }
+    [data-theme="dark"] h3 { font-size: clamp(1rem, 5.5vw, 1.2rem) !important; }
+    [data-theme="dark"] .section   { padding: 1.5rem 0 !important; }
+    [data-theme="dark"] .card-body { padding: 0.75rem !important; }
+}
+
+@media (max-width: 360px) {
+    [data-theme="dark"] .container,
+    [data-theme="dark"] .container-fluid,
+    [data-theme="dark"] .page-container {
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
+    }
+    [data-theme="dark"] .logo-olid   { font-size: 1.1rem !important; }
+    [data-theme="dark"] .logo-stores { font-size: 0.95rem !important; }
+    [data-theme="dark"] .action-item { width: 34px !important; height: 34px !important; }
+    [data-theme="dark"] .floating-cart { width: 46px !important; height: 46px !important; }
+    [data-theme="dark"] .back-to-top   { width: 36px !important; height: 36px !important; }
+}
