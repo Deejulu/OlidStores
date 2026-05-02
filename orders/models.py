@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from products.models import Product, ProductVariant
 
 class Cart(models.Model):
@@ -54,7 +55,13 @@ class Order(models.Model):
 	payment_method = models.CharField(max_length=50, blank=True, null=True, help_text='Selected payment method for this order (paystack, manual, pay_on_delivery)')
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 	notes = models.TextField(blank=True, default='')
-	receipt = models.FileField(upload_to='receipts/', blank=True, null=True, help_text='Upload payment receipt for manual bank transfer')
+	receipt = models.FileField(
+		upload_to='receipts/', 
+		blank=True, 
+		null=True, 
+		validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
+		help_text='Upload payment receipt (PDF or image only, max 5MB)'
+	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 

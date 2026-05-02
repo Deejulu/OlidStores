@@ -188,9 +188,10 @@ DEFAULT_FILE_STORAGE = STORAGE_BACKEND
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Paystack keys (set via environment variables in production)
-PAYSTACK_PUBLIC = 'pk_test_ab035140620358b854be0559e4aad67b3a85877a'
-PAYSTACK_SECRET = 'sk_test_4791378c14596cb054f5eb4ce11e78fa55b55a23'
+# Paystack keys (IMPORTANT: Set via environment variables in production)
+# Default test keys are provided for local development only
+PAYSTACK_PUBLIC = os.getenv('PAYSTACK_PUBLIC_KEY', 'pk_test_ab035140620358b854be0559e4aad67b3a85877a')
+PAYSTACK_SECRET = os.getenv('PAYSTACK_SECRET_KEY', 'sk_test_4791378c14596cb054f5eb4ce11e78fa55b55a23')
 
 # Contact page settings
 CONTACT_NOTIFY_EMAIL = os.getenv('CONTACT_NOTIFY_EMAIL', '')
@@ -241,6 +242,31 @@ OTP_EXPIRY_MINUTES = int(os.getenv('OTP_EXPIRY_MINUTES', '10'))
 OTP_MAX_ATTEMPTS = 5
 # Set to True to print OTP codes instead of sending real emails
 OTP_DEBUG_MODE = os.getenv('OTP_DEBUG_MODE', 'False').lower() in ('1', 'true', 'yes')
+
+# Production Security Settings (only enabled when DEBUG=False)
+if not DEBUG:
+	# Force HTTPS
+	SECURE_SSL_REDIRECT = True
+	SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+	
+	# HSTS (HTTP Strict Transport Security)
+	SECURE_HSTS_SECONDS = 31536000  # 1 year
+	SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+	SECURE_HSTS_PRELOAD = True
+	
+	# Secure Cookies
+	SESSION_COOKIE_SECURE = True
+	CSRF_COOKIE_SECURE = True
+	SESSION_COOKIE_HTTPONLY = True
+	CSRF_COOKIE_HTTPONLY = True
+	
+	# Browser Security Headers
+	SECURE_BROWSER_XSS_FILTER = True
+	SECURE_CONTENT_TYPE_NOSNIFF = True
+	X_FRAME_OPTIONS = 'DENY'
+	
+	# Referrer Policy
+	SECURE_REFERRER_POLICY = 'same-origin'
 
 # Logging Configuration
 LOGGING = {

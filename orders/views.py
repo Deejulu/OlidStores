@@ -78,6 +78,12 @@ def checkout_view(request):
 		notes = notes or ''
 		paystack_reference = request.POST.get('paystack_reference')
 		receipt_file = request.FILES.get('receipt')
+		
+		# Validate receipt file size (5MB limit)
+		if receipt_file and receipt_file.size > 5 * 1024 * 1024:
+			messages.error(request, 'Receipt file too large. Maximum size is 5MB.')
+			return redirect('orders:checkout')
+		
 		delivery_option = request.POST.get('delivery_option')
 		delivery_fee = 0
 		if delivery_option == '24h':
