@@ -113,6 +113,21 @@
         --gradient-gold: linear-gradient(135deg, var(--gold), var(--gold-dark));
         --gradient-dark: linear-gradient(135deg, var(--gray-900), var(--black));
     }
+    </style>
+    
+    <!-- Convert theme accent color to RGB for dark mode -->
+    <script>
+        (function() {
+            const themeAccent = '{{ theme_colors.accent|default:"#D4AF37" }}';
+            const hexToRgb = (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 215, 0';
+            };
+            document.documentElement.style.setProperty('--theme-accent-rgb', hexToRgb(themeAccent));
+        })();
+    </script>
+    
+    <style>
 
     /* ===== RESET & BASE ===== */
     *,

@@ -1,25 +1,15 @@
 /* ============================================
    🌙 DARK MODE - World-Class Implementation
+   Uses theme colors from Content Management
    ============================================ */
 
-/* Dark Mode Color Palette */
+/* Dark Mode Color Palette - Uses your theme colors */
 :root[data-theme="dark"] {
-    /* Primary Colors - Dark Theme */
-    --primary-color: #f5f5f5;
-    --accent-color: #ffd700;
-    --accent-light: #ffe44d;
-    --accent-dark: #d4af37;
-    --theme-accent: #ffe44d;
-    --theme-accent-light: #fff5a3;
+    /* Keep your chosen theme colors from content management */
+    /* These are NOT overridden - they stay as you set them */
+    /* --primary-color, --accent-color, --theme-accent remain from base.html */
     
-    /* Override theme colors for dark mode */
-    --primary: #ffd700;
-    --primary-dark: #d4af37;
-    --primary-light: #ffe44d;
-    --primary-lighter: #fff5a3;
-    --theme-primary: #f5f5f5;
-    
-    /* Base Colors */
+    /* Base Colors - Dark Mode */
     --white: #0a0a0a;
     --off-white: #121212;
     --black: #ffffff;
@@ -38,8 +28,8 @@
     
     /* Gold stays similar but brighter */
     --gold-light: #4a3f2a;
-    --gold: #ffd700;
-    --gold-dark: #ffe44d;
+    --gold: var(--theme-accent);  /* Use theme accent color */
+    --gold-dark: var(--theme-accent-light);  /* Use theme accent light */
     --bronze: #ff9f50;
     
     /* Semantic Colors - Brighter for dark mode */
@@ -54,9 +44,9 @@
     --shadow-lg: 0 8px 16px rgba(0,0,0,0.6);
     --shadow-xl: 0 12px 24px rgba(0,0,0,0.7);
     
-    /* Gradients - Dark mode */
-    --gradient-primary: linear-gradient(135deg, #2a2a2a, #1a1a1a);
-    --gradient-gold: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    /* Gradients - Use theme colors */
+    --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    --gradient-gold: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-light));
     --gradient-dark: linear-gradient(135deg, #0a0a0a, #1a1a1a);
     
     /* Card backgrounds */
@@ -101,11 +91,11 @@
 }
 
 [data-theme="dark"] a {
-    color: #ffe44d;
+    color: var(--theme-accent-light);
 }
 
 [data-theme="dark"] a:hover {
-    color: #ffd700;
+    color: var(--theme-accent);
 }
 
 [data-theme="dark"] .main-header {
@@ -115,7 +105,7 @@
 }
 
 [data-theme="dark"] .main-header::after {
-    background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+    background: linear-gradient(90deg, var(--theme-accent), var(--theme-accent-light));
     opacity: 0.7;
 }
 
@@ -132,12 +122,12 @@
 }
 
 .dark-mode-toggle-btn:hover {
-    background: rgba(255, 215, 0, 0.1) !important;
+    background: rgba(var(--theme-accent-rgb, 255, 215, 0), 0.1) !important;
     transform: scale(1.05);
 }
 
 [data-theme="dark"] .dark-mode-toggle-btn .action-icon {
-    color: #ffd700;
+    color: var(--theme-accent);
 }
 
 .dark-mode-toggle-btn .action-icon {
@@ -167,32 +157,32 @@
 [data-theme="dark"] .product-card:hover,
 [data-theme="dark"] .category-card:hover {
     background: var(--card-bg-hover);
-    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
-    border-color: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(var(--theme-accent-rgb, 255, 215, 0), 0.2);
+    border-color: rgba(var(--theme-accent-rgb, 255, 215, 0), 0.3);
 }
 
 /* Buttons */
 [data-theme="dark"] .btn-primary {
-    background: #ffd700;
+    background: var(--theme-accent);
     color: #0a0a0a;
-    border-color: #ffd700;
+    border-color: var(--theme-accent);
     font-weight: 600;
 }
 
 [data-theme="dark"] .btn-primary:hover {
-    background: #ffe44d;
+    background: var(--theme-accent-light);
     color: #0a0a0a;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(var(--theme-accent-rgb, 255, 215, 0), 0.4);
 }
 
 [data-theme="dark"] .btn-outline-primary {
-    color: #ffd700;
-    border-color: #ffd700;
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
     font-weight: 600;
 }
 
 [data-theme="dark"] .btn-outline-primary:hover {
-    background: #ffd700;
+    background: var(--theme-accent);
     color: #0a0a0a;
 }
 
@@ -211,8 +201,8 @@
 [data-theme="dark"] textarea:focus {
     background: #242424;
     color: #fafafa;
-    border-color: #ffd700;
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+    border-color: var(--theme-accent);
+    box-shadow: 0 0 0 0.2rem rgba(var(--theme-accent-rgb, 255, 215, 0), 0.25);
 }
 
 [data-theme="dark"] .form-control::placeholder {
@@ -232,7 +222,7 @@
 
 [data-theme="dark"] .nav-link:hover,
 [data-theme="dark"] .nav-link.active {
-    color: #ffd700;
+    color: var(--theme-accent);
     font-weight: 600;
 }
 
@@ -250,7 +240,7 @@
 [data-theme="dark"] .dropdown-item:hover,
 [data-theme="dark"] .dropdown-item:focus {
     background: #242424;
-    color: #ffd700;
+    color: var(--theme-accent);
 }
 
 [data-theme="dark"] .dropdown-divider {
@@ -275,7 +265,7 @@
 }
 
 [data-theme="dark"] footer a:hover {
-    color: #ffd700;
+    color: var(--theme-accent);
 }
 
 [data-theme="dark"] footer h6,
@@ -293,7 +283,7 @@
 
 [data-theme="dark"] .table thead th {
     background: #1a1a1a;
-    color: #ffd700;
+    color: var(--theme-accent);
     border-color: #3a3a3a;
     font-weight: 700;
 }
@@ -320,7 +310,7 @@
 }
 
 [data-theme="dark"] .badge.bg-primary {
-    background: #ffd700 !important;
+    background: var(--theme-accent) !important;
     color: #0a0a0a;
     font-weight: 700;
 }
@@ -404,13 +394,13 @@
 
 [data-theme="dark"] .pagination .page-link:hover {
     background: #242424;
-    border-color: #ffd700;
-    color: #ffd700;
+    border-color: var(--theme-accent);
+    color: var(--theme-accent);
 }
 
 [data-theme="dark"] .pagination .page-item.active .page-link {
-    background: #ffd700;
-    border-color: #ffd700;
+    background: var(--theme-accent);
+    border-color: var(--theme-accent);
     color: #0a0a0a;
     font-weight: 700;
 }
@@ -428,7 +418,7 @@
 [data-theme="dark"] code,
 [data-theme="dark"] pre {
     background: #0a0a0a;
-    color: #ffe44d;
+    color: var(--theme-accent-light);
     border-color: #3a3a3a;
     font-weight: 500;
 }
@@ -449,7 +439,7 @@
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-    background: #ffd700;
+    background: var(--theme-accent);
 }
 
 /* Product specific */
@@ -459,13 +449,13 @@
 }
 
 [data-theme="dark"] .product-badge {
-    background: rgba(255, 215, 0, 0.2);
-    color: #ffd700;
+    background: rgba(var(--theme-accent-rgb, 255, 215, 0), 0.2);
+    color: var(--theme-accent);
     font-weight: 700;
 }
 
 [data-theme="dark"] .price {
-    color: #ffd700;
+    color: var(--theme-accent);
     font-weight: 700;
     font-size: 1.1em;
 }
@@ -498,7 +488,7 @@
 [data-theme="dark"] .admin-sidebar .nav-link.active,
 [data-theme="dark"] .sidebar .nav-link.active {
     background: #242424;
-    color: #ffd700;
+    color: var(--theme-accent);
     font-weight: 600;
 }
 
@@ -521,8 +511,8 @@
 }
 
 [data-theme="dark"] .list-group-item.active {
-    background: #ffd700;
-    border-color: #ffd700;
+    background: var(--theme-accent);
+    border-color: var(--theme-accent);
     color: #0a0a0a;
     font-weight: 700;
 }
@@ -540,7 +530,7 @@
 
 [data-theme="dark"] .navbar-light .navbar-nav .nav-link:hover,
 [data-theme="dark"] .navbar-light .navbar-nav .nav-link.active {
-    color: #ffd700;
+    color: var(--theme-accent);
     font-weight: 600;
 }
 
@@ -563,8 +553,8 @@
 
 [data-theme="dark"] .search-bar:focus-within,
 [data-theme="dark"] .search-input:focus {
-    border-color: #ffd700;
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+    border-color: var(--theme-accent);
+    box-shadow: 0 0 0 0.2rem rgba(var(--theme-accent-rgb, 255, 215, 0), 0.25);
 }
 
 [data-theme="dark"] .search-input::placeholder {
@@ -584,8 +574,8 @@
 
 [data-theme="dark"] .category-preview:hover {
     background: #242424;
-    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
-    border-color: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(var(--theme-accent-rgb, 255, 215, 0), 0.2);
+    border-color: rgba(var(--theme-accent-rgb, 255, 215, 0), 0.3);
 }
 
 /* Wishlist button */
@@ -597,31 +587,31 @@
 
 [data-theme="dark"] .wishlist-btn:hover,
 [data-theme="dark"] .action-btn:hover {
-    background: #ffd700;
+    background: var(--theme-accent);
     color: #0a0a0a;
 }
 
 /* Floating cart */
 [data-theme="dark"] .floating-cart {
-    background: #ffd700;
+    background: var(--theme-accent);
     color: #0a0a0a;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(var(--theme-accent-rgb, 255, 215, 0), 0.4);
 }
 
 [data-theme="dark"] .floating-cart:hover {
-    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.5);
-    background: #ffe44d;
+    box-shadow: 0 6px 16px rgba(var(--theme-accent-rgb, 255, 215, 0), 0.5);
+    background: var(--theme-accent-light);
 }
 
 /* Back to top button */
 [data-theme="dark"] .back-to-top {
     background: #1a1a1a;
-    color: #ffd700;
+    color: var(--theme-accent);
     border-color: #3a3a3a;
 }
 
 [data-theme="dark"] .back-to-top:hover {
-    background: #ffd700;
+    background: var(--theme-accent);
     color: #0a0a0a;
 }
 
@@ -653,7 +643,7 @@
 }
 
 [data-theme="dark"] .calc-btn.operator {
-    background: #ffd700;
+    background: var(--theme-accent);
     color: #0a0a0a;
     font-weight: 700;
 }
