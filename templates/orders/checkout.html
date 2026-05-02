@@ -391,7 +391,7 @@
 <!-- Mobile Sticky Bottom Bar - Always visible on mobile -->
 {% if items %}
 <div id="mobile-checkout-bar" class="d-xl-none"
-    style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px 14px; padding-bottom: max(env(safe-area-inset-bottom, 0px) + 16px, 16px);">
+    style="position: fixed; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px 14px; padding-bottom: max(env(safe-area-inset-bottom, 0px) + 16px, 16px);">
     <div class="container-fluid px-0">
         <div class="d-flex align-items-center justify-content-between gap-2">
             <div class="d-flex flex-column">
@@ -776,6 +776,7 @@
 
     /* stronger mobile sticky bar shadow and subtle glass effect */
     #mobile-checkout-bar {
+        bottom: 0;  /* CSS-owned — not overridden by JS except for keyboard adjust */
         transition: transform 260ms var(--cta-ease), box-shadow 260ms var(--cta-ease), background-color 220ms ease;
         box-shadow: var(--mobile-bar-shadow);
         background: linear-gradient(180deg, var(--glass-bg), rgba(250,250,250,0.96));
@@ -2076,7 +2077,9 @@
                 if (!mobileCheckoutBar || !window.visualViewport) return;
                 const vv = window.visualViewport;
                 const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-                mobileCheckoutBar.style.bottom = keyboardHeight > 50 ? `${keyboardHeight}px` : '';
+                // Always set an explicit value — setting '' removes the inline bottom:0
+                // which leaves no CSS fallback, causing the bar to jump off-screen.
+                mobileCheckoutBar.style.bottom = keyboardHeight > 50 ? `${keyboardHeight}px` : '0px';
             }
 
             // Set up event listeners
