@@ -2,7 +2,7 @@ from django.views.generic import ListView, DetailView
 from .models import Product, Category
 from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
-from django.db.models import Q, Count, Prefetch
+from django.db.models import Q, Count, Prefetch, Avg
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
@@ -15,7 +15,10 @@ class ShopListView(ListView):
 	paginate_by = 24
 
 	def get_queryset(self):
-		queryset = Product.objects.all().select_related('category').prefetch_related('variants', 'images')
+		queryset = Product.objects.all().select_related('category').prefetch_related('variants', 'images').annotate(
+			avg_rating=Avg('reviews__rating'),
+			review_count=Count('reviews', distinct=True)
+		)
 		category_slug = self.request.GET.get('category')
 		stock = self.request.GET.get('stock')
 		sort = self.request.GET.get('sort')
@@ -67,7 +70,10 @@ class ShopListView(ListView):
 		for c in context['categories']:
 			c.product_count = getattr(c, 'product_count', 0)
 		# Suggested products (used when no results)
-		context['suggested_products'] = Product.objects.select_related('category').prefetch_related('variants', 'images').order_by('-created_at')[:6]
+		context['suggested_products'] = Product.objects.select_related('category').prefetch_related('variants', 'images').annotate(
+			avg_rating=Avg('reviews__rating'),
+			review_count=Count('reviews', distinct=True)
+		).order_by('-created_at')[:6]
 		context['page_title'] = "Shop All Products - E-Stores"
 		context['search_query'] = self.request.GET.get('search', '')
 		
@@ -142,7 +148,10 @@ class ProductDetailView(DetailView):
 		context = super().get_context_data(**kwargs)
 		context['related_products'] = Product.objects.filter(
 			category=self.object.category
-		).exclude(id=self.object.id).select_related('category')[:4]
+		).exclude(id=self.object.id).select_related('category').annotate(
+			avg_rating=Avg('reviews__rating'),
+			review_count=Count('reviews', distinct=True)
+		)[:4]
 		context['page_title'] = self.object.name
 		
 		# Check if product is in user's wishlist
@@ -214,9 +223,15 @@ def search(request):
 	if query:
 		products = Product.objects.filter(
 			Q(name__icontains=query) | Q(description__icontains=query) | Q(category__name__icontains=query)
+		).select_related('category').prefetch_related('variants', 'images').annotate(
+			avg_rating=Avg('reviews__rating'),
+			review_count=Count('reviews', distinct=True)
 		).distinct()
 	else:
-		products = Product.objects.all()
+		products = Product.objects.all().select_related('category').prefetch_related('variants', 'images').annotate(
+			avg_rating=Avg('reviews__rating'),
+			review_count=Count('reviews', distinct=True)
+		)
 
 	# Apply same filters as ShopListView
 	category_slugs = request.GET.getlist('category')

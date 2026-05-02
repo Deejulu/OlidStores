@@ -1,7 +1,7 @@
 import os
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Prefetch, Avg
 from django.core.cache import cache
 import threading
 from products.models import Product
@@ -63,7 +63,17 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['featured_products'] = Product.objects.select_related('category').prefetch_related('images', 'variants').order_by('-created_at')[:8]
+        
+        # Cache featured products for 10 minutes
+        featured_products = cache.get('homepage_featured_products')
+        if featured_products is None:
+            featured_products = list(Product.objects.select_related('category').prefetch_related('images', 'variants').annotate(
+                avg_rating=Avg('reviews__rating'),
+                review_count=Count('reviews', distinct=True)
+            ).order_by('-created_at')[:8])
+            cache.set('homepage_featured_products', featured_products, 600)
+        context['featured_products'] = featured_products
+        
         # Add homepage banner content and banner images
         from core.models import BannerImage
         banner = _get_sitecontent('homepage_banner')
@@ -71,10 +81,21 @@ class HomeView(TemplateView):
         context['homepage_banner_content'] = banner.content if banner else ''
         context['banner_background_style'] = banner.background_style if banner else 'gradient_blue'
         context['banner_background_video'] = banner.background_video if banner else None
-        context['banner_images'] = BannerImage.objects.filter(is_active=True).order_by('order', '-created_at')
-        # hero images for floating product mockups
+        
+        # Cache banner images for 30 minutes
+        banner_images = cache.get('homepage_banner_images')
+        if banner_images is None:
+            banner_images = list(BannerImage.objects.filter(is_active=True).order_by('order', '-created_at'))
+            cache.set('homepage_banner_images', banner_images, 1800)
+        context['banner_images'] = banner_images
+        
+        # hero images for floating product mockups - cache for 30 minutes
         from core.models import HeroImage
-        context['hero_images'] = HeroImage.objects.filter(is_active=True).order_by('order', '-created_at')
+        hero_images = cache.get('homepage_hero_images')
+        if hero_images is None:
+            hero_images = list(HeroImage.objects.filter(is_active=True).order_by('order', '-created_at'))
+            cache.set('homepage_hero_images', hero_images, 1800)
+        context['hero_images'] = hero_images
         # Category previews: try to show first product image per category for the home cards
         from products.models import Category
         slugs = ['electronics', 'cosmetics', 'fashion', 'home']
