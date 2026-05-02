@@ -146,11 +146,11 @@
 
     body {
         font-family: var(--font-sans);
-        color: var(--gray-900);
+        color: #111111;
         background: var(--white);
-        line-height: 1.6;
+        line-height: 1.65;
         font-size: 16px;
-        font-weight: 400;
+        font-weight: 500;
         letter-spacing: 0.01em;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
@@ -161,13 +161,49 @@
         flex-direction: column;
     }
 
+    /* ===== GLOBAL TYPOGRAPHY BRIGHTNESS ===== */
+    p {
+        color: #1a1a1a;
+        font-weight: 500;
+        line-height: 1.7;
+    }
+    span, li {
+        font-weight: 500;
+    }
+    .text-muted, .opacity-75, small, .small {
+        color: #4a4a4a !important;
+        opacity: 1 !important;
+        font-weight: 500;
+    }
+    .opacity-50 {
+        opacity: 0.8 !important;
+    }
+    .footer-subtitle {
+        color: rgba(255,255,255,0.72);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    /* ===== MOBILE FONT RENDERING ===== */
+    @media (max-width: 767px) {
+        body {
+            font-size: 16.5px;
+            -webkit-font-smoothing: auto;
+            -moz-osx-font-smoothing: auto;
+        }
+        p, li, span {
+            font-weight: 500;
+            line-height: 1.75;
+        }
+    }
+
     /* ===== TYPOGRAPHY ===== */
     h1, h2, h3, h4, h5, h6 {
         font-family: var(--font-heading);
         font-weight: 700;
         line-height: 1.2;
         letter-spacing: -0.03em;
-        color: var(--gray-900);
+        color: #0d0d0d;
         text-rendering: optimizeLegibility;
     }
 
@@ -2448,7 +2484,8 @@
 
             <div class="footer-bottom">
                 <p class="mb-2">© 2024 Olid Stores. All rights reserved.</p>
-                <p class="small opacity-50">Luxury fashion meets sustainable elegance</p>
+                <p class="small footer-subtitle">Luxury fashion meets sustainable elegance</p>
+                <p class="small footer-subtitle mb-0">Powered by <strong>Julu Works</strong></p>
             </div>
         </div>
     </footer>
@@ -2732,7 +2769,117 @@
             .fc-panel { right: 0.5rem; width: calc(100vw - 1rem); bottom: 8.5rem; }
             .fc-fab   { right: 0.75rem; }
         }
+
+        /* ── Teaser bubble ── */
+        .fc-teaser {
+            position: fixed;
+            bottom: 7rem;
+            right: 5.5rem;
+            z-index: 9996;
+            background: #fff;
+            border-radius: 14px 14px 4px 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            padding: 0.85rem 1.1rem 0.85rem 1rem;
+            max-width: 230px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            color: #1a1a1a;
+            cursor: default;
+            opacity: 0;
+            transform: translateY(12px) scale(0.94);
+            pointer-events: none;
+            transition: opacity 0.32s ease, transform 0.32s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        .fc-teaser.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+        .fc-teaser-close {
+            position: absolute;
+            top: 0.3rem; right: 0.45rem;
+            background: none; border: none;
+            font-size: 0.85rem; color: #9ca3af;
+            cursor: pointer; line-height: 1; padding: 2px;
+        }
+        .fc-teaser-close:hover { color: #374151; }
+        .fc-teaser-name { font-weight: 800; font-size: 0.88rem; color: #111; margin-bottom: 0.2rem; }
+        .fc-teaser-sub  { color: #6b7280; font-size: 0.77rem; margin-top: 0.15rem; }
+        .fc-teaser-cta  {
+            display: inline-block;
+            margin-top: 0.55rem;
+            padding: 0.35rem 0.9rem;
+            background: linear-gradient(135deg, var(--primary-color,#2a2a2a), var(--accent-color,#8B7355));
+            color: #fff; border-radius: 999px;
+            font-size: 0.75rem; font-weight: 700;
+            border: none; cursor: pointer;
+            transition: opacity 0.18s;
+        }
+        .fc-teaser-cta:hover { opacity: 0.88; }
+        @media (max-width: 400px) {
+            .fc-teaser { right: 1rem; max-width: calc(100vw - 6rem); }
+        }
+
+        /* ── Welcome banner inside panel ── */
+        .fc-welcome-banner {
+            background: linear-gradient(135deg, var(--primary-color,#2a2a2a), var(--accent-color,#8B7355));
+            color: #fff;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.85rem;
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+        .fc-welcome-banner strong { font-size: 0.9rem; display: block; margin-bottom: 0.2rem; }
+
+        /* ── Quick reply chips ── */
+        .fc-quick-replies {
+            display: flex; flex-wrap: wrap; gap: 0.4rem;
+            margin-top: 0.3rem; align-self: flex-start; max-width: 95%;
+        }
+        .fc-quick-btn {
+            padding: 0.3rem 0.75rem;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 999px;
+            font-size: 0.74rem; font-weight: 600;
+            color: #374151; cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .fc-quick-btn:hover {
+            background: #f3f4f6;
+            border-color: var(--primary-color,#2a2a2a);
+        }
+
+        /* ── Dark mode ── */
+        [data-theme="dark"] .fc-teaser {
+            background: #1e1e1e;
+            color: #f0f0f0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        [data-theme="dark"] .fc-teaser-name { color: #f0f0f0; }
+        [data-theme="dark"] .fc-teaser-sub  { color: #999; }
+        [data-theme="dark"] .fc-panel { background: #181818; }
+        [data-theme="dark"] .fc-msg-admin { background: #2a2a2a; color: #f0f0f0; }
+        [data-theme="dark"] .fc-messages-footer { background: #181818; border-top-color: #2a2a2a; }
+        [data-theme="dark"] .fc-reply-input { background: #111; border-color: #333; color: #f0f0f0; }
+        [data-theme="dark"] .fc-form-input,
+        [data-theme="dark"] .fc-form-select,
+        [data-theme="dark"] .fc-form-textarea { background: #111; border-color: #333; color: #f0f0f0; }
+        [data-theme="dark"] .fc-form-label { color: #b0b0b0; }
+        [data-theme="dark"] .fc-quick-btn { background: #222; border-color: #444; color: #d0d0d0; }
+        [data-theme="dark"] .fc-quick-btn:hover { background: #2a2a2a; }
+        [data-theme="dark"] .fc-closed-notice { background: #1a1a1a; color: #888; border-top-color: #2a2a2a; }
     </style>
+
+    <!-- Teaser bubble — auto-pops after 3 s if no active conversation -->
+    <div class="fc-teaser" id="fcTeaser" role="status" aria-live="polite">
+        <button class="fc-teaser-close" id="fcTeaserClose" aria-label="Dismiss">&#x2715;</button>
+        <div class="fc-teaser-name">&#128075; Hi{% if user.is_authenticated %} {{ user.get_full_name|default:user.username }}{% endif %}!</div>
+        <div>Welcome to <strong>{{ site_name|default:"our store" }}</strong></div>
+        <div class="fc-teaser-sub">Have a question? We reply in seconds.</div>
+        <button class="fc-teaser-cta" id="fcTeaserCta">Chat with us &rarr;</button>
+    </div>
 
     <!-- FAB button -->
     <button class="fc-fab" id="fcFab" aria-label="Open support chat" title="Live Support Chat">
@@ -2747,18 +2894,20 @@
         <div class="fc-panel-header">
             <div class="fc-avatar"><i class="bi bi-headset"></i></div>
             <div class="fc-header-info">
-                <div class="fc-header-title">Support Chat</div>
-                <div class="fc-header-sub" id="fcHeaderSub">We usually reply in minutes</div>
+                <div class="fc-header-title">{{ site_name|default:"Support" }} Chat</div>
+                <div class="fc-header-sub" id="fcHeaderSub">
+                    <span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly
+                </div>
             </div>
             <button class="fc-close-btn" id="fcCloseBtn" aria-label="Close chat"><i class="bi bi-x-lg"></i></button>
         </div>
 
         <!-- ① New conversation form -->
         <div class="fc-start-screen" id="fcStartScreen">
-            <p style="font-size:0.82rem;color:#6b7280;margin-bottom:0.9rem;">
-                Hi {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}there{% endif %}! 👋
-                Send us a message and we'll get back to you shortly.
-            </p>
+            <div class="fc-welcome-banner">
+                <strong>&#128075; Hi {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}there{% endif %}! Welcome to {{ site_name|default:"our store" }}.</strong>
+                How can we help you today? Send us a message and we&rsquo;ll reply right away &mdash; even outside business hours our bot has answers ready.
+            </div>
             {% if not user.is_authenticated %}
             <div class="fc-form-field">
                 <label class="fc-form-label" for="fcName">Your Name <span style="color:#ef4444">*</span></label>
@@ -2830,18 +2979,89 @@
         const newConvBtn     = document.getElementById('fcNewConvBtn');
         const headerSub      = document.getElementById('fcHeaderSub');
         const unreadDot      = document.getElementById('fcUnreadDot');
+        const teaser         = document.getElementById('fcTeaser');
+        const teaserClose    = document.getElementById('fcTeaserClose');
+        const teaserCta      = document.getElementById('fcTeaserCta');
 
-        const STORAGE_KEY = 'fc_conv_id';
+        const STORAGE_KEY    = 'fc_conv_id';
+        const TEASER_KEY     = 'fc_teaser_dismissed';
         const CSRF = (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || '';
 
         let convId        = null;
-        let lastMsgAt    = null;   // ISO string of last received message
+        let lastMsgAt    = null;
         let pollInterval = null;
         let bgPollInterval = null;
         let isPanelOpen  = false;
         let unreadCount  = 0;
 
         const LAST_SEEN_KEY = 'fc_last_seen';
+
+        // ── Teaser bubble ─────────────────────────────────────
+        function showTeaser() {
+            if (!teaser) return;
+            if (localStorage.getItem(STORAGE_KEY)) return;   // active conv → no teaser
+            if (sessionStorage.getItem(TEASER_KEY)) return;   // dismissed this session
+            teaser.classList.add('visible');
+        }
+        function hideTeaser() {
+            if (teaser) teaser.classList.remove('visible');
+        }
+        // Auto-pop after 3 seconds
+        setTimeout(showTeaser, 3000);
+
+        if (teaserClose) {
+            teaserClose.addEventListener('click', function (e) {
+                e.stopPropagation();
+                hideTeaser();
+                sessionStorage.setItem(TEASER_KEY, '1');
+            });
+        }
+        if (teaserCta) {
+            teaserCta.addEventListener('click', function () {
+                hideTeaser();
+                sessionStorage.setItem(TEASER_KEY, '1');
+                openPanel();
+            });
+        }
+        if (teaser) {
+            teaser.addEventListener('click', function () {
+                hideTeaser();
+                sessionStorage.setItem(TEASER_KEY, '1');
+                openPanel();
+            });
+        }
+
+        // ── Quick replies (common questions) ─────────────────
+        const QUICK_REPLIES = [
+            'Track my order',
+            'Payment failed',
+            'Return an item',
+            'Delivery time',
+            'Contact support',
+        ];
+
+        function addQuickReplies() {
+            const existing = document.getElementById('fcQuickReplies');
+            if (existing) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'fc-quick-replies';
+            wrap.id = 'fcQuickReplies';
+            QUICK_REPLIES.forEach(function (q) {
+                const btn = document.createElement('button');
+                btn.className = 'fc-quick-btn';
+                btn.textContent = q;
+                btn.addEventListener('click', function () {
+                    const ta = document.getElementById('fcFirstMsg');
+                    if (ta) { ta.value = q; ta.focus(); }
+                });
+                wrap.appendChild(btn);
+            });
+            // Insert before the send button
+            const sendBtn = document.getElementById('fcStartBtn');
+            if (sendBtn && sendBtn.parentNode) {
+                sendBtn.parentNode.insertBefore(wrap, sendBtn);
+            }
+        }
 
         // ── Toggle panel ─────────────────────────────────────
         fab.addEventListener('click', function () {
@@ -2853,6 +3073,7 @@
             isPanelOpen = true;
             panel.classList.add('open');
             fab.querySelector('i').className = 'bi bi-x-lg';
+            hideTeaser();
             clearUnread();
             stopBgPolling();
             // If we have a saved conv, load it; else show start screen
@@ -2860,6 +3081,8 @@
             if (saved) {
                 convId = parseInt(saved, 10);
                 loadHistory();
+            } else {
+                addQuickReplies();
             }
             // Start fast polling if conv exists
             if (convId) startPolling();
@@ -2926,7 +3149,8 @@
             stopPolling();
             showStartScreen();
             messagesBody.innerHTML = '';
-            headerSub.textContent = 'We usually reply in minutes';
+            headerSub.innerHTML = '<span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly';
+            addQuickReplies();
         }
 
         // ── Append a message bubble ───────────────────────────
@@ -3027,6 +3251,8 @@
                 scrollBottom();
                 headerSub.textContent = 'Conversation #' + convId;
                 updateConvStatus('open');
+                // Poll immediately so the welcome + auto-reply appear fast
+                setTimeout(pollMessages, 600);
                 startPolling();
             })
             .catch(function () {
@@ -3150,7 +3376,8 @@
             messagesBody.innerHTML = '';
             stopPolling();
             showStartScreen();
-            headerSub.textContent = 'We usually reply in minutes';
+            headerSub.innerHTML = '<span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly';
+            addQuickReplies();
         });
 
         // ── Resume polling when page becomes visible ──────────

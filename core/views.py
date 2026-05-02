@@ -349,6 +349,9 @@ def chat_start(request):
         message=message_text,
     )
 
+    # ── Welcome message from bot ──────────────────────────────────────────────
+    _send_welcome_message(conv)
+
     # ── Auto-reply bot ────────────────────────────────────────────────────────
     _try_auto_reply(conv, message_text)
 
@@ -458,6 +461,29 @@ def _ensure_default_auto_replies():
 
     for rule in defaults:
         ChatAutoReply.objects.get_or_create(question=rule['question'], defaults=rule)
+
+
+def _send_welcome_message(conv):
+    """Send an instant welcome/acknowledgment message at the start of every new conversation."""
+    from core.models import ChatMessage
+
+    name = conv.display_name
+    greeting = f"Hi {name}! 👋 Welcome to our store. Thanks for reaching out — I'm the support bot and I'm here to help right away."
+    tips = (
+        "\n\nYou can ask me about:\n"
+        "• Order tracking & delivery\n"
+        "• Payments & refunds\n"
+        "• Products & stock\n"
+        "• Returns & complaints\n\n"
+        "A human agent will also check your message and follow up if needed. What can I help you with?"
+    )
+    ChatMessage.objects.create(
+        conversation=conv,
+        sender_type='admin',
+        sender_name='Support Bot',
+        message=greeting + tips,
+        is_read=True,
+    )
 
 
 def _try_auto_reply(conv, customer_text):

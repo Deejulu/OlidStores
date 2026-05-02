@@ -232,6 +232,11 @@ def checkout_view(request):
 			# Check transaction status and amount
 			if data.get('status') == 'success':
 				print('DEBUG entered success block')
+				# Reject non-NGN transactions (e.g. USD multi-currency)
+				tx_currency = (data.get('currency') or 'NGN').upper()
+				if tx_currency != 'NGN':
+					messages.error(request, f'This store only accepts Nigerian Naira (₦). Your payment was charged in {tx_currency}. Please contact support for a refund.')
+					return redirect('orders:checkout')
 				amount_kobo = int(data.get('amount', 0))
 				expected_kobo = int(round(float(total) * 100))
 				if amount_kobo != expected_kobo:

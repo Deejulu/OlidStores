@@ -191,6 +191,8 @@
         position: relative;
         animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         animation-fill-mode: both;
+        cursor: pointer;
+        will-change: transform;
     }
     
     @keyframes fadeInUp {
@@ -205,11 +207,11 @@
     }
     
     .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
-    .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
-    .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
-    .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
-    .dashboard-card:nth-child(5) { animation-delay: 0.5s; }
-    .dashboard-card:nth-child(6) { animation-delay: 0.6s; }
+    .dashboard-card:nth-child(2) { animation-delay: 0.15s; }
+    .dashboard-card:nth-child(3) { animation-delay: 0.2s; }
+    .dashboard-card:nth-child(4) { animation-delay: 0.25s; }
+    .dashboard-card:nth-child(5) { animation-delay: 0.3s; }
+    .dashboard-card:nth-child(6) { animation-delay: 0.35s; }
     
     /* Gradient Accent Border on Hover */
     .dashboard-card::before {
@@ -231,19 +233,24 @@
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(139, 115, 85, 0.03), transparent);
+        background: linear-gradient(135deg, rgba(var(--theme-accent-rgb, 139,115,85), 0.04), transparent);
         opacity: 0;
         transition: opacity 0.4s ease;
     }
     
     .dashboard-card:hover {
-        transform: translateY(-8px) scale(1.02);
+        transform: translateY(-10px) scale(1.02);
         box-shadow: var(--shadow-2xl);
         border-color: transparent;
     }
     
     .dashboard-card:hover::after {
         opacity: 1;
+    }
+    
+    .dashboard-card:focus-within {
+        outline: 3px solid rgba(var(--theme-accent-rgb, 139,115,85), 0.3);
+        outline-offset: 2px;
     }
     
     /* Card Body */
@@ -416,116 +423,129 @@
        ======================================== */
 
     /* ========================================
-       MOBILE-FIRST RESPONSIVE IMPROVEMENTS
+       MOBILE-FIRST RESPONSIVE IMPROVEMENTS  
+       Enhanced UX with better touch targets
        ======================================== */
 
-    /* --- Phones (< 576px): 2 cards per row, compact layout --- */
+    /* --- Phones (< 576px): 2 cards per row, optimized layout --- */
     @media (max-width: 575.98px) {
-        .dashboard-container { padding: 1rem 0 3rem; }
+        .dashboard-container { padding: 1.5rem 0 3rem; }
 
         .dashboard-header {
-            padding: 1.25rem 1rem;
-            margin-bottom: 1.25rem;
-            border-radius: 14px;
+            padding: 1.75rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border-radius: 16px;
         }
         .dashboard-header h2 {
-            font-size: 1.3rem;
-            margin-bottom: 0.3rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
         }
         .dashboard-subtitle {
-            font-size: 0.82rem;
-            line-height: 1.45;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
         .user-badge {
-            padding: 0.35rem 0.75rem;
-            font-size: 0.7rem;
-            letter-spacing: 0.5px;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.8px;
         }
 
         .dashboard-card-body {
-            padding: 1rem 0.75rem;
+            padding: 1.5rem 1.25rem;
             text-align: center;
         }
         .card-icon {
-            width: 48px;
-            height: 48px;
-            font-size: 1.35rem;
-            margin: 0 auto 0.75rem;
-            border-radius: 12px;
+            width: 56px;
+            height: 56px;
+            font-size: 1.5rem;
+            margin: 0 auto 0.9rem;
+            border-radius: 14px;
         }
-        .card-icon::before { border-radius: 14px; }
+        .card-icon::before { border-radius: 16px; }
         .dashboard-card h5 {
-            font-size: 0.9rem;
+            font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
             line-height: 1.25;
         }
         .dashboard-card p {
-            font-size: 0.75rem;
-            line-height: 1.4;
-            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
             color: #6b7280;
         }
         .dashboard-btn {
-            padding: 0.6rem 0.75rem;
-            font-size: 0.72rem;
-            letter-spacing: 0.2px;
-            gap: 0.3rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+            gap: 0.4rem;
             width: 100%;
+            min-height: 44px;
             justify-content: center;
         }
         .dashboard-card:hover {
-            transform: translateY(-3px) scale(1.01);
+            transform: translateY(-4px) scale(1.01);
         }
+        /* Better stats cards on mobile */
+        .row.g-2.g-sm-3 > div{margin-bottom:.75rem;}
+        .row.g-2.g-sm-3 .d-flex{padding:1rem .85rem !important;gap:.6rem !important;}
+        .row.g-2.g-sm-3 .d-flex > div:first-child{width:48px !important;height:48px !important;font-size:1.2rem !important;}
+        .row.g-2.g-sm-3 .d-flex > div:last-child > div:first-child{font-size:1.6rem !important;}
+        .row.g-2.g-sm-3 .d-flex > div:last-child > div:last-child{font-size:.75rem !important;}
     }
 
-    /* Very small phones (< 360px): tighten even more */
+    /* Very small phones (< 360px): ultra-compact */
     @media (max-width: 359.98px) {
-        .dashboard-header h2 { font-size: 1.1rem; }
-        .dashboard-card-body { padding: 0.75rem 0.5rem; }
-        .card-icon { width: 40px; height: 40px; font-size: 1.1rem; }
-        .dashboard-card h5 { font-size: 0.82rem; }
-        .dashboard-card p { display: none; } /* hide description on tiny screens */
-        .dashboard-btn { font-size: 0.68rem; padding: 0.5rem 0.5rem; }
+        .dashboard-header { padding: 1.5rem 1rem; }
+        .dashboard-header h2 { font-size: 1.3rem; }
+        .dashboard-card-body { padding: 1.25rem 1rem; }
+        .card-icon { width: 48px; height: 48px; font-size: 1.3rem; }
+        .dashboard-card h5 { font-size: 0.95rem; }
+        .dashboard-btn { font-size: 0.75rem; padding: 0.65rem 0.85rem; }
     }
 
-    /* --- Small tablets (576–767px): 2 cards per row, medium padding --- */
+    /* --- Small tablets (576–767px): 2 cards per row, enhanced spacing --- */
     @media (min-width: 576px) and (max-width: 767.98px) {
-        .dashboard-container { padding: 1.5rem 0 3rem; }
-        .dashboard-header { padding: 1.75rem 1.5rem; margin-bottom: 1.75rem; }
-        .dashboard-header h2 { font-size: 1.6rem; }
-        .dashboard-subtitle { font-size: 0.9rem; }
-        .dashboard-card-body { padding: 1.5rem 1.25rem; }
-        .card-icon { width: 56px; height: 56px; font-size: 1.6rem; margin-bottom: 1rem; }
-        .dashboard-card h5 { font-size: 1.1rem; }
-        .dashboard-card p { font-size: 0.875rem; margin-bottom: 1.25rem; }
-        .dashboard-btn { padding: 0.7rem 1.25rem; font-size: 0.8rem; }
+        .dashboard-container { padding: 2rem 0 3.5rem; }
+        .dashboard-header { padding: 2rem 1.75rem; margin-bottom: 2rem; }
+        .dashboard-header h2 { font-size: 1.9rem; }
+        .dashboard-subtitle { font-size: 0.95rem; }
+        .dashboard-card-body { padding: 1.75rem 1.5rem; }
+        .card-icon { width: 64px; height: 64px; font-size: 1.75rem; margin-bottom: 1.1rem; }
+        .dashboard-card h5 { font-size: 1.2rem; }
+        .dashboard-card p { font-size: 0.9rem; margin-bottom: 1.3rem; }
+        .dashboard-btn { padding: 0.8rem 1.4rem; font-size: 0.85rem; min-height: 44px; }
     }
 
-    /* --- Tablet portrait (768–991px): 2 cols --- */
+    /* --- Tablet portrait (768–991px): refined layout --- */
     @media (min-width: 768px) and (max-width: 991.98px) {
-        .dashboard-header { padding: 2.25rem 2rem; }
-        .dashboard-header h2 { font-size: 2.1rem; }
-        .dashboard-card-body { padding: 2rem 1.75rem; }
-        .card-icon { width: 68px; height: 68px; font-size: 1.9rem; }
-        .dashboard-card h5 { font-size: 1.3rem; }
+        .dashboard-header { padding: 2.5rem 2.25rem; }
+        .dashboard-header h2 { font-size: 2.3rem; }
+        .dashboard-card-body { padding: 2.25rem 2rem; }
+        .card-icon { width: 72px; height: 72px; font-size: 2rem; }
+        .dashboard-card h5 { font-size: 1.35rem; }
+        .dashboard-btn { min-height: 46px; }
     }
 
-    /* --- Landscape phone fix --- */
+    /* --- Landscape phone optimization --- */
     @media (max-height: 500px) and (orientation: landscape) {
-        .dashboard-container { padding: 0.75rem 0 2rem; }
-        .dashboard-header { padding: 1rem; margin-bottom: 1rem; }
-        .dashboard-header h2 { font-size: 1.25rem; }
-        .dashboard-card-body { padding: 0.75rem; }
-        .card-icon { width: 40px; height: 40px; font-size: 1.1rem; margin-bottom: 0.5rem; }
-        .dashboard-card p { display: none; }
+        .dashboard-container { padding: 1rem 0 2.5rem; }
+        .dashboard-header { padding: 1.25rem; margin-bottom: 1.25rem; }
+        .dashboard-header h2 { font-size: 1.4rem; }
+        .dashboard-card-body { padding: 1rem 0.85rem; }
+        .card-icon { width: 44px; height: 44px; font-size: 1.2rem; margin-bottom: 0.6rem; }
+        .dashboard-card p { font-size: 0.8rem; line-height: 1.3; }
+        .dashboard-btn { padding: 0.6rem; font-size: 0.75rem; min-height: 36px; }
     }
-
-    /* --- Remove conflicting grid override (was forcing 1-col on mobile) --- */
-    /* No grid-template-columns override; Bootstrap row handles layout */
+    
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .dashboard-card:active{transform:scale(0.98);}
+        .dashboard-btn:active{transform:scale(0.96);}
+        .dashboard-card,
+        .dashboard-btn{touch-action:manipulation;}
+    }
 
 </style>
 

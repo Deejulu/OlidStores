@@ -52,7 +52,7 @@
             {% csrf_token %}
             <input type="hidden" id="paystack_reference" name="paystack_reference">
 
-            <div id="paystack-debug-alert" class="alert alert-danger d-none rounded-4 mb-4" role="alert"></div>
+            <div id="paystack-debug-alert" class="alert alert-danger d-none rounded-4 mb-4" role="alert" style="font-size:0.875rem; line-height:1.6;"></div>
 
             <div class="row g-4">
                 <!-- Left Column: Shipping & Payment Details -->
@@ -70,45 +70,45 @@
                         <div class="card-body p-4">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="full_name" class="form-label fw-semibold">Full Name</label>
+                                    <label for="full_name" class="form-label">Full Name</label>
                                     <div class="ck-input-wrap">
                                         <i class="bi bi-person ck-input-icon"></i>
-                                        <input type="text" class="form-control form-control-lg ck-input-icon-pad" id="full_name"
+                                        <input type="text" class="form-control ck-input-icon-pad" id="full_name"
                                             name="full_name" value="{{ user.get_full_name|default:'' }}" required
-                                            placeholder="Enter your full name">
+                                            placeholder="e.g. Amara Johnson" autocomplete="name">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                    <label for="phone" class="form-label">Phone Number</label>
                                     <div class="ck-input-wrap">
                                         <i class="bi bi-telephone ck-input-icon"></i>
-                                        <input type="tel" class="form-control form-control-lg ck-input-icon-pad" id="phone" name="phone"
-                                            required placeholder="Enter your phone number">
+                                        <input type="tel" class="form-control ck-input-icon-pad" id="phone" name="phone"
+                                            required placeholder="e.g. 08012345678" autocomplete="tel" inputmode="tel">
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <label for="email" class="form-label fw-semibold">Email Address</label>
+                                    <label for="email" class="form-label">Email Address</label>
                                     <div class="ck-input-wrap">
                                         <i class="bi bi-envelope ck-input-icon"></i>
-                                        <input type="email" class="form-control form-control-lg ck-input-icon-pad" id="email" name="email"
-                                            value="{{ user.email|default:'' }}" required placeholder="Enter your email address">
+                                        <input type="email" class="form-control ck-input-icon-pad" id="email" name="email"
+                                            value="{{ user.email|default:'' }}" required placeholder="e.g. you@example.com" autocomplete="email" inputmode="email">
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <label for="delivery_address" class="form-label fw-semibold">Delivery Address</label>
+                                    <label for="delivery_address" class="form-label">Delivery Address</label>
                                     <div class="ck-input-wrap">
                                         <i class="bi bi-geo-alt ck-input-icon" style="top: 0.9rem;"></i>
-                                        <textarea class="form-control form-control-lg ck-input-icon-pad" id="delivery_address"
+                                        <textarea class="form-control ck-input-icon-pad" id="delivery_address"
                                             name="delivery_address" rows="3" required
-                                            placeholder="Enter your full delivery address"></textarea>
+                                            placeholder="e.g. 14 Adeola Street, Lekki Phase 1, Lagos" autocomplete="street-address"></textarea>
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <label for="notes" class="form-label fw-semibold">Order Notes (Optional)</label>
+                                    <label for="notes" class="form-label">Order Notes <span class="ck-optional-tag">Optional</span></label>
                                     <div class="ck-input-wrap">
                                         <i class="bi bi-chat-left-text ck-input-icon" style="top: 0.85rem;"></i>
                                         <textarea class="form-control ck-input-icon-pad" id="notes" name="notes" rows="2"
-                                            placeholder="Any special instructions for your order"></textarea>
+                                            placeholder="e.g. Leave at the gate, call before delivery"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -187,7 +187,8 @@
                                             <div class="ck-pay-icon ck-pay-icon--paystack mb-2"><i class="bi bi-lightning-charge-fill"></i></div>
                                             <span class="fw-bold text-dark">Paystack</span>
                                         </div>
-                                        <small class="text-muted">Card, Bank Transfer, USSD</small>
+                                        <small class="text-muted">Card · Bank · Transfer</small>
+                                        <span class="ck-currency-badge mt-2"><i class="bi bi-currency-exchange me-1"></i>NGN only</span>
                                     </label>
                                 </div>
                                 {% endif %}
@@ -248,11 +249,10 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="receipt" class="form-label fw-semibold">Upload Payment Receipt</label>
+                                    <label for="receipt" class="form-label">Upload Payment Receipt</label>
                                     <input type="file" class="form-control" id="receipt" name="receipt"
                                         accept="image/*,application/pdf">
-                                    <div class="form-text">Please upload a screenshot or PDF of your transfer receipt.
-                                    </div>
+                                    <div class="form-text" style="font-size: 0.75rem; color: #888; margin-top: 0.35rem;">JPG, PNG or PDF · Max 5 MB</div>
                                 </div>
                                 <div class="alert alert-warning d-flex align-items-center mb-0">
                                     <i class="bi bi-info-circle-fill me-2"></i>
@@ -1135,45 +1135,53 @@
         letter-spacing: 0.01em;
     }
 
-    /* Form label typography */
-    .checkout-page .form-label {
-        font-size: 0.7rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.07em !important;
-        text-transform: uppercase !important;
-        color: var(--gray-500) !important;
-        margin-bottom: 0.4rem !important;
-    }
-
     /* ── Inputs ──────────────────────────────────────────── */
     .checkout-page .form-control,
     .checkout-page textarea.form-control {
         font-family: var(--font-sans);
-        font-size: 0.94rem;
+        font-size: 1rem;
         font-weight: 500;
-        color: var(--gray-900);
+        color: #1a1a1a;
         letter-spacing: 0.01em;
-        border: 1.5px solid #e8e4de !important;
-        border-radius: 0.7rem !important;
-        padding: 0.78rem 1rem !important;
-        background: #fdfcfb;
+        border: 1.5px solid #ddd9d3 !important;
+        border-radius: 0.75rem !important;
+        padding: 0.85rem 1rem !important;
+        background: #ffffff;
         transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+        -webkit-appearance: none;
     }
     .checkout-page .form-control:focus,
     .checkout-page textarea.form-control:focus {
         border-color: var(--gold, #D4AF37) !important;
-        box-shadow: 0 0 0 4px rgba(212,175,55,0.12) !important;
-        background: #fff;
+        box-shadow: 0 0 0 4px rgba(212,175,55,0.14) !important;
+        background: #fffef8;
         outline: none;
     }
     .checkout-page .form-control:hover:not(:focus),
     .checkout-page textarea.form-control:hover:not(:focus) {
-        border-color: #c8c4be !important;
+        border-color: #b8b4ae !important;
+        background: #fdfcfb;
     }
+    /* Placeholder — bright enough for dim phone screens */
     .checkout-page .form-control::placeholder,
     .checkout-page textarea.form-control::placeholder {
-        color: #bbb;
+        color: #9e9894;
         font-weight: 400;
+        font-style: italic;
+    }
+    /* Valid state visual cue */
+    .checkout-page .form-control:valid:not(:placeholder-shown),
+    .checkout-page textarea.form-control:valid:not(:placeholder-shown) {
+        border-color: #86C17C !important;
+    }
+    /* Form label — bolder and bigger for readability */
+    .checkout-page .form-label {
+        font-size: 0.72rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        color: #555 !important;
+        margin-bottom: 0.5rem !important;
     }
 
     /* ── Delivery options ─────────────────────────────────── */
@@ -1333,6 +1341,41 @@
         color: var(--gray-300);
     }
 
+    /* ── Currency badge ───────────────────────────────────── */
+    .ck-currency-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #15803d;
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
+        border-radius: 999px;
+        padding: 0.18rem 0.55rem;
+    }
+    [data-theme="dark"] .ck-currency-badge {
+        color: #4ade80;
+        background: rgba(74,222,128,0.1);
+        border-color: rgba(74,222,128,0.25);
+    }
+
+    /* ── Optional tag ────────────────────────────────────────── */
+    .ck-optional-tag {
+        display: inline-block;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #aaa;
+        background: rgba(0,0,0,0.05);
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        margin-left: 0.35rem;
+        vertical-align: middle;
+    }
+
     /* ── Input icons ────────────────────────────────────────── */
     .ck-input-wrap {
         position: relative;
@@ -1342,8 +1385,8 @@
         left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #aaa;
-        font-size: 1rem;
+        color: #bbb;
+        font-size: 0.95rem;
         pointer-events: none;
         transition: color 180ms ease;
         z-index: 2;
@@ -1617,14 +1660,64 @@
 
     /* ── Mobile responsive ───────────────────────────────── */
     @media (max-width: 767px) {
-        .ck-delivery-card {
+        .checkout-page {
+            padding-top: 0.75rem !important;
+        }
+        .ck-hero {
             flex-direction: column;
             align-items: flex-start;
-            gap: 0.75rem;
+            gap: 0.5rem;
+            margin-bottom: 0.85rem;
+        }
+        .ck-secure-badge {
+            align-self: flex-start;
+        }
+        .ck-page-title {
+            font-size: 1.6rem;
+        }
+        .ck-card-header {
+            padding: 0.9rem 1rem;
+        }
+        .checkout-page .card-body {
+            padding: 1rem !important;
+        }
+        /* Full-width delivery cards on mobile */
+        .ck-delivery-card {
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.9rem 1rem !important;
+        }
+        .ck-delivery-left {
+            flex: 1;
+            min-width: 0;
         }
         .ck-delivery-price {
-            align-self: flex-end;
+            flex-shrink: 0;
+            font-size: 0.92rem;
+            padding: 0.35rem 0.75rem;
         }
+        /* Payment cards — 2 per row */
+        .payment-option {
+            min-height: 90px !important;
+            padding: 0.85rem !important;
+        }
+        .ck-pay-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+        }
+        /* Inputs — prevent iOS zoom */
+        .checkout-page .form-control,
+        .checkout-page textarea.form-control {
+            font-size: 16px !important;
+            padding: 0.9rem 1rem !important;
+        }
+        .ck-input-icon-pad {
+            padding-left: 2.75rem !important;
+        }
+        /* Order summary items */
         .ck-item-img {
             width: 52px;
             height: 52px;
@@ -1636,7 +1729,136 @@
             top: -5px;
             right: -5px;
         }
+        .ck-item-name {
+            font-size: 0.82rem;
+        }
+        .ck-total-row--grand span:last-child {
+            font-size: 1.3rem;
+        }
+        /* Steps bar — tighter on small phones */
+        .ck-steps-wrap {
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+        }
     }
+
+    /* Extra-small phones */
+    @media (max-width: 375px) {
+        .ck-page-title { font-size: 1.4rem; }
+        .ck-step-dot { width: 30px; height: 30px; font-size: 0.68rem; }
+        .ck-step-line { margin-top: 13px; min-width: 22px; }
+        .ck-delivery-icon { width: 36px; height: 36px; font-size: 1rem; }
+        .checkout-page .card-body { padding: 0.85rem !important; }
+    }
+
+    /* ── Dark Mode ───────────────────────────────────────── */
+    [data-theme="dark"] .checkout-page {
+        background:
+            radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,175,55,0.05) 0%, transparent 70%),
+            linear-gradient(180deg, #0f0e0d 0%, #0d0d0d 100%) !important;
+    }
+    [data-theme="dark"] .checkout-page .card {
+        background: #1a1919 !important;
+        border-color: rgba(255,255,255,0.07) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+    }
+    [data-theme="dark"] .ck-card-header {
+        background: linear-gradient(180deg, #211f1e 0%, #1c1b1a 100%);
+        border-bottom-color: rgba(255,255,255,0.07);
+        border-left-color: var(--theme-accent);
+    }
+    [data-theme="dark"] .ck-section-title { color: #f0f0f0; }
+    [data-theme="dark"] .ck-section-sub { color: #888; }
+    [data-theme="dark"] .ck-steps-wrap {
+        background: #1a1919;
+        border-color: rgba(255,255,255,0.07);
+    }
+    [data-theme="dark"] .checkout-page .form-label { color: #b0b0b0 !important; }
+    [data-theme="dark"] .checkout-page .form-control,
+    [data-theme="dark"] .checkout-page textarea.form-control {
+        background: #151413 !important;
+        border-color: rgba(255,255,255,0.1) !important;
+        color: #f0f0f0 !important;
+    }
+    [data-theme="dark"] .checkout-page .form-control:focus,
+    [data-theme="dark"] .checkout-page textarea.form-control:focus {
+        background: #1c1b1a !important;
+        border-color: var(--theme-accent) !important;
+        box-shadow: 0 0 0 4px rgba(var(--theme-accent-rgb,212,175,55), 0.15) !important;
+    }
+    [data-theme="dark"] .checkout-page .form-control::placeholder,
+    [data-theme="dark"] .checkout-page textarea.form-control::placeholder {
+        color: #5a5856 !important;
+    }
+    [data-theme="dark"] .ck-input-icon { color: #666 !important; }
+    [data-theme="dark"] .ck-input-wrap:focus-within .ck-input-icon { color: var(--theme-accent) !important; }
+    [data-theme="dark"] .ck-optional-tag {
+        color: #666;
+        background: rgba(255,255,255,0.06);
+    }
+    /* Delivery options dark */
+    [data-theme="dark"] .delivery-option {
+        border-color: rgba(255,255,255,0.09) !important;
+        background: #181716 !important;
+    }
+    [data-theme="dark"] .delivery-option:hover {
+        border-color: rgba(255,255,255,0.2) !important;
+        background: #1e1c1b !important;
+    }
+    [data-theme="dark"] .delivery-option:has(.form-check-input:checked) {
+        border-color: var(--theme-accent) !important;
+        background: rgba(var(--theme-accent-rgb,212,175,55), 0.06) !important;
+    }
+    [data-theme="dark"] .ck-delivery-title { color: #f0f0f0; }
+    [data-theme="dark"] .ck-delivery-desc { color: #888; }
+    [data-theme="dark"] .ck-delivery-price {
+        background: rgba(255,255,255,0.08);
+        color: #f0f0f0;
+    }
+    [data-theme="dark"] .ck-delivery-card:has(.form-check-input:checked) .ck-delivery-price {
+        background: var(--theme-accent);
+        color: #0a0a0a;
+    }
+    /* Payment options dark */
+    [data-theme="dark"] .payment-option {
+        border-color: rgba(255,255,255,0.09) !important;
+        background: #181716 !important;
+    }
+    [data-theme="dark"] .payment-option:has(.btn-check:checked) {
+        border-color: var(--theme-accent) !important;
+        background: rgba(var(--theme-accent-rgb,212,175,55), 0.07) !important;
+    }
+    [data-theme="dark"] .payment-option .fw-bold {
+        color: #f0f0f0 !important;
+    }
+    [data-theme="dark"] .payment-option .text-muted { color: #888 !important; }
+    [data-theme="dark"] .ck-summary-header {
+        background: linear-gradient(135deg, #2a2117, #201a12);
+    }
+    /* Mobile bar dark */
+    [data-theme="dark"] #mobile-checkout-bar {
+        background: linear-gradient(180deg, rgba(22,20,18,0.98), rgba(18,16,14,0.98)) !important;
+        border-top-color: rgba(255,255,255,0.07) !important;
+        backdrop-filter: blur(12px) !important;
+    }
+    [data-theme="dark"] #mobile-checkout-bar .text-muted { color: #888 !important; }
+    [data-theme="dark"] #mobile-checkout-bar .text-primary { color: var(--theme-accent) !important; }
+    [data-theme="dark"] #manual-payment-section {
+        background: #151413 !important;
+        border-color: rgba(255,255,255,0.07) !important;
+    }
+    [data-theme="dark"] #manual-payment-section .text-muted { color: #888 !important; }
+    [data-theme="dark"] #manual-payment-section .fw-bold { color: #f0f0f0 !important; }
+    [data-theme="dark"] .ck-total-row { border-bottom-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .ck-total-row span { color: #a0a0a0 !important; }
+    [data-theme="dark"] .ck-total-row span:last-child { color: #f0f0f0 !important; }
+    [data-theme="dark"] .ck-item { border-bottom-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .ck-item-name { color: #f0f0f0; }
+    [data-theme="dark"] .ck-item-variant { color: #888; }
+    [data-theme="dark"] .ck-item-price { color: #f0f0f0; }
+    [data-theme="dark"] .ck-breadcrumb a { color: #888; }
+    [data-theme="dark"] .ck-page-title { color: #f8f8f8; }
+    [data-theme="dark"] .ck-page-sub { color: #777; }
 </style>
 
 <script>
@@ -1935,14 +2157,22 @@
             const form = document.getElementById('checkout-form');
             const paystackDebugAlert = document.getElementById('paystack-debug-alert');
 
-            function showPaystackDebug(message) {
+            function showPaystackDebug(message, isWarning) {
                 if (!paystackDebugAlert) return;
-                paystackDebugAlert.innerText = message;
+                paystackDebugAlert.className = 'alert rounded-4 mb-4 ' + (isWarning ? 'alert-warning' : 'alert-danger');
+                paystackDebugAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + message;
                 paystackDebugAlert.classList.remove('d-none');
+                paystackDebugAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            function hidePaystackDebug() {
+                if (paystackDebugAlert) paystackDebugAlert.classList.add('d-none');
             }
 
             if (paystackBtn) {
                 let paystackProcessing = false;
+                let callbackFired = false; // track whether Paystack called our success callback
+
                 paystackBtn.onclick = function (e) {
                     e.preventDefault();
 
@@ -1955,14 +2185,14 @@
                     }
 
                     // Get form values
-                    const fullName = form.full_name.value;
-                    const email = form.email.value;
-                    const phone = form.phone.value;
-                    const address = form.delivery_address.value;
-                    const notes = form.notes.value;
+                    const fullName = form.full_name.value.trim();
+                    const email = form.email.value.trim();
+                    const phone = form.phone.value.trim();
+                    const address = form.delivery_address.value.trim();
+                    const notes = form.notes ? form.notes.value.trim() : '';
 
                     if (!fullName || !email || !phone || !address) {
-                        alert('Please fill all required fields.');
+                        showPaystackDebug('Please fill in all required fields (name, email, phone, address) before paying.');
                         return;
                     }
 
@@ -1976,83 +2206,111 @@
                     const total = baseTotal + (deliveryFee || 0);
                     const amount = Math.round(total * 100); // Convert to kobo
 
-                    // clear old Paystack debug messages
-                    if (paystackDebugAlert) {
-                        paystackDebugAlert.classList.add('d-none');
+                    if (amount <= 0) {
+                        showPaystackDebug('Order total is invalid (₦0). Please add items to your cart.');
+                        return;
                     }
+
+                    hidePaystackDebug();
+                    callbackFired = false;
+
                     // mark processing locally (disable UI)
                     paystackProcessing = true;
                     if (window.__checkout_setProcessingButtons) {
                         window.__checkout_setProcessingButtons(true, paystackBtn);
                     } else {
-                        // best-effort fallback
                         paystackBtn.disabled = true;
                     }
 
-                    // Initialize Paystack
-                    const paystackRef = 'REF_' + Math.floor((Math.random() * 1000000000) + 1);
-                    console.log('Paystack init', {
+                    // Build config — phone is required for USSD dial-code generation
+                    const paystackRef = 'REF_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
+                    const paystackConfig = {
                         key: '{{ PAYSTACK_PUBLIC }}',
                         email: email,
+                        phone: phone,          // REQUIRED for USSD — Paystack uses this to send the dial code
+                        firstname: fullName.split(' ')[0] || fullName,
+                        lastname: fullName.split(' ').slice(1).join(' ') || '',
                         amount: amount,
                         currency: 'NGN',
-                        channels: ['bank', 'ussd', 'card'],
+                        channels: ['card', 'bank', 'bank_transfer'],
                         ref: paystackRef,
-                    });
-
-                    const handler = PaystackPop.setup({
-                        key: '{{ PAYSTACK_PUBLIC }}',
-                        email: email,
-                        amount: amount,
-                        currency: 'NGN',
-                        channels: ['bank', 'ussd', 'card'],
-                        ref: paystackRef,
+                        label: fullName,
                         metadata: {
                             custom_fields: [
-                                { display_name: "Full Name", variable_name: 'full_name', value: fullName },
-                                { display_name: "Phone Number", variable_name: 'phone', value: phone },
+                                { display_name: 'Full Name',        variable_name: 'full_name',        value: fullName },
+                                { display_name: 'Phone Number',     variable_name: 'phone',            value: phone },
                                 { display_name: 'Delivery Address', variable_name: 'delivery_address', value: address },
-                                { display_name: 'Order Notes', variable_name: 'notes', value: notes }
+                                { display_name: 'Order Notes',      variable_name: 'notes',            value: notes }
                             ]
                         },
                         callback: function (response) {
-                            console.log('Paystack callback received', response);
+                            callbackFired = true;
+                            console.log('[Paystack] callback — success', response);
                             if (!response || !response.reference) {
-                                showPaystackDebug('Paystack returned no reference. Please try again.');
+                                showPaystackDebug('Paystack returned no transaction reference. Please try again or use bank transfer instead.');
                                 paystackProcessing = false;
-                                if (window.__checkout_setProcessingButtons) {
-                                    window.__checkout_setProcessingButtons(false);
-                                }
+                                if (window.__checkout_setProcessingButtons) window.__checkout_setProcessingButtons(false);
                                 return;
                             }
                             document.getElementById('paystack_reference').value = response.reference;
                             form.submit();
                         },
                         onClose: function () {
-                            console.log('Paystack popup closed by user');
-                            // restore UI when user closes the popup
+                            console.log('[Paystack] popup closed. callbackFired =', callbackFired);
                             paystackProcessing = false;
                             if (window.__checkout_setProcessingButtons) {
                                 window.__checkout_setProcessingButtons(false);
-                            } else if (typeof setProcessingButtons === 'function') {
-                                setProcessingButtons(false);
                             } else {
-                                // best-effort: re-enable primary buttons
                                 ['#paystack-btn','#manual-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop']
                                     .forEach(s => document.querySelectorAll(s).forEach(b => b && (b.disabled = false)));
                             }
+
+                            // If the popup closed WITHOUT a successful callback, it means the
+                            // payment was not completed (user cancelled, error, network, etc.)
+                            if (!callbackFired) {
+                                showPaystackDebug(
+                                    '<strong>Payment window closed without completing.</strong> ' +
+                                    'Possible reasons: ' +
+                                    '<ul class="mb-1 mt-1" style="padding-left:1.2rem;">' +
+                                    '<li>You closed the window before completing payment.</li>' +
+                                    '<li>A network error occurred inside the Paystack popup.</li>' +
+                                    '<li>In test mode, use the test card: <code style="font-size:0.78rem;">4084 0840 8408 4081</code> · CVV <code style="font-size:0.78rem;">408</code> · Expiry <code style="font-size:0.78rem;">01/99</code> · PIN <code style="font-size:0.78rem;">0000</code> · OTP <code style="font-size:0.78rem;">123456</code></li>' +
+                                    '</ul>' +
+                                    'Debug info: <code style="font-size:0.78rem;">ref=' + paystackRef + ' | amount=\u20a6' + (amount/100).toFixed(2) + ' | key={{ PAYSTACK_PUBLIC|slice:":10" }}...</code>',
+                                    true
+                                );
+                            }
                         }
+                    };
+
+                    console.log('[Paystack] initialising with config:', {
+                        key: paystackConfig.key,
+                        email: paystackConfig.email,
+                        phone: paystackConfig.phone,
+                        amount: paystackConfig.amount,
+                        currency: paystackConfig.currency,
+                        channels: paystackConfig.channels,
+                        ref: paystackConfig.ref,
                     });
+
+                    let handler;
+                    try {
+                        handler = PaystackPop.setup(paystackConfig);
+                    } catch (setupErr) {
+                        console.error('[Paystack] setup error:', setupErr);
+                        showPaystackDebug('Paystack SDK setup failed: ' + (setupErr && setupErr.message ? setupErr.message : String(setupErr)));
+                        paystackProcessing = false;
+                        if (window.__checkout_setProcessingButtons) window.__checkout_setProcessingButtons(false);
+                        return;
+                    }
 
                     try {
                         handler.openIframe();
                     } catch (paystackErr) {
-                        console.error('Paystack iframe open error:', paystackErr);
-                        showPaystackDebug('Unable to open Paystack payment window. Please try again or use another payment method. ' + (paystackErr && paystackErr.message ? paystackErr.message : ''));
+                        console.error('[Paystack] openIframe error:', paystackErr);
+                        showPaystackDebug('Unable to open Paystack payment window: ' + (paystackErr && paystackErr.message ? paystackErr.message : String(paystackErr)) + '. Please try again or use bank transfer.');
                         paystackProcessing = false;
-                        if (window.__checkout_setProcessingButtons) {
-                            window.__checkout_setProcessingButtons(false);
-                        }
+                        if (window.__checkout_setProcessingButtons) window.__checkout_setProcessingButtons(false);
                     }
                 };
             }
