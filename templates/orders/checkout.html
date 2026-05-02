@@ -1855,6 +1855,60 @@
     [data-theme="dark"] .ck-breadcrumb a { color: #888; }
     [data-theme="dark"] .ck-page-title { color: #f8f8f8; }
     [data-theme="dark"] .ck-page-sub { color: #777; }
+
+    /* ── Dark mode: radio & checkbox natural sizing ── */
+    [data-theme="dark"] .form-check-input[type="radio"],
+    [data-theme="dark"] .form-check-input[type="checkbox"] {
+        min-height: unset !important;
+        width: 1.15em !important;
+        height: 1.15em !important;
+        border-color: rgba(255,255,255,0.45) !important;
+        background-color: #2a2a2a !important;
+    }
+    [data-theme="dark"] .form-check-input[type="radio"]:checked {
+        background-color: var(--theme-accent, #D4AF37) !important;
+        border-color: var(--theme-accent, #D4AF37) !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%230a0a0a'/%3e%3c/svg%3e") !important;
+    }
+
+    /* ── Dark mode: small-screen payment & delivery cards ── */
+    @media (max-width: 575.98px) {
+        [data-theme="dark"] .payment-option {
+            min-height: 90px !important;
+            padding: 0.85rem !important;
+        }
+        [data-theme="dark"] .payment-option span,
+        [data-theme="dark"] .payment-option small {
+            line-height: 1.4 !important;
+        }
+        [data-theme="dark"] .delivery-option {
+            padding: 0.85rem 1rem !important;
+        }
+        [data-theme="dark"] .delivery-option span,
+        [data-theme="dark"] .delivery-option small {
+            line-height: 1.4 !important;
+        }
+        [data-theme="dark"] .ck-pay-icon {
+            width: 38px !important;
+            height: 38px !important;
+            font-size: 1.1rem !important;
+        }
+    }
+    @media (max-width: 390px) {
+        [data-theme="dark"] .payment-option {
+            min-height: 80px !important;
+            padding: 0.7rem !important;
+        }
+        [data-theme="dark"] .delivery-option {
+            padding: 0.7rem 0.85rem !important;
+        }
+        [data-theme="dark"] .ck-pay-icon {
+            width: 34px !important;
+            height: 34px !important;
+        }
+        [data-theme="dark"] .payment-logo .fw-bold { font-size: 0.82rem !important; }
+        [data-theme="dark"] .ck-delivery-title { font-size: 0.88rem !important; }
+    }
 </style>
 
 <script>
