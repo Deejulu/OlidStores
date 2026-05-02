@@ -303,6 +303,100 @@
         .od-card-body { padding: 0.85rem 1rem; }
         .od-summary-total .stvalue { font-size: 1.3rem; }
     }
+
+    /* ── Dark mode ─────────────────────────────────────────────── */
+    [data-theme="dark"] .od-page {
+        background: linear-gradient(135deg, #0d0f18 0%, #111420 60%, #141720 100%);
+    }
+    /* Tracker wrap & cards */
+    [data-theme="dark"] .od-tracker-wrap {
+        background: #181b2a;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+    [data-theme="dark"] .od-card {
+        background: #181b2a;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    [data-theme="dark"] .od-card-header {
+        background: #181b2a;
+        border-bottom-color: #252842;
+    }
+    [data-theme="dark"] .od-card-header h5 { color: #eef2ff; }
+    /* Tracker */
+    [data-theme="dark"] .od-tracker-dot {
+        background: #252842; color: #5a6282; border-color: #2e3252;
+    }
+    [data-theme="dark"] .od-tracker-line          { background: #252842; }
+    [data-theme="dark"] .od-tracker-line.done      { background: #10b981; }
+    [data-theme="dark"] .od-tracker-label          { color: #5a6282; }
+    [data-theme="dark"] .od-tracker-step.done   .od-tracker-label,
+    [data-theme="dark"] .od-tracker-step.active .od-tracker-label { color: #c7cee8; }
+    /* Table */
+    [data-theme="dark"] .od-items-table thead th {
+        background: #1d2038; color: #5a6282; border-bottom-color: #252842;
+    }
+    [data-theme="dark"] .od-items-table tbody td {
+        color: #c7cee8; border-bottom-color: #1d2038;
+    }
+    [data-theme="dark"] .od-items-table tbody tr:hover td { background: #1d2038; }
+    [data-theme="dark"] .od-items-table tbody .text-muted  { color: #5a6282 !important; }
+    [data-theme="dark"] .od-items-table tbody .fw-semibold { color: #eef2ff; }
+    [data-theme="dark"] .od-tfoot td {
+        background: #1d2038; color: #8892a8;
+    }
+    [data-theme="dark"] .od-tfoot .od-grand-row td {
+        background: #181b2a; color: #eef2ff; border-top-color: #252842;
+    }
+    /* Product placeholder */
+    [data-theme="dark"] .od-product-placeholder {
+        background: #252842; color: #5a6282;
+    }
+    /* Mobile item cards */
+    [data-theme="dark"] .od-item-card         { border-bottom-color: #1d2038; }
+    [data-theme="dark"] .od-item-card-name    { color: #eef2ff; }
+    [data-theme="dark"] .od-item-card-meta    { color: #5a6282; }
+    [data-theme="dark"] .od-item-card-price   { color: #eef2ff; }
+    [data-theme="dark"] .od-totals-block      { background: #1d2038; border-top-color: #252842; }
+    [data-theme="dark"] .od-totals-row        { color: #c7cee8; }
+    [data-theme="dark"] .od-totals-row .text-muted { color: #5a6282 !important; }
+    [data-theme="dark"] .od-totals-row.od-grand { border-top-color: #252842; color: #eef2ff; }
+    /* Info rows */
+    [data-theme="dark"] .od-info-row          { border-bottom-color: #1d2038; }
+    [data-theme="dark"] .od-info-label        { color: #5a6282; }
+    [data-theme="dark"] .od-info-value        { color: #eef2ff; }
+    /* Tracking badge */
+    [data-theme="dark"] .od-tracking-badge {
+        background: #1d2038; border-color: #252842; color: #c7cee8;
+    }
+    /* Payment reference code block */
+    [data-theme="dark"] code {
+        background: #1d2038 !important; color: #93c5fd !important;
+    }
+    /* Summary card */
+    [data-theme="dark"] .od-summary-row       { border-bottom-color: #1d2038; }
+    [data-theme="dark"] .od-summary-row .slab { color: #5a6282; }
+    [data-theme="dark"] .od-summary-row .sval { color: #eef2ff; }
+    [data-theme="dark"] .od-summary-total     { border-top-color: #252842; }
+    [data-theme="dark"] .od-summary-total .stlabel { color: #eef2ff; }
+    /* Badge variants inside table */
+    [data-theme="dark"] .badge.bg-light { background: #252842 !important; color: #c7cee8 !important; border-color: #2e3252 !important; }
+    /* Mobile sticky bar */
+    [data-theme="dark"] .od-mobile-bar {
+        background: #181b2a;
+        border-top-color: #252842;
+        box-shadow: 0 -6px 24px rgba(0,0,0,0.4);
+    }
+    [data-theme="dark"] .od-bar-label { color: #5a6282 !important; }
+    [data-theme="dark"] .od-bar-total { color: #eef2ff !important; }
+    /* Cancelled note */
+    [data-theme="dark"] .od-cancelled-note { color: #f87171; }
+
+    /* Bar label & total — light mode defaults */
+    .od-bar-label {
+        font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.4px; color: #9ca3af;
+    }
+    .od-bar-total { font-size: 1.2rem; color: #1f2937; }
 </style>
 
 {% with status=order.status|lower %}
@@ -725,12 +819,8 @@
 <div class="od-mobile-bar d-lg-none">
     <div class="d-flex align-items-center justify-content-between gap-2">
         <div>
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#9ca3af;">
-                Grand Total
-            </div>
-            <div class="fw-bold" style="font-size:1.2rem;color:#1f2937;">
-                ₦{{ order.grand_total|floatformat:2 }}
-            </div>
+            <div class="od-bar-label">Grand Total</div>
+            <div class="od-bar-total fw-bold">₦{{ order.grand_total|floatformat:2 }}</div>
         </div>
         <div class="d-flex gap-2">
             <button id="mobile-reorder-btn" class="btn btn-primary px-4">

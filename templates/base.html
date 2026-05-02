@@ -7,6 +7,19 @@
     <title>{% block title %}Olid Stores | Premium Shopping{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Olid Stores - Your trusted online shopping destination{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}luxury fashion, sustainable clothing, designer accessories, premium style{% endblock %}">
+    <script>
+        // Apply theme before CSS paints to avoid dark/light flicker on refresh.
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = saved || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     
     <!-- Enhanced Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2498,7 +2511,7 @@
             position: fixed;
             bottom: 5.5rem;
             right: 1.5rem;
-            z-index: 9998;
+            z-index: 200000;
             width: 58px;
             height: 58px;
             border-radius: 50%;
@@ -2568,7 +2581,7 @@
             position: fixed;
             bottom: 9.5rem;
             right: 1.5rem;
-            z-index: 9997;
+            z-index: 199999;
             width: 350px;
             max-width: calc(100vw - 2rem);
             background: #fff;
@@ -2775,7 +2788,7 @@
             position: fixed;
             bottom: 7rem;
             right: 5.5rem;
-            z-index: 9996;
+            z-index: 199998;
             background: #fff;
             border-radius: 14px 14px 4px 14px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.18);
@@ -2870,6 +2883,42 @@
         [data-theme="dark"] .fc-quick-btn { background: #222; border-color: #444; color: #d0d0d0; }
         [data-theme="dark"] .fc-quick-btn:hover { background: #2a2a2a; }
         [data-theme="dark"] .fc-closed-notice { background: #1a1a1a; color: #888; border-top-color: #2a2a2a; }
+
+        /* ── Dropdown dark mode ── */
+        [data-theme="dark"] .dropdown-menu,
+        [data-theme="dark"] .user-dropdown-menu {
+            background: #1e2130 !important;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.55) !important;
+            border: 1px solid #2a2e45 !important;
+        }
+        [data-theme="dark"] .dropdown-header-section {
+            background: linear-gradient(135deg, #252842 0%, #1e2130 100%) !important;
+            border-bottom: 1px solid #2a2e45 !important;
+        }
+        [data-theme="dark"] .user-header-name  { color: #eef2ff !important; }
+        [data-theme="dark"] .user-header-email { color: #6b7280 !important; }
+        [data-theme="dark"] .dropdown-section-title { color: #4b5280 !important; }
+        [data-theme="dark"] .dropdown-item {
+            color: #c7cee8 !important;
+        }
+        [data-theme="dark"] .dropdown-item:hover,
+        [data-theme="dark"] .dropdown-item:focus {
+            background: #252842 !important;
+            color: #eef2ff !important;
+        }
+        [data-theme="dark"] .dropdown-item i { color: #5a6282 !important; }
+        [data-theme="dark"] .dropdown-item:hover i,
+        [data-theme="dark"] .dropdown-item:focus i { color: var(--accent-color, #8b7355) !important; }
+        [data-theme="dark"] .dropdown-divider { border-top-color: #2a2e45 !important; }
+        [data-theme="dark"] .logout-item { color: #f87171 !important; }
+        [data-theme="dark"] .logout-item i { color: #f87171 !important; }
+        [data-theme="dark"] .logout-item:hover,
+        [data-theme="dark"] .logout-item:focus {
+            background: rgba(239,68,68,0.12) !important;
+            color: #fca5a5 !important;
+        }
+        [data-theme="dark"] .logout-item:hover i,
+        [data-theme="dark"] .logout-item:focus i { color: #fca5a5 !important; }
     </style>
 
     <!-- Teaser bubble — auto-pops after 3 s if no active conversation -->
@@ -3247,12 +3296,13 @@
                     message: msg,
                     created_at: new Date().toISOString(),
                 });
-                lastMsgAt = new Date().toISOString();
+                // Use server timestamp so the first poll catches welcome + auto-reply
+                lastMsgAt = data.message_created_at || new Date().toISOString();
                 scrollBottom();
                 headerSub.textContent = 'Conversation #' + convId;
                 updateConvStatus('open');
                 // Poll immediately so the welcome + auto-reply appear fast
-                setTimeout(pollMessages, 600);
+                setTimeout(pollMessages, 800);
                 startPolling();
             })
             .catch(function () {
@@ -3299,6 +3349,8 @@
                 replySendBtn.disabled = false;
                 if (data.success) {
                     lastMsgAt = data.created_at;
+                    // Poll quickly to pick up any bot auto-reply
+                    setTimeout(pollMessages, 800);
                 }
             })
             .catch(function () { replySendBtn.disabled = false; });
@@ -4337,33 +4389,42 @@
             const darkModeToggle = document.getElementById('darkModeToggle');
             const darkModeIcon = document.getElementById('darkModeIcon');
             const html = document.documentElement;
-            
-            // Check for saved theme preference or default to light mode
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            
-            // Apply the theme on page load
-            if (currentTheme === 'dark') {
-                html.setAttribute('data-theme', 'dark');
-                updateIcon(true);
+
+            function resolveTheme() {
+                try {
+                    const saved = localStorage.getItem('theme');
+                    if (saved === 'dark' || saved === 'light') return saved;
+                } catch (e) {}
+
+                const existing = html.getAttribute('data-theme');
+                if (existing === 'dark' || existing === 'light') return existing;
+
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                return prefersDark ? 'dark' : 'light';
             }
+
+            const currentTheme = resolveTheme();
+            html.setAttribute('data-theme', currentTheme);
+            updateIcon(currentTheme === 'dark');
             
             // Toggle dark mode
-            darkModeToggle.addEventListener('click', function() {
+            if (darkModeToggle) darkModeToggle.addEventListener('click', function() {
                 const isDark = html.getAttribute('data-theme') === 'dark';
                 
                 if (isDark) {
                     html.setAttribute('data-theme', 'light');
-                    localStorage.setItem('theme', 'light');
+                    try { localStorage.setItem('theme', 'light'); } catch (e) {}
                     updateIcon(false);
                 } else {
                     html.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
+                    try { localStorage.setItem('theme', 'dark'); } catch (e) {}
                     updateIcon(true);
                 }
             });
             
             // Update icon based on theme
             function updateIcon(isDark) {
+                if (!darkModeIcon) return;
                 if (isDark) {
                     darkModeIcon.classList.remove('bi-moon-stars-fill');
                     darkModeIcon.classList.add('bi-sun-fill');
@@ -4377,7 +4438,7 @@
             document.addEventListener('keydown', function(e) {
                 if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
                     e.preventDefault();
-                    darkModeToggle.click();
+                    if (darkModeToggle) darkModeToggle.click();
                 }
             });
         })();

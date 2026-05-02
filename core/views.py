@@ -342,7 +342,7 @@ def chat_start(request):
             status='open',
         )
 
-    ChatMessage.objects.create(
+    customer_msg = ChatMessage.objects.create(
         conversation=conv,
         sender_type='customer',
         sender_name=conv.display_name,
@@ -359,6 +359,7 @@ def chat_start(request):
         'success': True,
         'conversation_id': conv.pk,
         'display_name': conv.display_name,
+        'message_created_at': customer_msg.created_at.isoformat(),
     })
 
 

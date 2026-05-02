@@ -1,619 +1,303 @@
-{% extends 'base_customer.html' %}
+﻿{% extends 'base_customer.html' %}
 {% load static %}
 
 {% block extra_css %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
+    /* â”€â”€ Page â”€â”€ */
     .orders-page {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
-        padding: 2rem 0;
+        padding: 2rem 0 5rem;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
 
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
+    /* â”€â”€ Header â”€â”€ */
+    .orders-header { margin-bottom: 2rem; animation: slideDown 0.5s ease; }
+    .orders-header .breadcrumb { background: transparent; padding: 0; margin-bottom: 1rem; }
+    .orders-header .breadcrumb-item { color: #6b7280; font-size: 0.9375rem; }
+    .orders-header .breadcrumb-item.active { color: #374151; font-weight: 600; }
+    .orders-header .breadcrumb-item a { color: #3b82f6; text-decoration: none; transition: color 300ms; }
+    .orders-header .breadcrumb-item a:hover { color: #2563eb; text-decoration: underline; }
+    .orders-header h1 { font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem; letter-spacing: -0.5px; }
+    .orders-header h1 i { color: #3b82f6; }
+    .orders-header p { font-size: 1rem; color: #6b7280; font-weight: 500; }
 
-    /* Header */
-    .orders-header {
-        margin-bottom: 3rem;
-        animation: slideDown 0.5s ease;
-    }
-
-    .orders-header .breadcrumb {
-        background: transparent;
-        padding: 0;
-        margin-bottom: 1.5rem;
-    }
-
-    .orders-header .breadcrumb-item {
-        color: #6b7280;
-        font-size: 0.9375rem;
-    }
-
-    .orders-header .breadcrumb-item.active {
-        color: #374151;
-        font-weight: 600;
-    }
-
-    .orders-header .breadcrumb-item a {
-        color: #3b82f6;
-        text-decoration: none;
-        transition: color 300ms;
-    }
-
-    .orders-header .breadcrumb-item a:hover {
-        color: #2563eb;
-        text-decoration: underline;
-    }
-
-    .orders-header h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #0f172a;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.5px;
-    }
-
-    .orders-header h1 i {
-        color: #3b82f6;
-    }
-
-    .orders-header p {
-        font-size: 1.0625rem;
-        color: #6b7280;
-        font-weight: 500;
-    }
-
-    /* Search Bar */
-    .controls-bar {
-        margin-bottom: 3rem;
-    }
-
-    .search-input-wrap {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .search-input-wrap i {
-        position: absolute;
-        left: 1.25rem;
-        color: #9ca3af;
-        font-size: 1.125rem;
-        pointer-events: none;
-    }
-
+    /* â”€â”€ Controls bar â”€â”€ */
+    .controls-bar { margin-bottom: 1.5rem; }
+    .search-input-wrap { position: relative; display: flex; align-items: center; }
+    .search-input-wrap i { position: absolute; left: 1.1rem; color: #9ca3af; font-size: 1.1rem; pointer-events: none; }
     .search-input-wrap input {
-        width: 100%;
-        padding: 1rem 1.25rem 1rem 3.5rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.875rem;
-        font-size: 1rem;
-        transition: all 300ms;
-        background: white;
-        color: #1f2937;
+        width: 100%; padding: 0.875rem 1rem 0.875rem 3.25rem;
+        border: 2px solid #e5e7eb; border-radius: 0.875rem;
+        font-size: 0.97rem; transition: all 300ms; background: white; color: #1f2937;
+    }
+    .search-input-wrap input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); }
+    .search-input-wrap input::placeholder { color: #9ca3af; }
+
+    /* â”€â”€ Filter / sort strip â”€â”€ */
+    .filter-strip {
+        display: flex; flex-wrap: wrap; gap: 0.5rem;
+        align-items: center; padding: 0.85rem 1rem;
+        background: white; border-radius: 0.875rem;
+        border: 1px solid #e5e7eb; margin-bottom: 1.25rem;
+    }
+    .filter-strip-label { font-size: 0.78rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .4px; flex-shrink: 0; }
+    .filter-btn {
+        padding: 0.38rem 0.85rem; border-radius: 999px;
+        font-size: 0.8rem; font-weight: 600; cursor: pointer;
+        border: 1.5px solid #e5e7eb; background: #f3f4f6; color: #374151;
+        transition: all 200ms; line-height: 1.4; white-space: nowrap;
+    }
+    .filter-btn:hover  { border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,.06); }
+    .filter-btn.active { border-color: #3b82f6; background: #3b82f6; color: white; }
+    .filter-divider { width: 1px; height: 20px; background: #e5e7eb; flex-shrink: 0; margin: 0 0.25rem; }
+    .sort-select {
+        padding: 0.38rem 0.75rem; border-radius: 999px;
+        font-size: 0.8rem; font-weight: 600;
+        border: 1.5px solid #e5e7eb; background: #f3f4f6; color: #374151;
+        cursor: pointer; transition: all 200ms;
+        appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 0.65rem center;
+        padding-right: 2rem;
+    }
+    .sort-select:focus { outline: none; border-color: #3b82f6; }
+
+    /* â”€â”€ Results summary â”€â”€ */
+    .results-bar {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .results-count { font-size: 0.83rem; color: #6b7280; font-weight: 600; }
+    .clear-filters-btn {
+        font-size: 0.78rem; color: #3b82f6; background: none; border: none;
+        cursor: pointer; font-weight: 600; padding: 0; text-decoration: underline;
     }
 
-    .search-input-wrap input:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    }
-
-    .search-input-wrap input::placeholder {
-        color: #9ca3af;
-    }
-
-    /* Order Cards */
+    /* â”€â”€ Order Card â”€â”€ */
     .order-card {
-        background: white;
-        border: none;
-        border-radius: 1rem;
-        padding: 1.75rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-        position: relative;
+        background: white; border-radius: 1rem; padding: 1.5rem;
+        margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        transition: all 300ms cubic-bezier(0.4,0,0.2,1);
+        overflow: hidden; position: relative;
     }
-
     .order-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #3b82f6, #60a5fa);
-        opacity: 0;
-        transition: opacity 300ms;
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa); opacity: 0; transition: opacity 300ms;
     }
+    .order-card:hover { box-shadow: 0 10px 28px rgba(59,130,246,0.14); transform: translateY(-3px); }
+    .order-card:hover::before { opacity: 1; }
 
-    .order-card:hover {
-        box-shadow: 0 12px 25px rgba(59, 130, 246, 0.15);
-        transform: translateY(-4px);
-    }
+    /* card collapsed state */
+    .order-card.collapsed .order-card-body { display: none; }
 
-    .order-card:hover::before {
-        opacity: 1;
-    }
-
-    /* Order Header */
+    /* â”€â”€ Order Header â”€â”€ */
     .order-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e5e7eb;
+        display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;
+        margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;
     }
-
-    .order-id-section {
-        flex: 1;
-    }
-
+    .order-header.no-border-bottom { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .order-id-section { flex: 1; min-width: 0; }
     .order-id-link {
-        color: #3b82f6;
-        text-decoration: none;
-        font-size: 1.375rem;
-        font-weight: 800;
-        transition: color 300ms;
-        display: inline-block;
+        color: #3b82f6; text-decoration: none; font-size: 1.25rem; font-weight: 800;
+        transition: color 300ms; display: inline-block;
     }
-
-    .order-id-link:hover {
-        color: #2563eb;
-    }
-
+    .order-id-link:hover { color: #2563eb; }
     .order-date {
-        font-size: 0.9375rem;
-        color: #6b7280;
-        margin-top: 0.375rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;
+        display: flex; align-items: center; gap: 0.4rem;
     }
+    .order-date i { color: #9ca3af; }
+    .order-header-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 
-    .order-date i {
-        color: #9ca3af;
+    /* collapse toggle */
+    .collapse-toggle {
+        background: #f3f4f6; border: 1.5px solid #e5e7eb; color: #6b7280;
+        width: 32px; height: 32px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; cursor: pointer;
+        transition: all 200ms; flex-shrink: 0;
     }
+    .collapse-toggle:hover { background: #e5e7eb; color: #374151; }
+    .collapse-toggle i { font-size: 0.85rem; transition: transform 200ms; }
+    .order-card.collapsed .collapse-toggle i { transform: rotate(-90deg); }
 
-    /* Status Badge */
+    /* â”€â”€ Status Badge â”€â”€ */
     .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.625rem 1rem;
-        border-radius: 0.75rem;
-        font-size: 0.875rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        padding: 0.45rem 0.875rem; border-radius: 0.625rem;
+        font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+        white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
+    .status-pending    { background: linear-gradient(135deg,#fef3c7,#fde68a); color: #92400e; }
+    .status-processing { background: linear-gradient(135deg,#dbeafe,#bfdbfe); color: #0c4a6e; }
+    .status-shipped    { background: linear-gradient(135deg,#e0e7ff,#c7d2fe); color: #312e81; }
+    .status-delivered  { background: linear-gradient(135deg,#dcfce7,#bbf7d0); color: #166534; }
+    .status-completed  { background: linear-gradient(135deg,#c7f0d8,#86efac); color: #0f5132; }
+    .status-cancelled  { background: linear-gradient(135deg,#fee2e2,#fecaca); color: #991b1b; }
 
-    .status-pending {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        color: #92400e;
-    }
-
-    .status-processing {
-        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        color: #0c4a6e;
-    }
-
-    .status-shipped {
-        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-        color: #312e81;
-    }
-
-    .status-delivered {
-        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-        color: #166534;
-    }
-
-    .status-completed {
-        background: linear-gradient(135deg, #c7f0d8 0%, #86efac 100%);
-        color: #0f5132;
-    }
-
-    .status-cancelled {
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        color: #991b1b;
-    }
-
-    /* Order Info Grid */
+    /* â”€â”€ Info Grid â”€â”€ */
     .order-info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid #e5e7eb;
+        display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+        margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e7eb;
     }
+    .order-info-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: .4px; margin-bottom: .25rem; }
+    .order-info-value { font-size: 1.05rem; font-weight: 800; color: #0f172a; }
+    .order-info-value.total { color: #3b82f6; }
 
-    .order-info-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
-    }
-
-    .order-info-label {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: #9ca3af;
-        letter-spacing: 0.5px;
-    }
-
-    .order-info-value {
-        font-size: 1.1875rem;
-        font-weight: 800;
-        color: #0f172a;
-    }
-
-    .order-info-value.total {
-        color: #3b82f6;
-    }
-
-    /* Items Section */
-    .order-items-section {
-        margin-bottom: 1.5rem;
-    }
-
-    .items-label {
-        font-size: 0.8125rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #9ca3af;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.875rem;
-        display: block;
-    }
-
-    .order-items {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
+    /* â”€â”€ Items â”€â”€ */
+    .order-items-section { margin-bottom: 1.25rem; }
+    .items-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: .4px; margin-bottom: 0.625rem; display: block; }
+    .order-items { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .order-item-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        padding: 0.625rem 0.875rem;
-        border-radius: 0.625rem;
-        font-size: 0.8125rem;
-        color: #374151;
-        transition: all 250ms;
-        font-weight: 500;
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        background: #f3f4f6; border: 1px solid #e5e7eb;
+        padding: 0.45rem 0.75rem; border-radius: 0.5rem;
+        font-size: 0.78rem; color: #374151; font-weight: 500; transition: all 200ms;
     }
+    .order-item-badge:hover { background: #e5e7eb; }
+    .order-item-qty { font-weight: 700; color: #3b82f6; }
 
-    .order-item-badge:hover {
-        background: #e5e7eb;
-        border-color: #d1d5db;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .order-item-qty {
-        font-weight: 700;
-        color: #3b82f6;
-    }
-
-    /* Tracking Number */
+    /* â”€â”€ Tracking â”€â”€ */
     .tracking-section {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 0.75rem;
-        border: 1px solid #e2e8f0;
+        margin-bottom: 1.25rem; padding: 0.875rem;
+        background: #f8fafc; border-radius: 0.625rem; border: 1px solid #e2e8f0;
     }
+    .tracking-label { font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 0.375rem; display: block; }
+    .tracking-number { font-family: 'Courier New', monospace; font-size: 0.9rem; font-weight: 700; color: #1f2937; word-break: break-all; }
 
-    .tracking-label {
-        font-size: 0.8125rem;
-        font-weight: 700;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-
-    .tracking-number {
-        font-family: 'Courier New', monospace;
-        font-size: 1rem;
-        font-weight: 700;
-        color: #1f2937;
-        word-break: break-all;
-    }
-
-    .tracking-badge {
-        display: inline-block;
-        background: white;
-        border: 1px solid #cbd5e1;
-        padding: 0.5rem 0.875rem;
-        border-radius: 0.5rem;
-        font-size: 0.8125rem;
-        color: #475569;
-    }
-
-    /* Action Button */
+    /* â”€â”€ Action Button â”€â”€ */
     .order-action-btn {
-        width: 100%;
-        padding: 0.875rem 1.5rem;
-        min-height: 44px;
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-        border: none;
-        border-radius: 0.75rem;
-        font-size: 0.9375rem;
-        font-weight: 700;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        transition: all 300ms;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
+        width: 100%; padding: 0.8rem 1.25rem; min-height: 44px;
+        background: linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);
+        color: white; border: none; border-radius: 0.625rem;
+        font-size: 0.875rem; font-weight: 700; text-decoration: none;
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+        cursor: pointer; transition: all 300ms;
+        box-shadow: 0 3px 10px rgba(59,130,246,.3); text-transform: uppercase; letter-spacing: .3px;
     }
+    .order-action-btn:hover { background: linear-gradient(135deg,#2563eb,#1d4ed8); transform: translateY(-1px); color: white; text-decoration: none; }
+    .order-action-btn:active { transform: translateY(0); }
 
-    .order-action-btn:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-        transform: translateY(-2px);
-        color: white;
-        text-decoration: none;
-    }
+    /* â”€â”€ Empty State â”€â”€ */
+    .empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .empty-state i { font-size: 3.5rem; color: #d1d5db; margin-bottom: 1.25rem; display: block; }
+    .empty-state h3 { font-size: 1.4rem; font-weight: 800; color: #1f2937; margin-bottom: 0.625rem; }
+    .empty-state p { font-size: 0.97rem; color: #6b7280; margin-bottom: 1.75rem; max-width: 380px; margin-left: auto; margin-right: auto; }
 
-    .order-action-btn:active {
-        transform: translateY(0);
-    }
+    /* â”€â”€ No-results (JS hidden state) â”€â”€ */
+    .no-results-msg { display: none; text-align: center; padding: 3rem 1rem; color: #6b7280; }
+    .no-results-msg i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; color: #d1d5db; }
+    .no-items-text { color: #9ca3af; font-size: 0.875rem; }
 
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: white;
-        border-radius: 1.25rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
+    /* â”€â”€ Animations â”€â”€ */
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
 
-    .empty-state i {
-        font-size: 4rem;
-        color: #d1d5db;
-        margin-bottom: 1.5rem;
-        display: block;
-    }
-
-    .empty-state h3 {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #1f2937;
-        margin-bottom: 0.75rem;
-    }
-
-    .empty-state p {
-        font-size: 1rem;
-        color: #6b7280;
-        margin-bottom: 2rem;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .empty-state .btn {
-        padding: 0.875rem 2.5rem;
-        min-height: 44px;
-        font-size: 1rem;
-        font-weight: 700;
-    }
-
-    /* Animations */
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Desktop Styles */
-    @media (min-width: 1024px) {
-        .orders-page {
-            padding: 3rem 0;
-        }
-
-        .orders-header {
-            margin-bottom: 4rem;
-        }
-
-        .orders-header h1 {
-            font-size: 2.75rem;
-        }
-
-        .container {
-            padding: 0 2rem;
-        }
-
-        .order-card {
-            padding: 2rem;
-        }
-
-        .order-info-grid {
-            grid-template-columns: repeat(4, 1fr);
-        }
-    }
-
-    /* Tablet Styles */
-    @media (768px <= width <= 1023px) {
-        .orders-page {
-            padding: 2rem 0;
-        }
-
-        .orders-header h1 {
-            font-size: 2rem;
-        }
-
-        .order-info-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-        }
-
-        .order-card {
-            padding: 1.5rem;
-        }
-    }
-
-    /* Mobile Styles */
+    /* â”€â”€ Responsive â”€â”€ */
     @media (max-width: 767px) {
-        .orders-page {
-            padding: 1.5rem 0;
-        }
-
-        .orders-header {
-            margin-bottom: 2rem;
-        }
-
-        .orders-header h1 {
-            font-size: 1.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .orders-header p {
-            font-size: 0.95rem;
-        }
-
-        .controls-bar {
-            margin-bottom: 2rem;
-        }
-
-        .search-input-wrap input {
-            padding: 0.875rem 1rem 0.875rem 3.25rem;
-            font-size: 1rem;
-            border-radius: 0.75rem;
-        }
-
-        .order-card {
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            border-radius: 0.875rem;
-        }
-
-        .order-header {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-        }
-
-        .order-id-link {
-            font-size: 1.125rem;
-        }
-
-        .order-info-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-        }
-
-        .order-info-value {
-            font-size: 1.0625rem;
-        }
-
-        .order-items {
-            gap: 0.5rem;
-        }
-
-        .order-item-badge {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .tracking-section {
-            padding: 0.875rem;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state {
-            padding: 3rem 1.5rem;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-        }
-
-        .empty-state h3 {
-            font-size: 1.25rem;
-        }
+        .orders-page { padding: 1.25rem 0 4rem; }
+        .orders-header h1 { font-size: 1.6rem; }
+        .order-info-grid { grid-template-columns: repeat(2,1fr); gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 1rem; }
+        .order-info-value { font-size: 0.97rem; }
+        .filter-strip { gap: 0.4rem; padding: 0.7rem 0.875rem; }
+        .order-card { padding: 1.1rem; }
+        .order-header { margin-bottom: 1rem; padding-bottom: 0.875rem; }
     }
-
-    /* Extra Small Devices */
     @media (max-width: 479px) {
-        .orders-page {
-            padding: 1rem 0;
-        }
-
-        .container {
-            padding: 0 0.75rem;
-        }
-
-        .orders-header h1 {
-            font-size: 1.5rem;
-        }
-
-        .order-header {
-            flex-direction: column;
-        }
-
-        .order-info-grid {
-            grid-template-columns: 1fr;
-            gap: 0.875rem;
-        }
-
-        .order-card {
-            padding: 1rem;
-            margin-bottom: 0.875rem;
-        }
-
-        .order-item-badge {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.7rem;
-        }
-
-        .order-action-btn {
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-        }
+        .orders-header h1 { font-size: 1.35rem; }
+        .order-info-grid { grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+        .order-action-btn { font-size: 0.8rem; }
+        .order-header { flex-wrap: wrap; }
     }
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â• DARK MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    [data-theme="dark"] .orders-page {
+        background: linear-gradient(135deg, #0d0f18 0%, #111420 100%);
+    }
+    [data-theme="dark"] .orders-header h1  { color: #eef2ff; }
+    [data-theme="dark"] .orders-header p   { color: #99a3bf; }
+    [data-theme="dark"] .orders-header .breadcrumb-item       { color: #99a3bf; }
+    [data-theme="dark"] .orders-header .breadcrumb-item.active{ color: #c7cee8; }
+    [data-theme="dark"] .orders-header .breadcrumb-item a     { color: #60a5fa; }
+
+    /* Search */
+    [data-theme="dark"] .search-input-wrap input {
+        background: #181b2a; border-color: #252842; color: #eef2ff;
+    }
+    [data-theme="dark"] .search-input-wrap input::placeholder { color: #7f89a8; }
+    [data-theme="dark"] .search-input-wrap input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,.15); }
+    [data-theme="dark"] .search-input-wrap i { color: #3d4165; }
+
+    /* Filter strip */
+    [data-theme="dark"] .filter-strip     { background: #181b2a; border-color: #252842; }
+    [data-theme="dark"] .filter-strip-label { color: #8f98b3; }
+    [data-theme="dark"] .filter-btn       { background: #1d2038; border-color: #252842; color: #b2bad1; }
+    [data-theme="dark"] .filter-btn:hover { border-color: #3b82f6; color: #60a5fa; background: rgba(59,130,246,.1); }
+    [data-theme="dark"] .filter-btn.active{ background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    [data-theme="dark"] .filter-divider   { background: #252842; }
+    [data-theme="dark"] .sort-select      { background-color: #1d2038; border-color: #252842; color: #c1c9de;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6282' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); }
+
+    /* Results bar */
+    [data-theme="dark"] .results-count      { color: #a8b1cc; }
+    [data-theme="dark"] .clear-filters-btn  { color: #60a5fa; }
+
+    /* Order card */
+    [data-theme="dark"] .order-card         { background: #181b2a; box-shadow: 0 2px 12px rgba(0,0,0,.35); }
+    [data-theme="dark"] .order-card:hover   { box-shadow: 0 10px 28px rgba(59,130,246,.18); }
+    [data-theme="dark"] .order-header       { border-bottom-color: #252842; }
+    [data-theme="dark"] .order-id-link      { color: #60a5fa; }
+    [data-theme="dark"] .order-id-link:hover{ color: #93c5fd; }
+    [data-theme="dark"] .order-date         { color: #a4aec7; }
+    [data-theme="dark"] .order-date i       { color: #7f89a8; }
+    [data-theme="dark"] .collapse-toggle    { background: #1d2038; border-color: #252842; color: #5a6282; }
+    [data-theme="dark"] .collapse-toggle:hover { background: #252842; color: #c7cee8; }
+
+    /* Status badges: keep text readable in dark mode (override global span color rules) */
+    [data-theme="dark"] .status-badge { border: 1px solid rgba(255,255,255,0.08); }
+    [data-theme="dark"] .status-badge.status-pending    { background: #4a3512; color: #fde68a !important; }
+    [data-theme="dark"] .status-badge.status-processing { background: #0f2f4b; color: #93c5fd !important; }
+    [data-theme="dark"] .status-badge.status-shipped    { background: #2a2450; color: #c4b5fd !important; }
+    [data-theme="dark"] .status-badge.status-delivered  { background: #123825; color: #86efac !important; }
+    [data-theme="dark"] .status-badge.status-completed  { background: #124032; color: #6ee7b7 !important; }
+    [data-theme="dark"] .status-badge.status-cancelled  { background: #4a1c1c; color: #fca5a5 !important; }
+
+    /* Info grid */
+    [data-theme="dark"] .order-info-grid    { border-bottom-color: #252842; }
+    [data-theme="dark"] .order-info-label   { color: #8f98b3; }
+    [data-theme="dark"] .order-info-value   { color: #eef2ff; }
+    [data-theme="dark"] .order-info-value.total { color: #60a5fa; }
+
+    /* Item badges */
+    [data-theme="dark"] .order-item-badge   { background: #1d2038; border-color: #252842; color: #c1c9de; }
+    [data-theme="dark"] .order-item-badge:hover { background: #252842; }
+    [data-theme="dark"] .order-item-qty     { color: #60a5fa; }
+    [data-theme="dark"] .items-label        { color: #8f98b3; }
+    [data-theme="dark"] .no-items-text      { color: #9ea8c4; }
+
+    /* Tracking */
+    [data-theme="dark"] .tracking-section  { background: #1d2038; border-color: #252842; }
+    [data-theme="dark"] .tracking-label    { color: #a8b1cc; }
+    [data-theme="dark"] .tracking-number   { color: #93c5fd; }
+
+    /* Empty state */
+    [data-theme="dark"] .empty-state       { background: #181b2a; }
+    [data-theme="dark"] .empty-state i     { color: #252842; }
+    [data-theme="dark"] .empty-state h3    { color: #eef2ff; }
+    [data-theme="dark"] .empty-state p     { color: #a8b1cc; }
+    [data-theme="dark"] .no-results-msg    { color: #a8b1cc; }
+    [data-theme="dark"] .no-results-msg i  { color: #252842; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="orders-page">
-  <div class="container">
-    <!-- Header -->
+  <div class="container py-2">
+
+    <!-- â”€â”€ Header â”€â”€ -->
     <div class="orders-header">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-2">
-          <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
           <li class="breadcrumb-item active" aria-current="page">My Orders</li>
         </ol>
       </nav>
@@ -621,137 +305,282 @@
       <p class="mb-0">View and track all your orders</p>
     </div>
 
-    <!-- Search Bar -->
+    {% if orders %}
+
+    <!-- â”€â”€ Search â”€â”€ -->
     <div class="controls-bar">
       <form method="get" id="searchForm">
         <div class="search-input-wrap">
           <i class="bi bi-search"></i>
-          <input type="text" name="search" placeholder="Search by order ID, status, or tracking number..."
+          <input type="text" name="search" id="searchInput"
+                 placeholder="Search by order ID, product nameâ€¦"
                  value="{{ search_query }}" autocomplete="off">
         </div>
       </form>
     </div>
-    
-    {% if orders %}
-    <!-- Order Cards -->
-    <div>
-        {% for order in orders %}
-        <div class="order-card">
-            <!-- Order Header -->
-            <div class="order-header">
-                <div class="order-id-section">
-                    <a href="{% url 'orders:order_detail' order.id %}" class="order-id-link">
-                        Order #{{ order.id }}
-                    </a>
-                    <div class="order-date">
-                        <i class="bi bi-calendar3"></i>
-                        {{ order.created_at|date:"M d, Y H:i" }}
-                    </div>
-                </div>
-                <div>
-                    <!-- Status Badge -->
-                    {% if order.status == 'Pending' %}
-                        <span class="status-badge status-pending">
-                            <i class="bi bi-hourglass-split"></i> Pending
-                        </span>
-                    {% elif order.status == 'Processing' %}
-                        <span class="status-badge status-processing">
-                            <i class="bi bi-arrow-repeat"></i> Processing
-                        </span>
-                    {% elif order.status == 'Shipped' %}
-                        <span class="status-badge status-shipped">
-                            <i class="bi bi-truck"></i> Shipped
-                        </span>
-                    {% elif order.status == 'Delivered' %}
-                        <span class="status-badge status-delivered">
-                            <i class="bi bi-check2-circle"></i> Delivered
-                        </span>
-                    {% elif order.status == 'Completed' %}
-                        <span class="status-badge status-completed">
-                            <i class="bi bi-check-all"></i> Completed
-                        </span>
-                    {% elif order.status == 'Cancelled' %}
-                        <span class="status-badge status-cancelled">
-                            <i class="bi bi-x-circle"></i> Cancelled
-                        </span>
-                    {% else %}
-                        <span class="status-badge">
-                            {{ order.status }}
-                        </span>
-                    {% endif %}
-                </div>
-            </div>
 
-            <!-- Order Info Grid -->
-            <div class="order-info-grid">
-                <div class="order-info-item">
-                    <span class="order-info-label">Status</span>
-                    <span class="order-info-value">{{ order.status }}</span>
-                </div>
-                <div class="order-info-item">
-                    <span class="order-info-label">Total Amount</span>
-                    <span class="order-info-value total">₦{{ order.grand_total|floatformat:2 }}</span>
-                </div>
-                <div class="order-info-item">
-                    <span class="order-info-label">Items Count</span>
-                    <span class="order-info-value">{{ order.items.count }}</span>
-                </div>
-                <div class="order-info-item">
-                    <span class="order-info-label">Order Date</span>
-                    <span class="order-info-value">{{ order.created_at|date:"M d, Y" }}</span>
-                </div>
-            </div>
-
-            <!-- Items Section -->
-            <div class="order-items-section">
-                <span class="items-label"><i class="bi bi-box-seam me-2"></i>Items Ordered</span>
-                <div class="order-items">
-                    {% for item in order.items.all %}
-                        <div class="order-item-badge" title="{{ item.product.name }}">
-                            <span class="order-item-qty">{{ item.quantity }}x</span>
-                            {{ item.product.name|truncatewords:3 }}
-                        </div>
-                    {% empty %}
-                        <span style="color: #9ca3af; font-size: 0.9375rem;">No items found</span>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Tracking Number (if available) -->
-            {% if order.tracking_number %}
-            <div class="tracking-section">
-                <span class="tracking-label">
-                    <i class="bi bi-geo-alt me-1"></i>Tracking Number
-                </span>
-                <div class="tracking-number">{{ order.tracking_number }}</div>
-            </div>
-            {% endif %}
-
-            <!-- Action Button -->
-            <a href="{% url 'orders:order_detail' order.id %}" class="order-action-btn">
-                <i class="bi bi-eye me-1"></i>View Full Details
-            </a>
-        </div>
-        {% endfor %}
+    <!-- â”€â”€ Filter / Sort Strip â”€â”€ -->
+    <div class="filter-strip" role="group" aria-label="Filter and sort orders">
+      <span class="filter-strip-label d-none d-sm-inline">Filter:</span>
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="processing">Processing</button>
+      <button class="filter-btn" data-filter="shipped">Shipped</button>
+      <button class="filter-btn" data-filter="delivered">Delivered</button>
+      <button class="filter-btn" data-filter="cancelled">Cancelled</button>
+      <div class="filter-divider d-none d-sm-flex"></div>
+      <span class="filter-strip-label d-none d-sm-inline">Sort:</span>
+      <select class="sort-select" id="sortSelect" aria-label="Sort orders">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="highest">Highest total</option>
+        <option value="lowest">Lowest total</option>
+      </select>
+      <button class="filter-btn ms-auto" id="collapseAllBtn" title="Collapse all cards">
+        <i class="bi bi-arrows-collapse me-1"></i>Collapse all
+      </button>
     </div>
-    
-    {% else %}
-    <!-- Empty State -->
-    <div class="empty-state">
-        <i class="bi bi-box-seam"></i>
-        <h3>No Orders Found</h3>
-        <p>
-            {% if search_query %}
-                No orders match your search criteria. Try adjusting your search.
+
+    <!-- â”€â”€ Results summary â”€â”€ -->
+    <div class="results-bar">
+      <span class="results-count" id="resultsCount"></span>
+      <button class="clear-filters-btn" id="clearFilters" style="display:none;">Clear filters</button>
+    </div>
+
+    <!-- â”€â”€ Order Cards â”€â”€ -->
+    <div id="ordersContainer">
+      {% for order in orders %}
+      <div class="order-card"
+           data-status="{{ order.status|lower }}"
+           data-total="{{ order.grand_total }}"
+           data-date="{{ order.created_at|date:'U' }}"
+           data-search="{{ order.id }} {{ order.status|lower }} {% for item in order.items.all %}{{ item.product.name|lower }} {% endfor %}{% if order.tracking_number %}{{ order.tracking_number }}{% endif %}">
+
+        <!-- Card Header (always visible) -->
+        <div class="order-header">
+          <div class="order-id-section">
+            <a href="{% url 'orders:order_detail' order.id %}" class="order-id-link">
+              Order #{{ order.id }}
+            </a>
+            <div class="order-date">
+              <i class="bi bi-calendar3"></i>
+              {{ order.created_at|date:"M d, Y H:i" }}
+            </div>
+          </div>
+          <div class="order-header-right">
+            {% if order.status == 'Pending' %}
+              <span class="status-badge status-pending"><i class="bi bi-hourglass-split"></i>Pending</span>
+            {% elif order.status == 'Processing' %}
+              <span class="status-badge status-processing"><i class="bi bi-arrow-repeat"></i>Processing</span>
+            {% elif order.status == 'Shipped' %}
+              <span class="status-badge status-shipped"><i class="bi bi-truck"></i>Shipped</span>
+            {% elif order.status == 'Delivered' %}
+              <span class="status-badge status-delivered"><i class="bi bi-check2-circle"></i>Delivered</span>
+            {% elif order.status == 'Completed' %}
+              <span class="status-badge status-completed"><i class="bi bi-check-all"></i>Completed</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="status-badge status-cancelled"><i class="bi bi-x-circle"></i>Cancelled</span>
             {% else %}
-                You haven't placed any orders yet. Start shopping to see your orders here!
+              <span class="status-badge">{{ order.status }}</span>
             {% endif %}
-        </p>
-        <a href="/shop/" class="btn btn-primary btn-lg rounded-pill px-5">
-            <i class="bi bi-bag me-2"></i>Start Shopping
-        </a>
+            <button class="collapse-toggle" aria-label="Toggle order details" title="Expand / collapse">
+              <i class="bi bi-chevron-down"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible body -->
+        <div class="order-card-body">
+          <!-- Info Grid -->
+          <div class="order-info-grid">
+            <div>
+              <div class="order-info-label">Status</div>
+              <div class="order-info-value">{{ order.status }}</div>
+            </div>
+            <div>
+              <div class="order-info-label">Total Amount</div>
+              <div class="order-info-value total">&#8358;{{ order.grand_total|floatformat:2 }}</div>
+            </div>
+            <div>
+              <div class="order-info-label">Items Count</div>
+              <div class="order-info-value">{{ order.items.count }}</div>
+            </div>
+            <div>
+              <div class="order-info-label">Order Date</div>
+              <div class="order-info-value">{{ order.created_at|date:"M d, Y" }}</div>
+            </div>
+          </div>
+
+          <!-- Items -->
+          <div class="order-items-section">
+            <span class="items-label"><i class="bi bi-box-seam me-1"></i>Items Ordered</span>
+            <div class="order-items">
+              {% for item in order.items.all %}
+                <div class="order-item-badge" title="{{ item.product.name }}">
+                  <span class="order-item-qty">{{ item.quantity }}x</span>
+                  {{ item.product.name|truncatewords:3 }}
+                </div>
+              {% empty %}
+                <span class="no-items-text">No items found</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% if order.tracking_number %}
+          <div class="tracking-section">
+            <span class="tracking-label"><i class="bi bi-geo-alt me-1"></i>Tracking Number</span>
+            <div class="tracking-number">{{ order.tracking_number }}</div>
+          </div>
+          {% endif %}
+
+          <a href="{% url 'orders:order_detail' order.id %}" class="order-action-btn">
+            <i class="bi bi-eye me-1"></i>View Full Details
+          </a>
+        </div><!-- /order-card-body -->
+      </div>
+      {% endfor %}
+
+      <!-- No results message (shown by JS) -->
+      <div class="no-results-msg" id="noResultsMsg">
+        <i class="bi bi-search"></i>
+        <strong>No orders match your filters.</strong><br>
+        Try a different search or filter.
+      </div>
+    </div><!-- /ordersContainer -->
+
+    {% else %}
+    <!-- â”€â”€ Empty State â”€â”€ -->
+    <div class="empty-state">
+      <i class="bi bi-box-seam"></i>
+      <h3>No Orders Found</h3>
+      <p>
+        {% if search_query %}No orders match your search. Try adjusting your search.
+        {% else %}You haven't placed any orders yet. Start shopping to see your orders here!{% endif %}
+      </p>
+      <a href="/shop/" class="btn btn-primary btn-lg rounded-pill px-5">
+        <i class="bi bi-bag me-2"></i>Start Shopping
+      </a>
     </div>
     {% endif %}
+
   </div>
 </div>
+
+<script>
+(function () {
+  'use strict';
+
+  const container    = document.getElementById('ordersContainer');
+  if (!container) return;
+
+  const cards        = Array.from(container.querySelectorAll('.order-card'));
+  const searchInput  = document.getElementById('searchInput');
+  const sortSelect   = document.getElementById('sortSelect');
+  const filterBtns   = document.querySelectorAll('.filter-btn[data-filter]');
+  const resultsCount = document.getElementById('resultsCount');
+  const clearBtn     = document.getElementById('clearFilters');
+  const collapseAll  = document.getElementById('collapseAllBtn');
+  const noResults    = document.getElementById('noResultsMsg');
+
+  let activeFilter = 'all';
+  let allCollapsed = false;
+
+  // â”€â”€ Collapse toggle on each card â”€â”€
+  cards.forEach(function (card) {
+    var btn = card.querySelector('.collapse-toggle');
+    if (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        card.classList.toggle('collapsed');
+      });
+    }
+  });
+
+  // â”€â”€ Collapse all â”€â”€
+  collapseAll && collapseAll.addEventListener('click', function () {
+    allCollapsed = !allCollapsed;
+    cards.forEach(function (card) {
+      card.classList.toggle('collapsed', allCollapsed);
+    });
+    collapseAll.innerHTML = allCollapsed
+      ? '<i class="bi bi-arrows-expand me-1"></i>Expand all'
+      : '<i class="bi bi-arrows-collapse me-1"></i>Collapse all';
+  });
+
+  // â”€â”€ Filter buttons â”€â”€
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      filterBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyAll();
+    });
+  });
+
+  // â”€â”€ Sort â”€â”€
+  sortSelect && sortSelect.addEventListener('change', applyAll);
+
+  // â”€â”€ Search â”€â”€
+  var searchTimer;
+  searchInput && searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyAll, 200);
+  });
+
+  // â”€â”€ Clear filters â”€â”€
+  clearBtn && clearBtn.addEventListener('click', function () {
+    activeFilter = 'all';
+    filterBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.filter === 'all'); });
+    if (searchInput) searchInput.value = '';
+    if (sortSelect)  sortSelect.value  = 'newest';
+    applyAll();
+  });
+
+  function applyAll() {
+    var query = (searchInput ? searchInput.value.trim().toLowerCase() : '');
+    var sort  = sortSelect ? sortSelect.value : 'newest';
+
+    // Filter
+    var visible = cards.filter(function (card) {
+      var statusMatch = (activeFilter === 'all') || (card.dataset.status === activeFilter);
+      var searchMatch = !query || card.dataset.search.includes(query);
+      return statusMatch && searchMatch;
+    });
+
+    // Sort
+    visible.sort(function (a, b) {
+      if (sort === 'newest')  return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+      if (sort === 'oldest')  return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+      if (sort === 'highest') return parseFloat(b.dataset.total) - parseFloat(a.dataset.total);
+      if (sort === 'lowest')  return parseFloat(a.dataset.total) - parseFloat(b.dataset.total);
+      return 0;
+    });
+
+    // Hide all, reorder visible
+    cards.forEach(function (card) { card.style.display = 'none'; });
+    visible.forEach(function (card) {
+      card.style.display = '';
+      container.appendChild(card);
+    });
+
+    // Results count
+    var total = cards.length;
+    var shown = visible.length;
+    if (resultsCount) {
+      resultsCount.textContent = shown === total
+        ? total + ' order' + (total !== 1 ? 's' : '')
+        : shown + ' of ' + total + ' orders';
+    }
+
+    // No results
+    if (noResults) noResults.style.display = shown === 0 ? 'block' : 'none';
+
+    // Show/hide clear button
+    var isFiltered = activeFilter !== 'all' || query !== '';
+    if (clearBtn) clearBtn.style.display = isFiltered ? 'inline' : 'none';
+  }
+
+  // Initial render
+  applyAll();
+})();
+</script>
 {% endblock %}
