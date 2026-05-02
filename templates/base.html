@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/cards.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
     {# <link rel="icon" href="{% static 'images/favicon.ico' %}"> #}
 <style>
     /* ----------------------------------------------
@@ -4081,6 +4082,65 @@
             });
         });
     </script>
+    
+    <!-- Dark Mode Toggle Button -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle Dark Mode">
+        <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
+    </button>
+    
+    <!-- Dark Mode JavaScript -->
+    <script>
+        (function() {
+            // Get DOM elements
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            const html = document.documentElement;
+            
+            // Check for saved theme preference or default to light mode
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            
+            // Apply the theme on page load
+            if (currentTheme === 'dark') {
+                html.setAttribute('data-theme', 'dark');
+                updateIcon(true);
+            }
+            
+            // Toggle dark mode
+            darkModeToggle.addEventListener('click', function() {
+                const isDark = html.getAttribute('data-theme') === 'dark';
+                
+                if (isDark) {
+                    html.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                    updateIcon(false);
+                } else {
+                    html.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    updateIcon(true);
+                }
+            });
+            
+            // Update icon based on theme
+            function updateIcon(isDark) {
+                if (isDark) {
+                    darkModeIcon.classList.remove('bi-moon-stars-fill');
+                    darkModeIcon.classList.add('bi-sun-fill');
+                } else {
+                    darkModeIcon.classList.remove('bi-sun-fill');
+                    darkModeIcon.classList.add('bi-moon-stars-fill');
+                }
+            }
+            
+            // Keyboard shortcut: Ctrl/Cmd + Shift + D
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
+                    e.preventDefault();
+                    darkModeToggle.click();
+                }
+            });
+        })();
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>
