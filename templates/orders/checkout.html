@@ -391,7 +391,7 @@
 <!-- Mobile Sticky Bottom Bar - Always visible on mobile -->
 {% if items %}
 <div id="mobile-checkout-bar" class="d-xl-none"
-    style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px 14px; padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px); padding-bottom: max(env(safe-area-inset-bottom, 0px) + 16px, 16px);">
+    style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483647; background: white; border-top: 1px solid rgba(0,0,0,0.1); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); padding: 12px 14px; padding-bottom: max(env(safe-area-inset-bottom, 0px) + 16px, 16px);">
     <div class="container-fluid px-0">
         <div class="d-flex align-items-center justify-content-between gap-2">
             <div class="d-flex flex-column">
@@ -913,11 +913,6 @@
         #mobile-checkout-btn {
             padding: 0.5rem 1rem !important;
         }
-    }
-
-    /* Keyboard open adjustments */
-    .keyboard-open #mobile-checkout-bar {
-        transform: translateY(-50%);
     }
 
     /* Sticky sidebar for desktop */
@@ -2021,54 +2016,13 @@
                 if (manualBtn) manualBtn.click();
             }
 
-            // Handle keyboard visibility
-            function handleKeyboardVisibility() {
-                if (!mobileCheckoutBar) return;
-
-                if (window.visualViewport) {
-                    const keyboardHeight = window.innerHeight - window.visualViewport.height;
-                    if (keyboardHeight > 100) {
-                        document.body.classList.add('keyboard-open');
-
-                        // hide the sticky bottom bar on very small screens when keyboard is open
-                        if (window.innerWidth <= 575.98 && mobileCheckoutBar) {
-                            if (!mobileCheckoutBar.dataset.origDisplay) mobileCheckoutBar.dataset.origDisplay = mobileCheckoutBar.style.display || '';
-                            mobileCheckoutBar.style.display = 'none';
-                        }
-
-                        if (floatingTop) {
-                            floatingTop.style.display = 'block';
-                            floatingTop.style.top = `20px`;
-                        }
-                    } else {
-                        document.body.classList.remove('keyboard-open');
-
-                        // restore sticky bar if we hid it earlier
-                        if (mobileCheckoutBar && mobileCheckoutBar.dataset.origDisplay !== undefined) {
-                            mobileCheckoutBar.style.display = mobileCheckoutBar.dataset.origDisplay;
-                            delete mobileCheckoutBar.dataset.origDisplay;
-                        }
-
-                        if (floatingTop) {
-                            floatingTop.style.display = 'none';
-                        }
-                    }
-                }
-            }
-
-            // Handle input focus/blur for floating CTA
-            function handleInputFocus() {
-                if (window.innerWidth <= 1199.98 && floatingTop) {
-                    setTimeout(() => {
-                        handleKeyboardVisibility();
-                    }, 100);
-                }
-            }
-
-            function handleInputBlur() {
-                setTimeout(() => {
-                    handleKeyboardVisibility();
-                }, 300);
+            // Keep the bar always visible — reposition it above the keyboard instead of hiding it.
+            // Hiding via display:none was unreliable on Android (visualViewport race conditions).
+            function adjustBarForKeyboard() {
+                if (!mobileCheckoutBar || !window.visualViewport) return;
+                const vv = window.visualViewport;
+                const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+                mobileCheckoutBar.style.bottom = keyboardHeight > 50 ? `${keyboardHeight}px` : '';
             }
 
             // Set up event listeners
@@ -2124,25 +2078,18 @@
                 });
             });
 
-            // Handle input focus events
-            const inputElements = document.querySelectorAll('input, textarea, select');
-            inputElements.forEach(el => {
-                el.addEventListener('focus', handleInputFocus);
-                el.addEventListener('blur', handleInputBlur);
-            });
-
-            // VisualViewport API for better keyboard handling
+            // VisualViewport API — reposition bar above keyboard on Android/iOS
             if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', handleKeyboardVisibility);
+                window.visualViewport.addEventListener('resize', adjustBarForKeyboard);
+                window.visualViewport.addEventListener('scroll', adjustBarForKeyboard);
             }
 
-            // Handle orientation and resize changes
+            // Reset bar position after orientation change
             window.addEventListener('orientationchange', function () {
-                setTimeout(handleKeyboardVisibility, 100);
+                setTimeout(function () {
+                    if (mobileCheckoutBar) mobileCheckoutBar.style.bottom = '';
+                }, 300);
             });
-
-            // Initial visibility check
-            handleKeyboardVisibility();
         });
     })();
 </script>
