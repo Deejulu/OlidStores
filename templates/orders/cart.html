@@ -989,7 +989,7 @@
                         <td>
                             <div class="product-info">
                                 {% if item.product.primary_image %}
-                                    <img src="{{ item.product.primary_image.url }}" alt="{{ item.product.name }}" class="product-image">
+                                    <img src="{{ item.product.primary_image.url }}" alt="{{ item.product.name }}" class="product-image" loading="lazy">
                                 {% else %}
                                     <div class="product-image" style="background: linear-gradient(135deg, var(--gray-200), var(--gray-300)); display: flex; align-items: center; justify-content: center;">
                                         <i class="bi bi-image" style="font-size: 1.5rem; color: var(--gray-600);"></i>
@@ -1040,7 +1040,7 @@
             <div class="cart-card" data-item-id="{{ item.id }}">
                 <div class="d-flex gap-3 mb-3">
                     {% if item.product.primary_image %}
-                        <img src="{{ item.product.primary_image.url }}" alt="{{ item.product.name }}" class="product-image">
+                        <img src="{{ item.product.primary_image.url }}" alt="{{ item.product.name }}" class="product-image" loading="lazy">
                     {% else %}
                         <div class="product-image" style="background: linear-gradient(135deg, var(--gray-200), var(--gray-300)); display: flex; align-items: center; justify-content: center;">
                             <i class="bi bi-image" style="font-size: 1.5rem; color: var(--gray-600);"></i>

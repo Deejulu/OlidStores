@@ -166,7 +166,8 @@
                src="{% if first.image %}{{ first.image.url }}{% elif first.url %}{{ first.url }}{% else %}{{ first }}{% endif %}"
                class="pd-main-img mb-3"
                alt="{{ product.name }}"
-               title="Click to enlarge">
+               title="Click to enlarge"
+               loading="eager">
           {% endwith %}
           {% if product_images|length > 1 %}
           <div class="d-flex flex-wrap gap-2 mt-1">
@@ -174,6 +175,7 @@
               <img src="{% if img.image %}{{ img.image.url }}{% elif img.url %}{{ img.url }}{% else %}{{ img }}{% endif %}"
                 class="pd-thumb {% if forloop.first %}active{% endif %}"
                 alt="{{ product.name }}"
+                loading="lazy"
                 data-full="{% if img.image %}{{ img.image.url }}{% elif img.url %}{{ img.url }}{% else %}{{ img }}{% endif %}">
               {% endfor %}
           </div>
@@ -451,7 +453,7 @@
         <a href="{{ rp.get_absolute_url }}" class="text-decoration-none">
           <div class="card border-0 shadow-sm rounded-3 h-100 rel-card">
             {% if rp.primary_image %}
-            <img src="{{ rp.primary_image.url }}" class="card-img-top rel-card-img rounded-top-3" alt="{{ rp.name }}">
+            <img src="{{ rp.primary_image.url }}" class="card-img-top rel-card-img rounded-top-3" alt="{{ rp.name }}" loading="lazy">
             {% else %}
             <div class="rel-card-img d-flex align-items-center justify-content-center bg-light rounded-top-3">
               <i class="bi bi-image text-muted" style="font-size:2rem;opacity:.3;"></i>

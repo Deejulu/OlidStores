@@ -556,7 +556,7 @@
                         <div class="wishlist-image-container">
                             <a href="{% url 'products:product_detail' product.slug %}">
                                 {% if product.primary_image %}
-                                    <img src="{{ product.primary_image.url }}" class="wishlist-product-image" alt="{{ product.name }}">
+                                    <img src="{{ product.primary_image.url }}" class="wishlist-product-image" alt="{{ product.name }}" loading="lazy">
                                 {% else %}
                                     <div class="wishlist-no-image">
                                         <i class="bi bi-image"></i>

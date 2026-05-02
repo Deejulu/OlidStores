@@ -1962,7 +1962,7 @@
                     {% if hero_images %}
                         {% for image in hero_images|slice:":3" %}
                         <div class="floating-product" style="--rotation: {% cycle '5' '-3' '2' %}deg">
-                            <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:image.title }}" class="img-fluid">
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:image.title }}" class="img-fluid" loading="lazy">
                         </div>
                         {% endfor %}
                     {# Fallback images removed - upload banner images via admin #}
@@ -1981,7 +1981,7 @@
             <div class="promo-track" id="promoTrack">
                 {% for banner in banner_images %}
                 <div class="promo-slide">
-                    <img src="{{ banner.image.url }}" alt="{{ banner.alt_text|default:banner.title }}">
+                    <img src="{{ banner.image.url }}" alt="{{ banner.alt_text|default:banner.title }}" loading="lazy">
                     <div class="promo-overlay">
                         {% if banner.title %}
                         <h3 class="promo-title">{{ banner.title }}</h3>
@@ -2031,7 +2031,7 @@
             <div class="product-card">
                 <div class="product-media">
                     {% if product.primary_image %}
-                    <img src="{{ product.primary_image.url }}" class="product-image" alt="{{ product.name }}">
+                    <img src="{{ product.primary_image.url }}" class="product-image" alt="{{ product.name }}" loading="lazy">
                     {% else %}
                     <div class="product-image" style="background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:300px;color:#999;">
                         <i class="bi bi-image" style="font-size:3rem;"></i>
@@ -2157,7 +2157,7 @@
             {% with cat=categories_preview.electronics %}
             <a href="/shop/?category=electronics" class="category-card" style="text-decoration: none;">
                 {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Electronics' }}" class="category-image">
+                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Electronics' }}" class="category-image" loading="lazy">
                 {% else %}
                 <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display: flex; align-items: center; justify-content: center;">
                     <i class="bi bi-cpu" style="font-size: 4rem; color: var(--accent-light); opacity: 0.5;"></i>
@@ -2173,7 +2173,7 @@
             {% with cat=categories_preview.fashion %}
             <a href="/shop/?category=fashion" class="category-card" style="text-decoration: none;">
                 {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Fashion' }}" class="category-image">
+                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Fashion' }}" class="category-image" loading="lazy">
                 {% else %}
                 <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%); display: flex; align-items: center; justify-content: center;">
                     <i class="bi bi-bag" style="font-size: 4rem; color: var(--white); opacity: 0.5;"></i>
@@ -2189,7 +2189,7 @@
             {% with cat=categories_preview.cosmetics %}
             <a href="/shop/?category=cosmetics" class="category-card" style="text-decoration: none;">
                 {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Cosmetics' }}" class="category-image">
+                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Cosmetics' }}" class="category-image" loading="lazy">
                 {% else %}
                 <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center;">
                     <i class="bi bi-stars" style="font-size: 4rem; color: var(--white); opacity: 0.5;"></i>
@@ -2205,7 +2205,7 @@
             {% with cat=categories_preview.home %}
             <a href="/shop/?category=home" class="category-card" style="text-decoration: none;">
                 {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Home' }}" class="category-image">
+                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Home' }}" class="category-image" loading="lazy">
                 {% else %}
                 <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); display: flex; align-items: center; justify-content: center;">
                     <i class="bi bi-house-heart" style="font-size: 4rem; color: var(--accent-light); opacity: 0.5;"></i>

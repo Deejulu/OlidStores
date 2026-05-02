@@ -520,10 +520,10 @@
                                     <div class="d-flex align-items-center gap-3">
                                         {% if item.product.images.all %}
                                             <img src="{{ item.product.images.all.0.image.url }}"
-                                                 alt="{{ item.product.name }}" class="od-product-img">
+                                                 alt="{{ item.product.name }}" class="od-product-img" loading="lazy">
                                         {% elif item.product.image %}
                                             <img src="{{ item.product.image.url }}"
-                                                 alt="{{ item.product.name }}" class="od-product-img">
+                                                 alt="{{ item.product.name }}" class="od-product-img" loading="lazy">
                                         {% else %}
                                             <div class="od-product-placeholder"><i class="bi bi-image"></i></div>
                                         {% endif %}
@@ -574,10 +574,10 @@
                          {% if item.variant %}data-variant-id="{{ item.variant.id }}"{% endif %}>
                         {% if item.product.images.all %}
                             <img src="{{ item.product.images.all.0.image.url }}"
-                                 alt="{{ item.product.name }}" class="od-product-img">
+                                 alt="{{ item.product.name }}" class="od-product-img" loading="lazy">
                         {% elif item.product.image %}
                             <img src="{{ item.product.image.url }}"
-                                 alt="{{ item.product.name }}" class="od-product-img">
+                                 alt="{{ item.product.name }}" class="od-product-img" loading="lazy">
                         {% else %}
                             <div class="od-product-placeholder"><i class="bi bi-image"></i></div>
                         {% endif %}

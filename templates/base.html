@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/cards.css' %}">
     <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
+    <link rel="stylesheet" href="{% static 'css/smooth.css' %}">
     {# <link rel="icon" href="{% static 'images/favicon.ico' %}"> #}
 <style>
     /* ----------------------------------------------
@@ -4469,7 +4470,7 @@
 
             document.addEventListener('touchstart', function(e) {
                 touchStartY = e.changedTouches[0].screenY;
-            });
+            }, { passive: true });
 
             document.addEventListener('touchend', function(e) {
                 touchEndY = e.changedTouches[0].screenY;
@@ -4479,17 +4480,24 @@
                 if (diff < -50 && navMenu && navMenu.classList.contains('active')) {
                     closeMobileMenu();
                 }
-            });
+            }, { passive: true });
             
-            // Header scroll effect
+            // Header scroll effect — passive + RAF so it never blocks scroll
+            var _headerScrollRAF = null;
+            var _headerEl = document.querySelector('.main-header');
             window.addEventListener('scroll', function() {
-                const header = document.querySelector('.main-header');
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
+                if (_headerScrollRAF) return;
+                _headerScrollRAF = requestAnimationFrame(function() {
+                    if (_headerEl) {
+                        if (window.scrollY > 50) {
+                            _headerEl.classList.add('scrolled');
+                        } else {
+                            _headerEl.classList.remove('scrolled');
+                        }
+                    }
+                    _headerScrollRAF = null;
+                });
+            }, { passive: true });
         });
     </script>
     
@@ -4556,6 +4564,22 @@
     </script>
     
     {% block extra_js %}{% endblock %}
+
+    <!-- Lazy-loaded image reveal: add .img-loaded once each lazy img finishes loading -->
+    <script>
+    (function () {
+        function revealImg(img) {
+            img.classList.add('img-loaded');
+        }
+        document.querySelectorAll('img[loading="lazy"]').forEach(function (img) {
+            if (img.complete) {
+                revealImg(img);
+            } else {
+                img.addEventListener('load', function () { revealImg(img); }, { once: true, passive: true });
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
 

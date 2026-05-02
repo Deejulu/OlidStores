@@ -1,0 +1,370 @@
+/* ======================================================
+   SMOOTH.CSS — Performance & Interaction Polish
+   GPU compositing, touch responsiveness, scroll feel,
+   reduced-motion safety, micro-interaction feedback.
+   Loaded last so rules here WIN over other files.
+   ====================================================== */
+
+/* ── 1. OVERSCROLL BEHAVIOUR ─────────────────────────
+   Prevent pull-to-refresh jank on Android and the
+   rubber-band bounce on iOS from causing layout reflows.
+   ─────────────────────────────────────────────────── */
+html {
+    overscroll-behavior-x: none;
+}
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* Horizontal scrolling containers: keep bounce contained */
+.table-responsive,
+.cart-table-wrapper,
+.product-grid,
+.category-list,
+.products-scroll,
+.horizontal-scroll {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;   /* iOS inertia scroll */
+    scroll-behavior: smooth;
+}
+
+/* ── 2. GPU COMPOSITING HINTS ─────────────────────────
+   Promote the most-animated elements to their own
+   compositor layers. This prevents them from triggering
+   full-page repaints on hover/focus.
+   Use sparingly — each layer costs GPU memory.
+   ─────────────────────────────────────────────────── */
+.main-header,
+.nav-menu,
+.mobile-menu-button,
+.action-item {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* Cards get will-change only while they COULD be hovered */
+.product-card,
+.card,
+.wishlist-card,
+.gallery-item,
+.category-card,
+.quick-link-item {
+    will-change: transform;
+}
+
+/* Release GPU memory when element is idle */
+.product-card:not(:hover):not(:focus-within),
+.card:not(:hover):not(:focus-within),
+.wishlist-card:not(:hover):not(:focus-within),
+.gallery-item:not(:hover):not(:focus-within),
+.category-card:not(:hover):not(:focus-within) {
+    will-change: auto;
+}
+
+/* ── 3. ELIMINATE 300ms TAP DELAY ────────────────────
+   `touch-action: manipulation` tells the browser there
+   is no double-tap-to-zoom intent, so it fires click
+   events instantly instead of waiting 300ms.
+   ─────────────────────────────────────────────────── */
+a,
+button,
+[role="button"],
+label,
+input,
+select,
+textarea,
+.btn,
+.button,
+.nav-link,
+.action-item,
+.mobile-menu-button,
+.product-card,
+.card,
+.category-card,
+.wishlist-card,
+.gallery-item,
+.quick-link-item,
+.accordion-button,
+.dropdown-item,
+.form-check-label,
+.close,
+[data-bs-toggle],
+[data-bs-dismiss],
+.checkout-btn,
+.product-overlay .btn {
+    touch-action: manipulation;
+}
+
+/* ── 4. SMOOTH MOMENTUM SCROLLING ─────────────────────
+   iOS Safari needs this vendor prefix for native
+   momentum scroll inside overflow containers.
+   ─────────────────────────────────────────────────── */
+.nav-menu,
+.dropdown-menu,
+.modal-body,
+.offcanvas-body,
+.chat-messages,
+#chatMessages,
+.suggestions-dropdown {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* ── 5. OPTIMISE TRANSITION PROPERTIES ───────────────
+   Replace costly `transition: all` with targeted
+   properties only — avoids triggering layout on
+   every frame.
+   ─────────────────────────────────────────────────── */
+.btn,
+.button,
+.btn-primary,
+.btn-secondary,
+.btn-accent,
+.btn-outline-primary,
+.btn-black,
+.btn-white,
+.btn-outline {
+    transition:
+        background-color 0.18s ease,
+        color            0.18s ease,
+        transform        0.18s ease,
+        box-shadow       0.18s ease,
+        border-color     0.18s ease !important;
+}
+
+a {
+    transition: color 0.15s ease, opacity 0.15s ease !important;
+}
+
+.nav-link {
+    transition: color 0.15s ease, background-color 0.15s ease !important;
+}
+
+/* ── 6. TOUCH ACTIVE STATES ───────────────────────────
+   On real touch devices (no precise hover) give
+   immediate visual feedback on every tap — this makes
+   the UI feel native and fast.
+   ─────────────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+    .btn:active,
+    .button:active,
+    [role="button"]:active {
+        transform: scale(0.96) !important;
+        opacity: 0.85 !important;
+        transition: transform 0.07s ease, opacity 0.07s ease !important;
+    }
+
+    .action-item:active,
+    .mobile-menu-button:active {
+        transform: scale(0.88) !important;
+        transition: transform 0.07s ease !important;
+    }
+
+    .product-card:active {
+        transform: scale(0.985) !important;
+        transition: transform 0.1s ease !important;
+    }
+
+    .nav-link:active {
+        opacity: 0.55 !important;
+        transition: opacity 0.06s ease !important;
+    }
+
+    /* Disable translate-up hover effects on touch — they don't feel right */
+    .product-card:hover,
+    .card:hover,
+    .gallery-item:hover,
+    .wishlist-card:hover {
+        transform: none !important;
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    /* Product overlay: always slightly visible on touch so users know it exists */
+    .product-overlay {
+        opacity: 0.92 !important;
+        background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.55) 100%) !important;
+    }
+}
+
+/* ── 7. SMOOTH MODAL / OFFCANVAS / DRAWER ANIMATIONS ─ */
+.modal.fade .modal-dialog {
+    transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.offcanvas {
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Mobile nav slide */
+.nav-menu {
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity   0.28s ease !important;
+}
+
+/* Dropdown fade */
+.dropdown-menu {
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+/* ── 8. IMAGE SMOOTHNESS ──────────────────────────────*/
+img {
+    backface-visibility: hidden;       /* prevents blurry sub-pixel during CSS transforms */
+    -webkit-backface-visibility: hidden;
+}
+
+/* Lazy-loaded image fade-in */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+img[loading="lazy"].img-loaded,
+img[loading="lazy"][src]:not([src=""]) {
+    opacity: 1;
+}
+
+/* ── 9. PAGE ENTRY ANIMATION ──────────────────────────
+   A barely-there fade+rise so the page feels polished
+   on load rather than just "snapping" in.
+   ─────────────────────────────────────────────────── */
+@keyframes os-page-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0);   }
+}
+
+main {
+    animation: os-page-in 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── 10. SCROLL-TRIGGERED FADE-SLIDE-UP ──────────────
+    Applied via IntersectionObserver in base.html.
+    Works with .animate-on-scroll class.
+   ─────────────────────────────────────────────────── */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: os-scroll-reveal 0.48s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-play-state: paused;
+}
+
+@keyframes os-scroll-reveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger siblings inside a container */
+.animate-on-scroll:nth-child(2) { animation-delay: 0.06s; }
+.animate-on-scroll:nth-child(3) { animation-delay: 0.12s; }
+.animate-on-scroll:nth-child(4) { animation-delay: 0.18s; }
+.animate-on-scroll:nth-child(5) { animation-delay: 0.24s; }
+.animate-on-scroll:nth-child(6) { animation-delay: 0.30s; }
+
+/* ── 11. SCROLL SNAP FOR HORIZONTAL CAROUSELS ─────── */
+.products-scroll,
+.horizontal-scroll,
+.promo-carousel {
+    scroll-snap-type: x mandatory;
+    -webkit-scroll-snap-type: x mandatory;
+}
+
+.products-scroll > *,
+.horizontal-scroll > *,
+.promo-carousel > * {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+/* ── 12. SKELETON / SHIMMER LOADING ──────────────────
+   Add class="skeleton" to any loading placeholder.
+   ─────────────────────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--gray-100, #f5f5f5) 25%,
+        var(--gray-200, #e5e5e5) 50%,
+        var(--gray-100, #f5f5f5) 75%
+    );
+    background-size: 200% 100%;
+    animation: os-shimmer 1.4s ease-in-out infinite;
+    border-radius: var(--radius-md, 0.5rem);
+    color: transparent !important;
+}
+
+@keyframes os-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+}
+
+[data-theme="dark"] .skeleton {
+    background: linear-gradient(
+        90deg,
+        #1e1e1e 25%,
+        #2a2a2a 50%,
+        #1e1e1e 75%
+    );
+    background-size: 200% 100%;
+}
+
+/* ── 13. SMOOTH FOCUS RINGS ──────────────────────────*/
+:focus-visible {
+    transition: outline-offset 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* ── 14. SMOOTH TABLE HORIZONTAL SCROLL HINT ─────── */
+@media (max-width: 767px) {
+    .table-responsive {
+        border-radius: var(--radius-lg, 1rem);
+        /* Gradient fade at right edge hints that content scrolls */
+        background:
+            linear-gradient(to right, white 30%, rgba(255,255,255,0)),
+            linear-gradient(to left,  white 30%, rgba(255,255,255,0)) 100% 0,
+            radial-gradient(farthest-side at 0   50%, rgba(0,0,0,0.08), rgba(0,0,0,0)),
+            radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.08), rgba(0,0,0,0)) 100% 0;
+        background-repeat: no-repeat;
+        background-color: white;
+        background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+        background-attachment: local, local, scroll, scroll;
+    }
+
+    [data-theme="dark"] .table-responsive {
+        background:
+            linear-gradient(to right, #1a1a1a 30%, rgba(26,26,26,0)),
+            linear-gradient(to left,  #1a1a1a 30%, rgba(26,26,26,0)) 100% 0,
+            radial-gradient(farthest-side at 0   50%, rgba(255,255,255,0.06), rgba(0,0,0,0)),
+            radial-gradient(farthest-side at 100% 50%, rgba(255,255,255,0.06), rgba(0,0,0,0)) 100% 0;
+        background-repeat: no-repeat;
+        background-color: #1a1a1a;
+        background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+        background-attachment: local, local, scroll, scroll;
+    }
+}
+
+/* ── 15. PREFERS-REDUCED-MOTION SAFETY ───────────────
+   Respect users who have turned off animations at the
+   OS level — remove every transition and animation.
+   ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration:        0.001ms !important;
+        animation-iteration-count: 1       !important;
+        transition-duration:       0.001ms !important;
+        scroll-behavior:           auto    !important;
+    }
+
+    html {
+        scroll-behavior: auto !important;
+    }
+
+    main {
+        animation: none !important;
+    }
+
+    .animate-on-scroll {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+    }
+}
