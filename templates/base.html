@@ -2156,6 +2156,11 @@
                         </div>
                     {% endif %}
 
+                    <!-- Dark Mode Toggle -->
+                    <button class="action-item dark-mode-toggle-btn" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-stars-fill action-icon" id="darkModeIcon"></i>
+                    </button>
+
                     <a href="/cart/" class="action-item" title="Cart">
                         <i class="bi bi-bag action-icon"></i>
                         {% if cart_count %}
@@ -4082,11 +4087,6 @@
             });
         });
     </script>
-    
-    <!-- Dark Mode Toggle Button -->
-    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle Dark Mode">
-        <i class="bi bi-moon-stars-fill" id="darkModeIcon"></i>
-    </button>
     
     <!-- Dark Mode JavaScript -->
     <script>
