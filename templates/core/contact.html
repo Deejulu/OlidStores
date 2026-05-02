@@ -1096,52 +1096,60 @@
     /* Small Mobile (â‰¤ 480px) */
     @media (max-width: 480px) {
         .contact-hero {
-            padding: 3rem 0 2.5rem;
-            margin-bottom: 3rem;
+            padding: 2.5rem 0 2rem;
+            margin-bottom: 2rem;
         }
         
         .contact-hero h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
         
         .contact-hero h1 i {
-            width: 60px;
-            height: 60px;
-            font-size: 1.75rem;
+            width: 52px;
+            height: 52px;
+            font-size: 1.5rem;
+            border-radius: 14px;
         }
         
         .contact-hero p {
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
         
         .contact-form-card,
         .contact-info-card {
-            padding: 1.75rem;
-            margin-bottom: 1.5rem;
+            padding: 1.35rem;
+            margin-bottom: 1.25rem;
+            border-radius: 14px;
         }
         
         .contact-form-card h3,
         .contact-info-card h3 {
-            font-size: 1.375rem;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
         }
         
         .contact-form-card h3 i {
-            width: 40px;
-            height: 40px;
-            font-size: 1.25rem;
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+            border-radius: 10px;
         }
         
         .contact-info-item {
-            padding: 1.25rem;
+            padding: 1rem;
+            gap: 0.75rem;
         }
         
         .contact-info-item .icon {
-            width: 48px;
-            height: 48px;
-            font-size: 1.25rem;
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+            border-radius: 12px;
         }
+        .contact-info-item .content a,
+        .contact-info-item .content .value { font-size: 1rem; }
         
         .social-link {
             flex: 0 1 auto;
@@ -1155,24 +1163,44 @@
             display: inline;
         }
         
+        .contact-trust-strip { gap: 1rem; }
+        .trust-item { font-size: 0.8rem; }
+        .trust-item i { width: 28px; height: 28px; font-size: 0.875rem; }
+        
+        .whatsapp-cta-card-enhanced { padding: 1.5rem; }
+        .whatsapp-header { gap: 0.75rem; margin-bottom: 1rem; }
+        .whatsapp-icon-wrapper { width: 52px; height: 52px; border-radius: 14px; }
+        .whatsapp-mega-btn { padding: 1rem 1.1rem; }
+        .btn-icon-pulse { width: 40px; height: 40px; }
+        .btn-content strong { font-size: 1rem; }
+        
         .map-container iframe {
-            height: 300px;
+            height: 240px;
         }
         
         .map-info {
-            padding: 1.25rem 1.5rem;
+            padding: 1rem 1.1rem;
             flex-direction: column;
             text-align: center;
+            gap: 0.75rem;
         }
         
         .map-info .icon-wrapper {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
         }
         
         .map-info i {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
         }
+    }
+
+    @media (max-width: 390px) {
+        .contact-hero       { padding: 2rem 0 1.5rem; }
+        .contact-hero h1    { font-size: 1.5rem; }
+        .contact-form-card, .contact-info-card { padding: 1.1rem; }
+        .contact-info-item  { padding: 0.875rem; }
+        .contact-info-item .icon { width: 40px; height: 40px; }
     }
     
     /* Medium Mobile (481px - 767px) */

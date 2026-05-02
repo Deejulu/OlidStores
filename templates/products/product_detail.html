@@ -116,7 +116,20 @@
   .pd-price { font-size: 1.4rem; }
   .pd-thumb { width: 58px; height: 58px; }
   .rel-card-img { height: 120px; }
+  /* Stepper row stays horizontal — add-to-cart goes below */
+  .qty-atc-row { flex-direction: column; gap: 0.75rem; }
 }
+@media (max-width: 390px) {
+  .pd-main-img, .pd-no-img { height: 195px; }
+  .pd-price { font-size: 1.25rem; }
+  .pd-thumb { width: 52px; height: 52px; }
+}
+/* Quantity stepper — minimum 44×44 touch targets */
+.qty-stepper button {
+  min-width: 44px; min-height: 44px;
+  width: 44px; height: 44px;
+}
+.qty-stepper input { min-height: 44px; height: 44px; }
 </style>
 {% endblock %}
 

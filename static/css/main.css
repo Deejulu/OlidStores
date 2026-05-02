@@ -338,3 +338,26 @@ a:hover {
         min-width: 640px;
     }
 }
+
+/* ── Small phones — avoid giant headings and wasteful padding ── */
+@media (max-width: 480px) {
+    .container,
+    .page-container {
+        padding: 0 0.9rem;
+    }
+    .section { padding: 2rem 0; }
+    .section-title, .page-title {
+        font-size: clamp(1.4rem, 7vw, 1.9rem);
+    }
+    .section-subtitle, .page-subtitle, .lead {
+        font-size: 0.9rem;
+    }
+    .card-body, .panel-body, .product-card-body { padding: 1rem; }
+    /* Keep inline buttons inline — only force full-width on explicitly-block buttons */
+    .btn:not([class*="w-100"]):not(.btn-block) { width: auto; }
+}
+
+@media (max-width: 360px) {
+    .container, .page-container { padding: 0 0.6rem; }
+    .section-title, .page-title { font-size: clamp(1.2rem, 8vw, 1.6rem); }
+}

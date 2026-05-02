@@ -757,8 +757,9 @@ a:hover {
     .btn {
         padding: 0.5rem 1rem;
         font-size: 0.875rem;
-        width: 100%;
+        /* Only force full-width on explicitly block buttons, not inline qty-steppers etc. */
     }
+    .btn-block, .w-100 > .btn, form > .btn { width: 100% !important; }
     
     .btn-lg {
         padding: 0.625rem 1.25rem;
@@ -870,7 +871,7 @@ a:hover {
     }
     
     .logo-tagline {
-        font-size: 0.5rem !important;
+        font-size: 0.65rem !important; /* was 0.5rem — raised to minimum legible size */
     }
     
     /* Badge */
