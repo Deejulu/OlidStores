@@ -262,7 +262,7 @@ if not DEBUG:
 	SESSION_COOKIE_SECURE = True
 	CSRF_COOKIE_SECURE = True
 	SESSION_COOKIE_HTTPONLY = True
-	CSRF_COOKIE_HTTPONLY = True
+	CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read the CSRF token for AJAX requests (cart, wishlist, etc.)
 	
 	# Browser Security Headers
 	SECURE_BROWSER_XSS_FILTER = True
