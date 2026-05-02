@@ -31,6 +31,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_editable = models.BooleanField(default=True)
+    is_sample = models.BooleanField(default=False, help_text='Marks products created by the sample data tool')
     stock = models.IntegerField(default=0)
     reorder_level = models.IntegerField(default=5, help_text='Alert when stock reaches this level')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')

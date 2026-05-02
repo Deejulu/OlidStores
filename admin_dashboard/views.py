@@ -483,12 +483,26 @@ def product_populate_sample(request):
     from django.core.management import call_command
     from django.db import transaction
 
+    if request.method != 'POST':
+        return redirect('admin_dashboard:product_list')
     try:
         with transaction.atomic():
             call_command('populate_sample')
         messages.success(request, 'Sample categories and products created successfully.')
     except Exception as e:
         messages.error(request, f'Failed to populate sample products: {e}')
+    return redirect('admin_dashboard:product_list')
+
+@admin_role_required
+def product_remove_sample(request):
+    from products.models import Product
+    if request.method != 'POST':
+        return redirect('admin_dashboard:product_list')
+    try:
+        deleted_count, _ = Product.objects.filter(is_sample=True).delete()
+        messages.success(request, f'Removed {deleted_count} sample products.')
+    except Exception as e:
+        messages.error(request, f'Failed to remove sample products: {e}')
     return redirect('admin_dashboard:product_list')
 
 @admin_role_required

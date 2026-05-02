@@ -44,9 +44,9 @@ class Command(BaseCommand):
             ('Laptop Stand', 'Adjustable laptop stand for desk use.'),
         ]
 
-        # Remove any existing products first so the sample data is regenerated cleanly.
-        Product.objects.all().delete()
-        self.stdout.write(self.style.WARNING('Deleted existing products before populating sample inventory.'))
+        # Remove only previously-generated sample products so real products are preserved.
+        deleted_count, _ = Product.objects.filter(is_sample=True).delete()
+        self.stdout.write(self.style.WARNING(f'Deleted {deleted_count} existing sample products.'))
 
         target_count = 100
         for start_index in range(target_count):
@@ -77,7 +77,8 @@ class Command(BaseCommand):
                 price=price,
                 stock=stock,
                 category=category,
-                slug=slug
+                slug=slug,
+                is_sample=True,
             )
 
         self.stdout.write(self.style.SUCCESS(f'Sample products created: {target_count}. Total products now: {Product.objects.count()}'))
