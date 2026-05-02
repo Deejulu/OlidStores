@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from functools import wraps
+import logging
 from .models import DailyMetric
 from products.models import Product
 from products.forms import ProductForm
@@ -19,12 +20,23 @@ from django.contrib import messages
 
 User = get_user_model()
 
+# Security logger for admin access
+security_logger = logging.getLogger('security')
+
 def admin_role_required(view_func):
     @wraps(view_func)
     @login_required
     def _wrapped_view(request, *args, **kwargs):
         if getattr(request.user, 'role', None) == 'admin':
             return view_func(request, *args, **kwargs)
+        # Log unauthorized access attempt
+        security_logger.warning(
+            'Unauthorized admin access attempt: user=%s, role=%s, ip=%s, path=%s',
+            request.user.username if request.user.is_authenticated else 'anonymous',
+            getattr(request.user, 'role', 'none'),
+            request.META.get('REMOTE_ADDR', 'unknown'),
+            request.path
+        )
         return redirect('core:home')
     return _wrapped_view
 
@@ -288,6 +300,14 @@ def admin_role_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if getattr(request.user, 'role', None) == 'admin':
             return view_func(request, *args, **kwargs)
+        # Log unauthorized access attempt
+        security_logger.warning(
+            'Unauthorized admin access attempt: user=%s, role=%s, ip=%s, path=%s',
+            request.user.username if request.user.is_authenticated else 'anonymous',
+            getattr(request.user, 'role', 'none'),
+            request.META.get('REMOTE_ADDR', 'unknown'),
+            request.path
+        )
         return redirect('core:home')
     return _wrapped_view
 

@@ -39,12 +39,19 @@ INSTALLED_APPS = [
 	'admin_dashboard',
 	'crispy_forms',
 	'crispy_bootstrap5',
+	'axes',  # Login rate limiting and brute force protection
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+# Authentication backends (django-axes requires this)
+AUTHENTICATION_BACKENDS = [
+	'axes.backends.AxesStandaloneBackend',  # Axes must be first
+	'django.contrib.auth.backends.ModelBackend',  # Default Django auth
+]
 
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
@@ -53,6 +60,7 @@ MIDDLEWARE = [
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'axes.middleware.AxesMiddleware',  # Login rate limiting (must be after AuthenticationMiddleware)
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'e_stores.middleware.MediaLoggingMiddleware',  # Log media file access
@@ -92,7 +100,7 @@ DATABASE_CONNECT_TIMEOUT = int(os.getenv('DATABASE_CONNECT_TIMEOUT', '10'))
 DATABASES = {
     'default': dj_database_url.parse(
         DATABASE_URL,
-        conn_max_age=0,
+        conn_max_age=600,  # Keep connections alive for 10 minutes (connection pooling)
         ssl_require=False,
     )
 }
@@ -268,6 +276,18 @@ if not DEBUG:
 	# Referrer Policy
 	SECURE_REFERRER_POLICY = 'same-origin'
 
+# Django Axes: Login Rate Limiting & Brute Force Protection
+AXES_FAILURE_LIMIT = 5  # Lock account after 5 failed login attempts
+AXES_COOLOFF_TIME = 1  # Lock duration in hours (1 hour)
+AXES_RESET_ON_SUCCESS = True  # Reset failure count on successful login
+AXES_LOCKOUT_TEMPLATE = None  # Use default Django login form with error message
+AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]  # Track by username and IP combination
+AXES_ENABLE_ACCESS_FAILURE_LOG = True  # Log all failed attempts
+AXES_VERBOSE = True  # Enable detailed logging
+# Whitelist local development IPs
+AXES_NEVER_LOCKOUT_WHITELIST = True
+AXES_IP_WHITELIST = ['127.0.0.1', 'localhost']
+
 # Logging Configuration
 LOGGING = {
     'version': 1,
@@ -317,6 +337,16 @@ LOGGING = {
         's3transfer': {
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': False,
+        },
+        'security': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'axes': {
+            'handlers': ['console'],
+            'level': 'WARNING',
             'propagate': False,
         },
     },
