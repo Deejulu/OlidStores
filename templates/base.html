@@ -3939,6 +3939,8 @@
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 form.addEventListener('submit', function() {
+                    // Skip for auth pages that have their own premium loader
+                    if (form.dataset.skipLoader === 'true') return;
                     document.getElementById('loadingSpinner').classList.add('active');
                 });
             });

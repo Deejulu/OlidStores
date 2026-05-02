@@ -499,10 +499,11 @@ def product_remove_sample(request):
     if request.method != 'POST':
         return redirect('admin_dashboard:product_list')
     try:
-        deleted_count, _ = Product.objects.filter(is_sample=True).delete()
-        messages.success(request, f'Removed {deleted_count} sample products.')
+        # Delete ALL products — this is a testing/demo reset tool
+        deleted_count, _ = Product.objects.all().delete()
+        messages.success(request, f'Removed all {deleted_count} products. Shop is now empty.')
     except Exception as e:
-        messages.error(request, f'Failed to remove sample products: {e}')
+        messages.error(request, f'Failed to remove products: {e}')
     return redirect('admin_dashboard:product_list')
 
 @admin_role_required

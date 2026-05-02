@@ -157,9 +157,9 @@ class Command(BaseCommand):
             cat_objects[cat_name] = cat
         self.stdout.write(self.style.SUCCESS(f'Ensured {len(cat_objects)} categories exist.'))
 
-        # Remove only previously-generated sample products so real products are preserved.
-        deleted_count, _ = Product.objects.filter(is_sample=True).delete()
-        self.stdout.write(self.style.WARNING(f'Removed {deleted_count} existing sample products.'))
+        # Delete ALL products for a clean slate before populating
+        deleted_count, _ = Product.objects.all().delete()
+        self.stdout.write(self.style.WARNING(f'Cleared {deleted_count} existing products.'))
 
         created = 0
         for cat_name, products in self.CATALOG.items():
