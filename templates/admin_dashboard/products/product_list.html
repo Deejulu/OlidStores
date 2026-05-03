@@ -643,6 +643,20 @@
         .mobile-bulk-item:hover { background: #f8fafc; }
     }
 
+    /* Extra small phones ≤480px */
+    @media (max-width: 480px) {
+        .admin-header { padding: 1rem; }
+        .admin-title-section h1 { font-size: 1.25rem; }
+        .admin-header-actions { flex-direction: column; width: 100%; gap: 0.5rem; }
+        .btn-add-product { width: 100%; justify-content: center; text-align: center; }
+        .products-table { min-width: 600px; font-size: 0.8rem; }
+        .products-table th, .products-table td { padding: 0.6rem 0.4rem; }
+        .page-title-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .stats-bar { flex-wrap: wrap; gap: 0.5rem; }
+        .search-section { padding: 0.75rem 1rem; }
+        .search-section .form-control { font-size: 0.95rem; }
+    }
+
     /* Animation */
     @keyframes fadeIn {
         from {

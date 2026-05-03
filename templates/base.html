@@ -396,8 +396,8 @@
             display: grid;
             grid-template-columns: auto 1fr auto;
             grid-template-rows: auto auto;
-            gap: 0.5rem;
-            padding: 0.5rem;
+            gap: 0.4rem;
+            padding: 0.45rem 0.5rem;
             align-items: center;
         }
 
@@ -415,28 +415,44 @@
             grid-row: 1;
             justify-self: start;
             display: flex !important;
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
         }
 
         .user-actions {
             grid-column: 3;
             grid-row: 1;
             justify-self: end;
-            gap: 0.15rem;
+            gap: 0.12rem;
         }
 
         .action-item {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
         }
+
+        /* Keep SVG logo properly sized on tablets */
+        .brand-logo svg { height: 48px !important; width: auto !important; }
+    }
+
+    /* ===== SMALL PHONES: tighter header to prevent icon overflow ===== */
+    @media (max-width: 575.98px) {
+        .header-container {
+            gap: 0.25rem;
+            padding: 0.35rem 0.4rem;
+        }
+        .mobile-menu-button { width: 38px; height: 38px; font-size: 1.3rem; }
+        .user-actions { gap: 0.06rem; }
+        .action-item { width: 37px; height: 37px; font-size: 1rem; }
+        /* SVG logo: fixed height lets it scale cleanly; max-width:100% (inline) still prevents overflow */
+        .brand-logo svg { height: 42px !important; width: auto !important; }
 
         .search-container {
             grid-column: 1 / -1;
             grid-row: 2;
             width: 100%;
-            margin: 1rem 0 0.25rem 0;
-            padding: 0 0.75rem;
+            margin: 0.4rem 0 0.15rem 0;
+            padding: 0 0.5rem;
         }
         
         .search-input-wrapper {
@@ -477,20 +493,12 @@
             display: none;
         }
         .logo-olid {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
         }
         .logo-stores {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
         }
-        .action-item {
-            width: 40px;
-            height: 40px;
-            font-size: 1.1rem;
-        }
-        .mobile-menu-button {
-            width: 40px;
-            height: 40px;
-        }
+        /* action-item and mobile-menu-button further reduced by global overrides below */
     }
     .mobile-menu-button {
         display: none; /* Hidden by default, shown in mobile */
@@ -1848,7 +1856,7 @@
         h4 { font-size: clamp(1rem, 4.5vw, 1.2rem); }
 
         /* Header tighter on tiny screens */
-        .header-container { min-height: 60px; padding: 0.4rem 0.75rem; }
+        .header-container { min-height: 55px; padding: 0.35rem 0.5rem; }
         .logo-olid   { font-size: 1.45rem; }
         .logo-stores { font-size: 1.3rem; }
         .logo-tagline { display: none; }
@@ -1856,8 +1864,14 @@
         /* Nav bar links smaller */
         .nav-link { font-size: 0.95rem; padding: 0.5rem 0.7rem; }
 
-        /* Action icons tighter */
-        .action-item { width: 40px; height: 40px; font-size: 1.1rem; }
+        /* Hide dark mode toggle from cramped header on phones — accessible via mobile nav menu */
+        #darkModeToggle { display: none !important; }
+
+        /* Action icons smaller to give logo more breathing room */
+        .action-item { width: 36px; height: 36px; font-size: 0.95rem; }
+        .mobile-menu-button { width: 36px; height: 36px; }
+        /* SVG logo at phone-friendly height */
+        .brand-logo svg { height: 40px !important; width: auto !important; }
 
         /* Cards */
         .card-body { padding: 0.9rem; }
@@ -1917,7 +1931,9 @@
         /* Very small phones — shrink logo wordmark further */
         .logo-olid   { font-size: 1.25rem; }
         .logo-stores { font-size: 1.1rem; }
-        .action-item { width: 36px; height: 36px; font-size: 1rem; }
+        .action-item { width: 34px; height: 34px; font-size: 0.9rem; }
+        .mobile-menu-button { width: 34px; height: 34px; }
+        .brand-logo svg { height: 38px !important; width: auto !important; }
 
         h1 { font-size: clamp(1.3rem, 8vw, 1.7rem); }
         h2 { font-size: clamp(1.1rem, 6.5vw, 1.5rem); }
@@ -1937,9 +1953,14 @@
         }
         .logo-olid   { font-size: 1.1rem; }
         .logo-stores { font-size: 0.95rem; }
-        .action-item { width: 34px; height: 34px; }
+        .action-item { width: 32px; height: 32px; font-size: 0.85rem; }
+        .mobile-menu-button { width: 32px; height: 32px; font-size: 1.1rem; }
+        .brand-logo svg { height: 36px !important; width: auto !important; }
         .floating-cart { width: 46px; height: 46px; }
         .back-to-top   { width: 36px; height: 36px; }
+        /* Tighten header container further */
+        .header-container { padding: 0.3rem; gap: 0.2rem; }
+        .user-actions { gap: 0.04rem; }
     }
 
     /* ===================================================================
@@ -2422,6 +2443,13 @@
                             <i class="bi bi-envelope"></i>
                             Contact
                         </a>
+                    </li>
+                    <!-- Dark mode toggle — shown in mobile nav (hidden from header on small phones) -->
+                    <li class="nav-item" style="margin-top:1.25rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.12);">
+                        <button type="button" class="nav-link dark-mode-toggle-btn" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;" aria-label="Toggle dark mode">
+                            <i class="bi bi-moon-stars-fill dark-mode-nav-icon"></i>
+                            Dark / Light Mode
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -4526,31 +4554,43 @@
             html.setAttribute('data-theme', currentTheme);
             updateIcon(currentTheme === 'dark');
             
-            // Toggle dark mode
-            if (darkModeToggle) darkModeToggle.addEventListener('click', function() {
-                const isDark = html.getAttribute('data-theme') === 'dark';
-                
-                if (isDark) {
-                    html.setAttribute('data-theme', 'light');
-                    try { localStorage.setItem('theme', 'light'); } catch (e) {}
-                    updateIcon(false);
-                } else {
-                    html.setAttribute('data-theme', 'dark');
-                    try { localStorage.setItem('theme', 'dark'); } catch (e) {}
-                    updateIcon(true);
-                }
+            // Toggle dark mode — attach handler to ALL .dark-mode-toggle-btn elements
+            // (header button + mobile nav button)
+            document.querySelectorAll('.dark-mode-toggle-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const isDark = html.getAttribute('data-theme') === 'dark';
+                    if (isDark) {
+                        html.setAttribute('data-theme', 'light');
+                        try { localStorage.setItem('theme', 'light'); } catch (e) {}
+                        updateIcon(false);
+                    } else {
+                        html.setAttribute('data-theme', 'dark');
+                        try { localStorage.setItem('theme', 'dark'); } catch (e) {}
+                        updateIcon(true);
+                    }
+                });
             });
-            
-            // Update icon based on theme
+
+            // Update icon based on theme (header icon + any mobile nav icons)
             function updateIcon(isDark) {
-                if (!darkModeIcon) return;
-                if (isDark) {
-                    darkModeIcon.classList.remove('bi-moon-stars-fill');
-                    darkModeIcon.classList.add('bi-sun-fill');
-                } else {
-                    darkModeIcon.classList.remove('bi-sun-fill');
-                    darkModeIcon.classList.add('bi-moon-stars-fill');
+                if (darkModeIcon) {
+                    if (isDark) {
+                        darkModeIcon.classList.remove('bi-moon-stars-fill');
+                        darkModeIcon.classList.add('bi-sun-fill');
+                    } else {
+                        darkModeIcon.classList.remove('bi-sun-fill');
+                        darkModeIcon.classList.add('bi-moon-stars-fill');
+                    }
                 }
+                document.querySelectorAll('.dark-mode-nav-icon').forEach(function(icon) {
+                    if (isDark) {
+                        icon.classList.remove('bi-moon-stars-fill');
+                        icon.classList.add('bi-sun-fill');
+                    } else {
+                        icon.classList.remove('bi-sun-fill');
+                        icon.classList.add('bi-moon-stars-fill');
+                    }
+                });
             }
             
             // Keyboard shortcut: Ctrl/Cmd + Shift + D
