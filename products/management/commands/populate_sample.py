@@ -161,7 +161,9 @@ class Command(BaseCommand):
         deleted_count, _ = Product.objects.all().delete()
         self.stdout.write(self.style.WARNING(f'Cleared {deleted_count} existing products.'))
 
-        created = 0
+        # Build all Product objects in memory, resolving slug conflicts without DB queries per product
+        to_create = []
+        seen_slugs = set()
         for cat_name, products in self.CATALOG.items():
             category = cat_objects[cat_name]
             for name, description, base_price, base_stock in products:
@@ -170,10 +172,11 @@ class Command(BaseCommand):
                 base_slug = slugify(name)
                 slug = base_slug
                 i = 1
-                while Product.objects.filter(slug=slug).exists():
+                while slug in seen_slugs:
                     slug = f'{base_slug}-{i}'
                     i += 1
-                Product.objects.create(
+                seen_slugs.add(slug)
+                to_create.append(Product(
                     name=name,
                     description=description,
                     price=price,
@@ -181,8 +184,11 @@ class Command(BaseCommand):
                     category=category,
                     slug=slug,
                     is_sample=True,
-                )
-                created += 1
+                ))
+
+        # Single bulk INSERT — one query instead of 120+
+        Product.objects.bulk_create(to_create)
+        created = len(to_create)
 
         self.stdout.write(self.style.SUCCESS(
             f'Done. Created {created} sample products across {len(cat_objects)} categories. '
