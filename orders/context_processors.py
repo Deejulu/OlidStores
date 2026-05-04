@@ -11,12 +11,12 @@ def cart_count(request):
         )
         count = result['total'] or 0
     else:
+        # Only query if a session already exists — avoids creating unnecessary sessions
+        # for anonymous visitors who never interact with the cart
         session_key = request.session.session_key
-        if not session_key:
-            request.session.create()
-            session_key = request.session.session_key
-        result = Cart.objects.filter(session_key=session_key, user=None).aggregate(
-            total=Sum('items__quantity')
-        )
-        count = result['total'] or 0
+        if session_key:
+            result = Cart.objects.filter(session_key=session_key, user=None).aggregate(
+                total=Sum('items__quantity')
+            )
+            count = result['total'] or 0
     return {'cart_count': count}

@@ -288,9 +288,9 @@
                                 <div class="ck-item">
                                     <div class="ck-item-img">
                                         {% if item.product.images.all %}
-                                        <img src="{{ item.product.images.all.0.image.url }}" alt="{{ item.product.name }}">
+                                        <img src="{{ item.product.images.all.0.image.url }}" alt="{{ item.product.name }}" loading="lazy">
                                         {% elif item.product.image %}
-                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
                                         {% else %}
                                         <div class="ck-item-placeholder"><i class="bi bi-image"></i></div>
                                         {% endif %}

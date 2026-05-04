@@ -663,9 +663,9 @@
                     <div class="product-card">
                         <div class="product-card-image">
                             {% if product.image %}
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
                             {% else %}
-                                <img src="{{ placeholder_data_uri }}" alt="{{ product.name }}">
+                                <img src="{{ placeholder_data_uri }}" alt="{{ product.name }}" loading="lazy">
                             {% endif %}
                             <div class="product-card-checkbox">
                                 <input class="form-check-input" type="checkbox" name="product_ids" value="{{ product.id }}" id="sel_{{ product.id }}">

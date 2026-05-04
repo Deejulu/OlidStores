@@ -57,8 +57,11 @@ class ShopListView(ListView):
 		page_obj = context.get('page_obj')
 		if page_obj is not None and isinstance(page_obj, Page):
 			context['products'] = page_obj
-		# Show canonical categories list (limit to 11 for the sidebar)
-		cats = list(Category.objects.annotate(product_count=Count('products')).all())
+		# Show canonical categories list (limit to 11 for the sidebar) — cached for 1 hour
+		cats = cache.get('shop_sidebar_categories')
+		if cats is None:
+			cats = list(Category.objects.annotate(product_count=Count('products')).all())
+			cache.set('shop_sidebar_categories', cats, 3600)
 		# Take up to 11, and if fewer exist, repeat existing ones to pad to 11 (keeps UI stable in tests)
 		cats_display = cats[:11]
 		if len(cats_display) < 11 and cats:
@@ -69,19 +72,20 @@ class ShopListView(ListView):
 		context['categories'] = cats_display
 		for c in context['categories']:
 			c.product_count = getattr(c, 'product_count', 0)
-		# Suggested products (used when no results)
-		context['suggested_products'] = Product.objects.select_related('category').prefetch_related('variants', 'images').annotate(
-			avg_rating=Avg('reviews__rating'),
-			review_count=Count('reviews', distinct=True)
-		).order_by('-created_at')[:6]
+		# Suggested products (used when no results) — cached for 10 minutes
+		suggested = cache.get('shop_suggested_products')
+		if suggested is None:
+			suggested = list(Product.objects.select_related('category').prefetch_related('variants', 'images').order_by('-created_at')[:6])
+			cache.set('shop_suggested_products', suggested, 600)
+		context['suggested_products'] = suggested
 		context['page_title'] = "Shop All Products - E-Stores"
 		context['search_query'] = self.request.GET.get('search', '')
 		
-		# Add total product count
+		# Add total product count — always use the paginator count (already computed)
 		if hasattr(context.get('products'), 'paginator'):
 			context['total_products'] = context['products'].paginator.count
 		else:
-			context['total_products'] = self.get_queryset().count()
+			context['total_products'] = 0
 		
 		# Add wishlist product IDs and wishlist object for the current user
 		if self.request.user.is_authenticated:

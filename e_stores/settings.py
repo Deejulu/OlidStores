@@ -56,6 +56,7 @@ AUTHENTICATION_BACKENDS = [
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
 	'whitenoise.middleware.WhiteNoiseMiddleware',
+	'django.middleware.gzip.GZipMiddleware',       # Compress responses (must be near top)
 	'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
@@ -145,6 +146,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# WhiteNoise: serve compressed static files and cache them in browsers for 1 year
+WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds
+WHITENOISE_AUTOREFRESH = DEBUG  # Auto-refresh in dev, skip in prod for speed
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

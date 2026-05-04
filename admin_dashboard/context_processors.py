@@ -1,48 +1,49 @@
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
+from django.core.cache import cache
 from core.models import ContactMessage, ChatConversation
 from users.models import Feedback
 from orders.models import Order
+
+# Cache admin notifications for 60 seconds to avoid hammering the DB on every request
+_ADMIN_NOTIF_TTL = 60
+
+_EMPTY = {
+    'admin_unread_messages': 0,
+    'admin_unread_chats': 0,
+    'admin_unresolved_feedback': 0,
+    'admin_pending_orders': 0,
+    'admin_total_notifications': 0,
+    'admin_order_alerts': [],
+    'admin_order_alerts_count': 0,
+}
 
 
 def admin_notifications(request):
     """
     Context processor to provide notification counts for admin users.
-    Returns counts of:
-    - Unread contact messages
-    - Unresolved feedback
-    - Pending/untouched orders
+    Results are cached per-admin user for 60 seconds to reduce DB load.
     """
     # Check if user is authenticated and is admin (or superuser)
     if not request.user.is_authenticated:
-        return {
-            'admin_unread_messages': 0,
-            'admin_unread_chats': 0,
-            'admin_unresolved_feedback': 0,
-            'admin_pending_orders': 0,
-            'admin_total_notifications': 0,
-            'admin_order_alerts': [],
-            'admin_order_alerts_count': 0,
-        }
-    
+        return _EMPTY
+
     # Check if user is admin or superuser
     is_admin = (
-        request.user.is_superuser or 
+        request.user.is_superuser or
         (hasattr(request.user, 'role') and request.user.role == 'admin')
     )
-    
+
     if not is_admin:
-        return {
-            'admin_unread_messages': 0,
-            'admin_unread_chats': 0,
-            'admin_unresolved_feedback': 0,
-            'admin_pending_orders': 0,
-            'admin_total_notifications': 0,
-            'admin_order_alerts': [],
-            'admin_order_alerts_count': 0,
-        }
-    
+        return _EMPTY
+
+    # Serve from cache if available (per-user key so counts stay accurate per admin)
+    cache_key = f'admin_notifications_{request.user.pk}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         # Count unread contact messages
         unread_messages = ContactMessage.objects.filter(is_read=False).count()
@@ -117,7 +118,7 @@ def admin_notifications(request):
         order_alerts_count = len(order_alerts)
         total_notifications = unread_messages + unread_chats + pending_orders + order_alerts_count
 
-        return {
+        result = {
             'admin_unread_messages': unread_messages,
             'admin_unread_chats': unread_chats,
             'admin_unresolved_feedback': unresolved_feedback,
@@ -126,15 +127,10 @@ def admin_notifications(request):
             'admin_order_alerts': order_alerts,
             'admin_order_alerts_count': order_alerts_count,
         }
+        cache.set(cache_key, result, _ADMIN_NOTIF_TTL)
+        return result
     except Exception as e:
         # If any error occurs, return zeros
         print(f"Error in admin_notifications context processor: {e}")
-        return {
-            'admin_unread_messages': 0,
-            'admin_unresolved_feedback': 0,
-            'admin_pending_orders': 0,
-            'admin_total_notifications': 0,
-            'admin_order_alerts': [],
-            'admin_order_alerts_count': 0,
-        }
+        return _EMPTY
 
