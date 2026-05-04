@@ -1771,10 +1771,12 @@
         transform: scale(1.05);
     }
     .utility-panel {
-        position: absolute;
-        bottom: calc(100% + var(--space-md));
-        left: 0;
-        width: 300px;
+        position: fixed;
+        bottom: calc(var(--space-lg) + 56px + var(--space-md));
+        left: var(--space-lg);
+        right: var(--space-lg);
+        max-width: 300px;
+        width: auto;
         background: var(--white);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-xl);
@@ -1784,6 +1786,10 @@
         transform: translateY(10px);
         transition: var(--transition-base);
         border: 1px solid var(--gray-200);
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 901;
     }
     .utility-panel.active {
         opacity: 1;
