@@ -541,68 +541,146 @@
     }
 
     @media (max-width: 767px) {
-        .admin-header {
-            padding: 1.5rem;
-        }
-
-        .admin-title-section h1 {
-            font-size: 1.5rem;
-        }
-
-        .admin-header-content {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .search-wrapper {
-            flex-direction: column;
-        }
-
-        /* Stack action buttons and make each full-width for easier tapping */
-        .action-buttons {
+        /* === Header === */
+        .admin-header { padding: 1.5rem; }
+        .admin-title-section h1 { font-size: 1.5rem; }
+        .admin-header-content { flex-direction: column; align-items: flex-start; }
+        .admin-header-actions {
+            display: flex;
             flex-direction: column;
             width: 100%;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
         }
-
-        .btn-action {
+        .btn-add-product {
             width: 100%;
             justify-content: center;
+            text-align: center;
+            padding: 0.75rem 1rem;
         }
 
-        /* Keep table horizontally scrollable, but keep the Actions column visible */
-        .products-table-wrapper {
-            overflow-x: auto;
-        }
+        /* === Search === */
+        .search-wrapper { flex-direction: column; }
+        .btn-search, .btn-clear { width: 100%; justify-content: center; }
 
-        /* Reduce forced minimum width so table can adapt better on narrow screens */
-        .products-table {
-            min-width: 700px;
-        }
-
-        /* Make the Actions column sticky on the right so Edit/Delete/Toggle remain visible without horizontal scrolling */
-        .products-table th:last-child,
-        .products-table td:last-child {
-            position: -webkit-sticky;
-            position: sticky;
-            right: 0;
-            background: var(--admin-card-bg);
-            z-index: 5;
-            box-shadow: -8px 0 16px rgba(2,6,23,0.06);
-            min-width: 140px; /* ensure buttons have room */
-        }
-
-        /* Improve spacing so sticky column doesn't overlap table row hover effects */
-        .products-table td:last-child .action-buttons {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
+        /* === Bulk Actions === */
+        .bulk-actions-card { padding: 1rem; }
+        .bulk-controls { grid-template-columns: 1fr; }
+        .btn-apply {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 0.5rem;
         }
 
-        /* Mobile-friendly bulk-action UI (single-tap opens options) */
-        .mobile-bulk-dropdown {
+        /* === TABLE → CARD transformation === */
+        /* Remove scroll container chrome — cards don't need it */
+        .products-table-wrapper {
+            overflow-x: unset;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        .products-table {
+            min-width: unset;
+            font-size: 0.9rem;
+        }
+
+        /* Hide the header row */
+        .products-table thead { display: none; }
+        .products-table tbody { display: block; }
+
+        /* Each row becomes a card */
+        .products-table tbody tr {
+            display: block;
+            background: white;
+            border-radius: 14px;
+            margin-bottom: 1rem;
+            padding: 0.875rem 0.875rem 0.875rem 0.875rem;
+            padding-right: 3rem; /* make room for the floating checkbox */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid var(--admin-border);
             position: relative;
         }
 
+        /* Each cell becomes a label : value row */
+        .products-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.45rem 0;
+            border-bottom: 1px solid #f1f5f9;
+            min-height: unset;
+        }
+        .products-table td:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            justify-content: flex-end;
+        }
+
+        /* Data-label prefix for Category / Price / Stock */
+        .products-table td[data-label]:not([data-label=''])::before {
+            content: attr(data-label);
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--admin-text-secondary);
+            flex-shrink: 0;
+            margin-right: 0.75rem;
+        }
+
+        /* Checkbox: pin to top-right of card */
+        .products-table td.checkbox-cell {
+            position: absolute;
+            top: 0.875rem;
+            right: 0.875rem;
+            width: auto;
+            border-bottom: none;
+            padding: 0;
+        }
+
+        /* Product name: stands out as card title */
+        .products-table tbody tr td:nth-child(2) {
+            font-size: 1rem;
+            font-weight: 700;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--admin-border);
+            margin-bottom: 0.2rem;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        /* Action buttons row inside the card */
+        .products-table td:last-child .action-buttons {
+            width: 100%;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0;
+        }
+        .btn-action {
+            padding: 0.45rem 0.75rem;
+            font-size: 0.82rem;
+            width: auto;
+            justify-content: center;
+        }
+
+        /* Undo sticky-column from any inherited rules */
+        .products-table th:last-child,
+        .products-table td:last-child {
+            position: static;
+            box-shadow: none;
+            background: transparent;
+            min-width: unset;
+            z-index: auto;
+        }
+
+        /* Mobile bulk-action dropdown */
+        .mobile-bulk-dropdown { position: relative; }
         .mobile-bulk-toggle {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -613,12 +691,10 @@
             font-weight: 600;
             cursor: pointer;
         }
-
         .mobile-bulk-menu {
             display: none;
             position: absolute;
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background: white;
             border-radius: 8px;
             box-shadow: 0 10px 30px rgba(2,6,23,0.08);
@@ -628,33 +704,31 @@
             z-index: 1200;
             border: 1px solid var(--admin-border);
         }
-
         .mobile-bulk-menu.show { display: block; }
-
         .mobile-bulk-item {
             padding: 0.65rem 0.9rem;
             cursor: pointer;
             border-bottom: 1px solid var(--admin-border);
             font-size: 0.95rem;
         }
-
         .mobile-bulk-item:last-child { border-bottom: none; }
-
         .mobile-bulk-item:hover { background: #f8fafc; }
     }
 
     /* Extra small phones ≤480px */
     @media (max-width: 480px) {
         .admin-header { padding: 1rem; }
-        .admin-title-section h1 { font-size: 1.25rem; }
-        .admin-header-actions { flex-direction: column; width: 100%; gap: 0.5rem; }
-        .btn-add-product { width: 100%; justify-content: center; text-align: center; }
-        .products-table { min-width: 600px; font-size: 0.8rem; }
-        .products-table th, .products-table td { padding: 0.6rem 0.4rem; }
-        .page-title-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-        .stats-bar { flex-wrap: wrap; gap: 0.5rem; }
-        .search-section { padding: 0.75rem 1rem; }
-        .search-section .form-control { font-size: 0.95rem; }
+        .admin-title-section h1 { font-size: 1.2rem; }
+        .search-section { padding: 0.75rem; }
+        .admin-stats { flex-direction: column; gap: 0.4rem; }
+        /* Tighten card padding */
+        .products-table tbody tr {
+            padding: 0.75rem;
+            padding-right: 2.75rem;
+        }
+        .products-table td { font-size: 0.85rem; }
+        /* Make all three action buttons the same compact size */
+        .btn-action { padding: 0.4rem 0.65rem; font-size: 0.78rem; }
     }
 
     /* Animation */
@@ -834,7 +908,7 @@
                             <td class="checkbox-cell">
                                 <input type="checkbox" name="product_ids" value="{{ product.id }}" class="product-checkbox">
                             </td>
-                            <td>
+                            <td data-label="">
                                 <div class="product-name-cell">
                                     {{ product.name }}
                                     {% if not product.is_editable %}
@@ -845,9 +919,9 @@
                                     {% endif %}
                                 </div>
                             </td>
-                            <td>{{ product.category.name }}</td>
-                            <td class="price-cell">₦{{ product.price|floatformat:2 }}</td>
-                            <td>
+                            <td data-label="Category">{{ product.category.name }}</td>
+                            <td class="price-cell" data-label="Price">₦{{ product.price|floatformat:2 }}</td>
+                            <td data-label="Stock">
                                 <div class="stock-cell">
                                     <span class="stock-value">{{ product.stock }}</span>
                                     {% if product.stock == 0 %}
@@ -863,7 +937,7 @@
                                     {% endif %}
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="">
                                 <div class="action-buttons">
                                     <a href="{% url 'admin_dashboard:product_edit' product.id %}" class="btn-action btn-edit">
                                         <i class="bi bi-pencil"></i>
