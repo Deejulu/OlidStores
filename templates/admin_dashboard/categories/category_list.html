@@ -131,6 +131,32 @@
         color: var(--admin-primary);
     }
 
+    .btn-add-category.btn-secondary {
+        background: var(--admin-info);
+        color: white;
+    }
+
+    .btn-add-category.btn-secondary:hover {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-add-category.btn-danger {
+        background: var(--admin-danger);
+        color: white;
+    }
+
+    .btn-add-category.btn-danger:hover {
+        background: #dc2626;
+        color: white;
+    }
+
+    .admin-header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
     /* Categories Grid */
     .categories-grid {
         display: grid;
@@ -441,6 +467,16 @@
             align-items: flex-start;
         }
 
+        .admin-header-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .btn-add-category {
+            width: 100%;
+            justify-content: center;
+        }
+
         .categories-grid {
             grid-template-columns: 1fr;
         }
@@ -493,10 +529,26 @@
                         </div>
                     </div>
                 </div>
-                <a href="{% url 'admin_dashboard:category_create' %}" class="btn-add-category">
-                    <i class="bi bi-plus-circle"></i>
-                    Add New Category
-                </a>
+                <div class="admin-header-actions">
+                    <a href="{% url 'admin_dashboard:category_create' %}" class="btn-add-category">
+                        <i class="bi bi-plus-circle"></i>
+                        Add New Category
+                    </a>
+                    <form method="post" action="{% url 'admin_dashboard:category_populate_sample' %}" style="display:inline" id="populate-form-cat" onsubmit="return confirmPopulateCat(event)">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-add-category btn-secondary" id="populate-btn-cat">
+                            <i class="bi bi-tags"></i>
+                            Populate Sample Categories
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'admin_dashboard:category_remove_sample' %}" style="display:inline" onsubmit="return confirm('Remove all categories? This will also delete all products. This cannot be undone.')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-add-category btn-danger">
+                            <i class="bi bi-trash3"></i>
+                            Remove All Categories
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -639,5 +691,24 @@ document.querySelectorAll('.btn-toggle').forEach(button => {
         }
     });
 });
+
+// Populate sample categories — show loading overlay while the server processes
+function confirmPopulateCat(e) {
+    if (!confirm('This will create sample categories and products. Continue?')) {
+        return false;
+    }
+    // Show full-screen loading overlay
+    var overlay = document.getElementById('populate-loading-overlay-cat');
+    if (overlay) overlay.style.display = 'flex';
+    var btn = document.getElementById('populate-btn-cat');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…'; }
+    return true;
+}
 </script>
+
+<!-- Loading overlay shown while populate-sample request is in progress -->
+<div id="populate-loading-overlay-cat" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+    <div class="spinner-border text-light" style="width:3rem;height:3rem;" role="status"></div>
+    <p style="color:#fff;font-size:1.1rem;font-weight:600;margin:0;">Creating sample categories and products… please wait</p>
+</div>
 {% endblock %}

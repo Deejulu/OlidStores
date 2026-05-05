@@ -85,6 +85,7 @@ TEMPLATES = [
                 'core.context_processors.site_contact',
 				'orders.context_processors.cart_count',
 				'admin_dashboard.context_processors.admin_notifications',
+				'core.context_processors.customer_notifications',
 			],
 		},
 	},

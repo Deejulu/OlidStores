@@ -23,19 +23,55 @@ from django.contrib.auth.forms import UserCreationForm
 from users.models_notification import Notification
 from django.db import models
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 
 @login_required
 @require_POST
 def mark_notification_read(request, pk):
-	Notification.objects.filter(pk=pk, user=request.user, is_read=False).update(is_read=True)
+	"""Mark a notification as read and optionally redirect to its action URL."""
+	notification = Notification.objects.filter(
+		pk=pk, 
+		user=request.user, 
+		is_read=False
+	).first()
+	
+	if notification:
+		notification.mark_as_read()
+		
+		# If notification has an action URL, redirect there
+		if notification.action_url:
+			return redirect(notification.action_url)
+	
+	# For AJAX requests, return JSON
+	if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+		return JsonResponse({'success': True})
+	
 	return redirect('users:notifications')
 
 @login_required
 def notifications_view(request):
+	"""Display all notifications for the logged-in user."""
 	notifications = Notification.objects.filter(
 		models.Q(user=request.user) | models.Q(user__isnull=True)
-	).order_by('-created_at')[:30]
-	return render(request, 'users/notifications.html', {'notifications': notifications})
+	).select_related('user').order_by('-created_at')
+	
+	# Paginate notifications
+	paginator = Paginator(notifications, 20)  # Show 20 notifications per page
+	page_number = request.GET.get('page', 1)
+	page_obj = paginator.get_page(page_number)
+	
+	# Count unread notifications
+	unread_count = Notification.objects.filter(
+		models.Q(user=request.user) | models.Q(user__isnull=True),
+		is_read=False
+	).count()
+	
+	return render(request, 'users/notifications.html', {
+		'notifications': page_obj,
+		'page_obj': page_obj,
+		'unread_count': unread_count
+	})
+
 from django.contrib.auth import login
 from orders.models import Order
 from users.models import Wishlist
@@ -46,6 +82,18 @@ from users.models_activity import Activity
 def activity_view(request):
 	activities = Activity.objects.filter(user=request.user).order_by('-timestamp')[:20]
 	return render(request, 'users/activity.html', {'activities': activities})
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+	"""Mark all notifications as read for the current user."""
+	Notification.objects.filter(
+		models.Q(user=request.user) | models.Q(user__isnull=True),
+		is_read=False
+	).update(is_read=True)
+	
+	messages.success(request, 'All notifications marked as read!')
+	return redirect('users:notifications')
 
 def is_customer(user):
 	return user.is_authenticated and getattr(user, 'role', None) == 'customer'

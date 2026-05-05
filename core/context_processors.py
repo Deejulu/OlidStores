@@ -220,3 +220,31 @@ def site_contact(request):
         'return_policy_days': return_policy_days,
         'all_social_links': all_social,
     }
+
+
+def customer_notifications(request):
+    """
+    Context processor to provide notification counts for customer users.
+    Shows unread notification count in the header/navigation.
+    """
+    if not request.user.is_authenticated:
+        return {'customer_unread_notifications': 0}
+    
+    # Only for customers (not admin users)
+    is_customer = getattr(request.user, 'role', None) == 'customer'
+    if not is_customer:
+        return {'customer_unread_notifications': 0}
+    
+    try:
+        from users.models_notification import Notification
+        from django.db.models import Q
+        
+        # Count unread notifications for this user
+        unread_count = Notification.objects.filter(
+            Q(user=request.user) | Q(user__isnull=True),
+            is_read=False
+        ).count()
+        
+        return {'customer_unread_notifications': unread_count}
+    except Exception:
+        return {'customer_unread_notifications': 0}

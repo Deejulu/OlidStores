@@ -24,5 +24,5 @@ class DailyMetric(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return f"DailyMetric {self.date} - ${self.total_sales}"
+        return f"DailyMetric {self.date} - ₦{self.total_sales}"
 

@@ -16,6 +16,9 @@ class CoreConfig(AppConfig):
 		configured bucket (S3/Supabase) or the local `MEDIA_ROOT`. Only enable
 		temporarily in production to diagnose media issues.
 		"""
+		# Import signals to register them
+		import core.signals  # noqa: F401
+		
 		do_check = os.environ.get('CHECK_STORAGE_ON_STARTUP', '').lower() in ('1', 'true', 'yes')
 		if not do_check:
 			return

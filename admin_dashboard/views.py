@@ -609,6 +609,35 @@ def category_toggle(request, pk):
 
 
 @admin_role_required
+def category_populate_sample(request):
+    from django.core.management import call_command
+    from django.db import transaction
+
+    if request.method != 'POST':
+        return redirect('admin_dashboard:category_list')
+    try:
+        with transaction.atomic():
+            call_command('populate_sample')
+        messages.success(request, 'Sample categories and products created successfully.')
+    except Exception as e:
+        messages.error(request, f'Failed to populate sample categories: {e}')
+    return redirect('admin_dashboard:category_list')
+
+
+@admin_role_required
+def category_remove_sample(request):
+    if request.method != 'POST':
+        return redirect('admin_dashboard:category_list')
+    try:
+        # Delete ALL categories (cascades to products)
+        deleted_count, _ = Category.objects.all().delete()
+        messages.success(request, f'Removed all {deleted_count} categories. Categories list is now empty.')
+    except Exception as e:
+        messages.error(request, f'Failed to remove categories: {e}')
+    return redirect('admin_dashboard:category_list')
+
+
+@admin_role_required
 def order_list(request):
     all_orders = Order.objects.all()
     
@@ -1247,7 +1276,7 @@ def send_analytics_report(request):
     completed_order_count = completed_orders_qs.count()
 
     body = f"Analytics report for {start_dt.date()} to {end_dt.date()}\n\n"
-    body += f"Total sales: ${float(total_sales):.2f}\nOrders: {order_count} (Completed: {completed_order_count})\n"
+    body += f"Total sales: ₦{float(total_sales):,.2f}\nOrders: {order_count} (Completed: {completed_order_count})\n"
 
     # Attach CSV of top products (recompute for range)
     revenue_expr = ExpressionWrapper(F('orderitem__quantity') * F('orderitem__price'), output_field=DecimalField())

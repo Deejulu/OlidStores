@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from products.models import Category, Product
 import random
 from django.utils.text import slugify
-from django.db import connection
 
 
 class Command(BaseCommand):
@@ -151,22 +150,24 @@ class Command(BaseCommand):
     }
 
     def handle(self, *args, **options):
-        # Ensure all categories exist — bulk upsert (2 queries instead of 18)
+        # Ensure all categories exist
         cat_names = list(self.CATALOG.keys())
-        Category.objects.bulk_create(
-            [Category(name=n) for n in cat_names],
-            ignore_conflicts=True,
-        )
+        
+        # Create categories that don't exist
+        existing_cats = set(Category.objects.filter(name__in=cat_names).values_list('name', flat=True))
+        new_cats = [Category(name=n, slug=slugify(n)) for n in cat_names if n not in existing_cats]
+        if new_cats:
+            Category.objects.bulk_create(new_cats)
+        
+        # Get all category objects
         cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}
         self.stdout.write(self.style.SUCCESS(f'Ensured {len(cat_objects)} categories exist.'))
 
-        # Delete ALL products using a single raw SQL statement.
-        # Django ORM .delete() on 120+ products issues 15+ cascaded SELECT/DELETE
-        # queries which is very slow on a remote DB. TRUNCATE CASCADE is one DDL
-        # statement handled entirely by the DB engine.
-        with connection.cursor() as cursor:
-            cursor.execute('TRUNCATE TABLE products_product CASCADE')
-        self.stdout.write(self.style.WARNING('Cleared all existing products (TRUNCATE CASCADE).'))
+        # Delete ALL products
+        # For SQLite compatibility, use Django ORM delete instead of TRUNCATE
+        deleted_count = Product.objects.all().count()
+        Product.objects.all().delete()
+        self.stdout.write(self.style.WARNING(f'Cleared {deleted_count} existing products.'))
 
         # Build all Product objects in memory, resolving slug conflicts without DB queries per product
         to_create = []

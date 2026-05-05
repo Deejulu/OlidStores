@@ -4,7 +4,7 @@ from django.urls import path
 from .views import (
     test_admin_dashboard, dashboard_home, admin_profile,
     product_list, product_create, product_edit, product_delete, product_toggle, product_populate_sample, product_remove_sample,
-    category_list, category_create, category_edit, category_delete, category_toggle,
+    category_list, category_create, category_edit, category_delete, category_toggle, category_populate_sample, category_remove_sample,
     order_list, order_detail,
     customer_list, customer_detail, add_customer,
     analytics_dashboard, generate_sample_data, send_analytics_report, compute_daily_metrics_view,
@@ -35,6 +35,8 @@ urlpatterns = [
     path('categories/<int:pk>/edit/', category_edit, name='category_edit'),
     path('categories/<int:pk>/delete/', category_delete, name='category_delete'),
     path('categories/<int:pk>/toggle/', category_toggle, name='category_toggle'),
+    path('categories/populate-sample/', category_populate_sample, name='category_populate_sample'),
+    path('categories/remove-sample/', category_remove_sample, name='category_remove_sample'),
     # Orders
     path('orders/', order_list, name='order_list'),
     path('orders/<int:pk>/', order_detail, name='order_detail'),

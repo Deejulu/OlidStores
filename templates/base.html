@@ -422,8 +422,8 @@
             grid-row: 1;
             justify-self: start;
             display: flex !important;
-            width: 42px;
-            height: 42px;
+            width: 46px;
+            height: 46px;
         }
 
         .user-actions {
@@ -448,7 +448,7 @@
             gap: 0.25rem;
             padding: 0.35rem 0.4rem;
         }
-        .mobile-menu-button { width: 38px; height: 38px; font-size: 1.3rem; }
+        .mobile-menu-button { width: 44px; height: 44px; font-size: 1.3rem; }
         .user-actions { gap: 0.06rem; }
         .action-item { width: 37px; height: 37px; font-size: 1rem; }
         /* SVG logo: fixed height lets it scale cleanly; max-width:100% (inline) still prevents overflow */
@@ -522,12 +522,37 @@
         transition: var(--transition-base);
         flex-shrink: 0;
         touch-action: manipulation;
+        position: relative;
+        margin-left: 0.25rem;
+        -webkit-tap-highlight-color: rgba(16, 185, 129, 0.2);
+    }
+    
+    /* Increase tap target area for easier mobile clicking */
+    .mobile-menu-button::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        right: -8px;
+        bottom: -8px;
+        border-radius: var(--radius-md);
     }
     .mobile-menu-button:hover,
     .mobile-menu-button:active {
         background: var(--accent-color);
         color: var(--white);
         border-color: var(--accent-color);
+        transform: scale(0.95);
+    }
+    
+    /* Better touch feedback */
+    .mobile-menu-button:focus {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+    
+    .mobile-menu-button:focus:not(:focus-visible) {
+        outline: none;
     }
 
     /* ===== USER ACTIONS ===== */
@@ -1748,7 +1773,7 @@
         position: fixed;
         bottom: var(--space-lg);
         left: var(--space-lg);
-        z-index: 900;
+        z-index: 10008;
     }
     .utility-button {
         width: 56px;
@@ -1764,6 +1789,7 @@
         box-shadow: var(--shadow-lg);
         transition: var(--transition-base);
         touch-action: manipulation;
+        z-index: 10008;
     }
     .utility-button:hover,
     .utility-button:active {
@@ -1774,9 +1800,8 @@
         position: fixed;
         bottom: calc(var(--space-lg) + 56px + var(--space-md));
         left: var(--space-lg);
-        right: var(--space-lg);
-        max-width: 300px;
-        width: auto;
+        width: 300px;
+        max-width: calc(100vw - 2rem);
         background: var(--white);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-xl);
@@ -1786,15 +1811,29 @@
         transform: translateY(10px);
         transition: var(--transition-base);
         border: 1px solid var(--gray-200);
-        max-height: calc(100vh - 120px);
+        max-height: calc(100vh - 140px);
         overflow-y: auto;
         overflow-x: hidden;
-        z-index: 901;
+        z-index: 10010;
     }
     .utility-panel.active {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
+    }
+    
+    /* Utility section spacing */
+    .utility-section {
+        padding: var(--space-sm) 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .utility-section:last-child {
+        border-bottom: none;
+    }
+    .utility-section h6 {
+        margin-bottom: var(--space-sm);
+        font-weight: 600;
+        color: var(--gray-700);
     }
 
     /* Calculator */
@@ -1898,6 +1937,45 @@
 
         /* Messages toast closer to top edge */
         .messages-container { top: 0.75rem; right: 0.75rem; left: 0.75rem; }
+        
+        /* Mobile menu button - maintain minimum 44px for touch */
+        .mobile-menu-button { 
+            width: 44px; 
+            height: 44px;
+            font-size: 1.4rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Utility widget & calculator adjustments for mobile */
+        .utility-widget { 
+            bottom: 1rem; 
+            left: 1rem; 
+        }
+        .utility-button { 
+            width: 48px; 
+            height: 48px; 
+        }
+        .utility-panel {
+            bottom: calc(1rem + 48px + 0.5rem);
+            left: 1rem;
+            right: 1rem;
+            width: auto;
+            max-width: calc(100vw - 2rem);
+            max-height: calc(100vh - 80px);
+            padding: 0.75rem;
+        }
+        .calculator-grid {
+            gap: 4px;
+        }
+        .calc-btn {
+            min-height: 40px;
+            font-size: 0.875rem;
+            padding: 0.4rem;
+        }
+        #calcDisplay {
+            font-size: 1.1rem;
+            padding: 0.5rem;
+        }
 
         /* Back-to-top & floating-cart sizing */
         .floating-cart { width: 50px; height: 50px; bottom: 1rem; right: 1rem; }
@@ -1954,6 +2032,34 @@
 
         .section { padding: 1.5rem 0; }
         .card-body { padding: 0.75rem; }
+        
+        /* Mobile menu button - keep at 44px minimum for accessibility */
+        .mobile-menu-button { 
+            width: 44px; 
+            height: 44px;
+            font-size: 1.3rem;
+        }
+        
+        /* Utility widget even smaller */
+        .utility-widget { 
+            bottom: 0.75rem; 
+            left: 0.75rem; 
+        }
+        .utility-button { 
+            width: 44px; 
+            height: 44px; 
+        }
+        .utility-panel {
+            bottom: calc(0.75rem + 44px + 0.5rem);
+            left: 0.75rem;
+            right: 0.75rem;
+            max-width: calc(100vw - 1.5rem);
+            padding: 0.6rem;
+        }
+        .calc-btn {
+            min-height: 38px;
+            font-size: 0.8rem;
+        }
 
         /* Nav items stacked more compactly */
         .nav-link { padding: 0.4rem 0.6rem; font-size: 0.9rem; }
@@ -1967,13 +2073,46 @@
         .logo-olid   { font-size: 1.1rem; }
         .logo-stores { font-size: 0.95rem; }
         .action-item { width: 32px; height: 32px; font-size: 0.85rem; }
-        .mobile-menu-button { width: 32px; height: 32px; font-size: 1.1rem; }
+        /* Keep mobile menu at 44px minimum for touch accessibility */
+        .mobile-menu-button { 
+            width: 44px; 
+            height: 44px; 
+            font-size: 1.2rem;
+        }
         .brand-logo svg { height: 36px !important; width: auto !important; }
         .floating-cart { width: 46px; height: 46px; }
         .back-to-top   { width: 36px; height: 36px; }
-        /* Tighten header container further */
-        .header-container { padding: 0.3rem; gap: 0.2rem; }
-        .user-actions { gap: 0.04rem; }
+        
+        /* Utility widget very small screens */
+        .utility-widget { 
+            bottom: 0.6rem; 
+            left: 0.6rem; 
+        }
+        .utility-button { 
+            width: 40px; 
+            height: 40px;
+            font-size: 0.9rem;
+        }
+        .utility-panel {
+            bottom: calc(0.6rem + 40px + 0.5rem);
+            left: 0.6rem;
+            right: 0.6rem;
+            max-width: calc(100vw - 1.2rem);
+            padding: 0.5rem;
+        }
+        .calc-btn {
+            min-height: 36px;
+            font-size: 0.75rem;
+            padding: 0.3rem;
+        }
+        #calcDisplay {
+            font-size: 1rem;
+            padding: 0.4rem;
+        }
+        
+        /* Keep enough space for hamburger menu - don't tighten too much */
+        .header-container { padding: 0.4rem 0.5rem; gap: 0.4rem; }
+        .user-actions { gap: 0.25rem; }
     }
 
     /* ===================================================================
@@ -4015,7 +4154,16 @@
                     const response = await fetch('https://wttr.in/Lagos?format=%C+%t', {
                         headers: { 'Accept': 'text/plain' }
                     });
-                    const text = (await response.text()).trim();
+                    let text = (await response.text()).trim();
+                    
+                    // Parse HTML response if needed
+                    if (text.includes('<') && text.includes('>')) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(text, 'text/html');
+                        const container = doc.querySelector('.term-container');
+                        text = container ? container.textContent.trim() : 'Weather unavailable';
+                    }
+                    
                     weatherInfo.textContent = text;
                     
                     // Update icon based on weather condition

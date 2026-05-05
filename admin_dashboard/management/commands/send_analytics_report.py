@@ -21,7 +21,7 @@ class Command(BaseCommand):
         completed_order_count = completed_orders_qs.count()
 
         body = f"Analytics report for {start_dt.date()} to {end_dt.date()}\n\n"
-        body += f"Total sales: ${float(total_sales):.2f}\nOrders: {order_count} (Completed: {completed_order_count})\n"
+        body += f"Total sales: ₦{float(total_sales):,.2f}\nOrders: {order_count} (Completed: {completed_order_count})\n"
 
         revenue_expr = ExpressionWrapper(F('orderitem__quantity') * F('orderitem__price'), output_field=DecimalField())
         top_products_revenue_local = (

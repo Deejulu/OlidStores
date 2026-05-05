@@ -2,44 +2,192 @@
 {% block content %}
 <div class="container py-4 account-page">
     <div class="account-header w-100">
-        <div class="d-flex gap-3 align-items-center">
-            <div class="display-5 text-white"><i class="bi bi-bell-fill"></i></div>
-            <div>
-                <h2 class="mb-0">Notifications</h2>
-                <p class="mb-0 text-white-50">Important messages about your account and orders</p>
+        <div class="d-flex gap-3 align-items-center justify-content-between">
+            <div class="d-flex gap-3 align-items-center">
+                <div class="display-5 text-white"><i class="bi bi-bell-fill"></i></div>
+                <div>
+                    <h2 class="mb-0">Notifications</h2>
+                    <p class="mb-0 text-white-50">
+                        {% if unread_count %}
+                        <span class="badge bg-danger">{{ unread_count }} unread</span>
+                        {% else %}
+                        You're all caught up!
+                        {% endif %}
+                    </p>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="account-panel mt-3">
-    {% if notifications %}
-    <ul class="list-group mb-0">
-        {% for n in notifications %}
-        <li class="notification-item list-group-item d-flex align-items-start {% if n.is_important %}list-group-item-warning{% endif %} {% if not n.is_read %}unread{% endif %}">
-            <div class="me-3 mt-1">
-                {% if n.is_important %}<i class="fas fa-exclamation-circle text-danger"></i>{% else %}<i class="fas fa-bell text-primary"></i>{% endif %}
-            </div>
-            <div class="flex-grow-1">
-                <div class="fw-bold {% if not n.is_read %}text-primary{% endif %}">{{ n.title }}</div>
-                <div>{{ n.message }}</div>
-                <div class="text-muted small">{{ n.created_at|date:'M d, Y H:i' }}</div>
-            </div>
-            {% if not n.is_read and n.user == request.user %}
-            <form method="post" action="{% url 'users:notification_mark_read' n.pk %}" class="ms-2">
+            {% if unread_count %}
+            <form method="post" action="{% url 'users:mark_all_notifications_read' %}" class="d-inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-primary">Mark as read</button>
+                <button type="submit" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-check-all"></i> Mark all as read
+                </button>
             </form>
             {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    </div> <!-- .account-panel -->
-    <style>
-    .unread { font-weight: 500; }
-    </style>
+        </div>
+    </div>
+    
+    <div class="account-panel mt-3 p-0">
+    {% if notifications %}
+        <!-- Notification Filters -->
+        <div class="p-3 border-bottom bg-light">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">All</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-filter="order">Orders</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-filter="chat">Chat</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-filter="unread">Unread</button>
+            </div>
+        </div>
+        
+        <ul class="list-group list-group-flush mb-0">
+            {% for n in notifications %}
+            <li class="notification-item list-group-item {% if n.is_important %}list-group-item-warning{% endif %} {% if not n.is_read %}unread-notification{% endif %}" 
+                data-type="{{ n.notification_type }}" 
+                data-read="{{ n.is_read|yesno:'true,false' }}">
+                <div class="d-flex align-items-start gap-3">
+                    <!-- Notification Icon -->
+                    <div class="notification-icon mt-1">
+                        {% if n.notification_type == 'order' %}
+                            <i class="bi bi-box-seam text-primary fs-4"></i>
+                        {% elif n.notification_type == 'chat' %}
+                            <i class="bi bi-chat-dots text-info fs-4"></i>
+                        {% elif n.notification_type == 'product' %}
+                            <i class="bi bi-tag text-success fs-4"></i>
+                        {% elif n.notification_type == 'promotion' %}
+                            <i class="bi bi-megaphone text-warning fs-4"></i>
+                        {% else %}
+                            <i class="bi bi-bell text-secondary fs-4"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Notification Content -->
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h6 class="mb-0 fw-bold {% if not n.is_read %}text-primary{% endif %}">
+                                {{ n.title }}
+                            </h6>
+                            <span class="badge bg-secondary">{{ n.get_notification_type_display }}</span>
+                        </div>
+                        <p class="mb-2 text-muted">{{ n.message }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> {{ n.created_at|timesince }} ago
+                            </small>
+                            <div class="btn-group btn-group-sm">
+                                {% if n.action_url %}
+                                <a href="{{ n.action_url }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-arrow-right-circle"></i> View
+                                </a>
+                                {% endif %}
+                                {% if not n.is_read and n.user == request.user %}
+                                <form method="post" action="{% url 'users:notification_mark_read' n.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-check"></i> Mark read
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Unread Indicator -->
+                    {% if not n.is_read %}
+                    <div class="unread-dot"></div>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="p-3 bg-light">
+            <nav aria-label="Notification pagination">
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
     {% else %}
-    <div class="alert alert-info">No notifications yet. Important messages and updates will appear here.</div>
+        <div class="p-5 text-center">
+            <i class="bi bi-bell-slash display-1 text-muted"></i>
+            <h5 class="mt-3 text-muted">No notifications yet</h5>
+            <p class="text-muted">Important messages and updates will appear here.</p>
+        </div>
     {% endif %}
-    <!-- Font Awesome CDN for icons (remove if already included globally) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </div> <!-- .account-panel -->
 </div>
+
+<style>
+    .unread-notification {
+        background-color: rgba(13, 110, 253, 0.05);
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .unread-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #0d6efd;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    
+    .notification-item {
+        transition: all 0.2s ease;
+    }
+    
+    .notification-item:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    .notification-icon {
+        flex-shrink: 0;
+    }
+    
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+
+<script>
+    // Notification filtering
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            
+            // Update active button
+            document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter notifications
+            document.querySelectorAll('.notification-item').forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = '';
+                } else if (filter === 'unread') {
+                    item.style.display = item.getAttribute('data-read') === 'false' ? '' : 'none';
+                } else {
+                    item.style.display = item.getAttribute('data-type') === filter ? '' : 'none';
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

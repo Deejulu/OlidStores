@@ -2077,7 +2077,7 @@
                 {% endif %}
                 {% if request.GET.min_price or request.GET.max_price %}
                 <span class="filter-chip active">
-                    <i class="bi bi-currency-dollar"></i>
+                    <i class="bi bi-cash"></i>
                     {% if request.GET.min_price %}{{ request.GET.min_price }}{% else %}0{% endif %} - 
                     {% if request.GET.max_price %}{{ request.GET.max_price }}{% else %}∞{% endif %}
                     <span class="remove" onclick="removePriceFilter()">
@@ -2163,10 +2163,10 @@
                             <div class="product-footer">
                                 <div class="product-price">
                                     {% if product.discount_price %}
-                                    <span class="product-price-old">${{ product.price }}</span>
-                                    <span>${{ product.discount_price }}</span>
+                                    <span class="product-price-old">₦{{ product.price }}</span>
+                                    <span>₦{{ product.discount_price }}</span>
                                     {% else %}
-                                    <span>${{ product.price }}</span>
+                                    <span>₦{{ product.price }}</span>
                                     {% endif %}
                                 </div>
                                 <button class="add-to-cart-btn btn-add-to-cart" data-product-id="{{ product.id }}">
