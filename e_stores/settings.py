@@ -357,3 +357,9 @@ LOGGING = {
     },
 }
 
+# During `manage.py test` runs, skip the ManifestStaticFilesStorage requirement
+# (which needs collectstatic to have been run) and use plain file-system storage.
+import sys
+if 'test' in sys.argv:
+    STORAGES['staticfiles']['BACKEND'] = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+

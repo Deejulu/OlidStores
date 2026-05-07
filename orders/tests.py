@@ -14,18 +14,14 @@ class PaystackIntegrationTests(TestCase):
 		# create auth user and login for cart operations
 		User = get_user_model()
 		self.user = User.objects.create_user(username='testuser', password='password')
-		success = self.client.login(username='testuser', password='password')
-		self.assertTrue(success, "failed to log in test user")
+		self.client.force_login(self.user)
 		self.category = Category.objects.create(name='TestCat')
 		self.product = Product.objects.create(name='Test Product', price=50.00, description='Desc', category=self.category, stock=10)
 
 	@mock.patch('orders.views._verify_paystack_reference')
 	def test_paystack_verify_creates_order(self, mock_verify):
-		# prepare cart and attach to client session
-		session = self.client.session
-		session.save()
-		session_key = session.session_key
-		cart = Cart.objects.create(session_key=session_key)
+		# prepare cart and attach to the authenticated user
+		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=self.product, quantity=2, price=self.product.price)
 		# mock paystack verify response
 		total = cart.total_price()
@@ -89,11 +85,8 @@ class PaystackIntegrationTests(TestCase):
 		from products.models import Category
 		cat = Category.objects.create(name='Cat2')
 		prod = Product.objects.create(name='Stocky', price=30.0, description='x', category=cat, stock=2)
-		# attach cart to session
-		session = self.client.session
-		session.save()
-		session_key = session.session_key
-		cart = Cart.objects.create(session_key=session_key)
+		# attach cart to the authenticated user
+		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=prod, quantity=2, price=prod.price)
 		# mock paystack verify response
 		with mock.patch('orders.views._verify_paystack_reference') as mock_verify:
@@ -114,10 +107,7 @@ class PaystackIntegrationTests(TestCase):
 		from products.models import Category
 		cat = Category.objects.create(name='Cat3')
 		prod = Product.objects.create(name='Low', price=20.0, description='x', category=cat, stock=1)
-		session = self.client.session
-		session.save()
-		session_key = session.session_key
-		cart = Cart.objects.create(session_key=session_key)
+		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=prod, quantity=2, price=prod.price)
 		# Attempt manual checkout
 		response = self.client.post(reverse('orders:checkout'), {
@@ -261,11 +251,8 @@ class PaystackIntegrationTests(TestCase):
 		# configure admin checkout settings
 		from .models import CheckoutSettings
 		CheckoutSettings.objects.create(delivery_fee_24h=25.00, delivery_fee_2d=10.00)
-		# prepare cart and attach to client session
-		session = self.client.session
-		session.save()
-		session_key = session.session_key
-		cart = Cart.objects.create(session_key=session_key)
+		# prepare cart and attach to the authenticated user
+		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
 		# submit manual checkout selecting 24h delivery
 		r = self.client.post(reverse('orders:checkout'), {
@@ -288,11 +275,8 @@ class PaystackIntegrationTests(TestCase):
 		sc.delivery_fee_24h = 30.00
 		sc.delivery_fee_2d = 12.00
 		sc.save()
-		# prepare cart and attach to client session
-		session = self.client.session
-		session.save()
-		session_key = session.session_key
-		cart = Cart.objects.create(session_key=session_key)
+		# prepare cart and attach to the authenticated user
+		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
 		# submit manual checkout selecting 24h delivery
 		r = self.client.post(reverse('orders:checkout'), {

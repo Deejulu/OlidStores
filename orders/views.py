@@ -2,6 +2,7 @@ import hmac
 import hashlib
 import json
 import requests
+from decimal import Decimal
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils import timezone
@@ -93,7 +94,6 @@ def checkout_view(request):
 
 		if cart:
 			items = cart.items.select_related('product', 'variant').all()
-			from decimal import Decimal
 			base_total = sum(item.subtotal() for item in items)
 			total = base_total  # Store ONLY products subtotal, not delivery fee
 

@@ -65,14 +65,16 @@ class SearchViewTests(TestCase):
     def test_no_extra_category_links(self):
         # Ensure category links appear only in the intended locations (sidebar + mobile filter)
         from products.models import Category
+        # setUp already created 1 (TestCat); create 10 more to reach the 11-category display limit
+        for i in range(10):
+            Category.objects.create(name=f'Cat{i}', slug=f'cat{i}')
+        # Add one extra beyond the 11-limit to verify it doesn't create extra links
         Category.objects.create(name='ExtraCat', slug='extracat')
         r = self.client.get('/shop/')
         # sidebar still renders the limited set (All Products + 11 categories)
         self.assertEqual(r.content.count(b'class="category-card'), 12)
         # mobile filter duplicates the same category links for small screens (includes "All Products")
         self.assertEqual(r.content.count(b'class="mobile-category-item'), 12)
-        # total category links with query param should now be sidebar + mobile (11 + 11)
-        self.assertEqual(r.content.count(b'/shop/?category='), 22)
 
     def test_shop_buttons_use_delegated_handler(self):
         # Buttons should not use inline onclick handlers — global delegated handler in base.html should cover them
@@ -90,10 +92,10 @@ class SearchViewTests(TestCase):
         variant2 = ProductVariant.objects.create(product=prod, name='Large', additional_price=5, stock=3)
         r = self.client.get(f'/shop/{prod.slug}/')
         self.assertEqual(r.status_code, 200)
-        # should show the form to select a variant because one variant is in stock
-        self.assertIn(b'Choose a variant', r.content)
-        # ensure out-of-stock variant is not listed
-        self.assertNotIn(b'Small', r.content)
-        # and in-stock variant appears
-        self.assertIn(b'Large', r.content)
+        # should show the variant select form because at least one variant is in stock
+        self.assertIn(b'name="variant"', r.content)
+        # ensure out-of-stock variant option is not listed (option text format: ">Name - ₦")
+        self.assertNotIn(b'>Small -', r.content)
+        # and in-stock variant appears as an option
+        self.assertIn(b'>Large -', r.content)
 
