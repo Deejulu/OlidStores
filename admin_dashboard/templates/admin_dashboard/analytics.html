@@ -21,25 +21,49 @@
         --admin-shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
-    /* Force body/html to not stretch on this page */
-    body {
+    /* Force this page out of the shared flex/min-height shell so nothing can create trailing space below the footer. */
+    html {
+        height: auto !important;
+    }
+
+    body.d-flex.flex-column.min-vh-100 {
+        display: block !important;
         min-height: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    
-    .main-content {
-        padding-bottom: 0 !important;
+
+    body.d-flex.flex-column.min-vh-100 .main-content {
         flex: none !important;
+        min-height: auto !important;
+        padding-bottom: 0 !important;
     }
-    
-    .main-footer {
+
+    body.d-flex.flex-column.min-vh-100 .main-footer {
         margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* smooth.css applies  main { animation: os-page-in }  which uses
+       translateY(5px → 0). Any non-"none" transform on <main> makes it the
+       containing block for position:fixed children — so the analytics-page
+       ::after { position:fixed; bottom:-40% } computes against main's 7700px
+       height instead of the viewport, adding ~3000px of invisible scroll space
+       below the footer.  Kill the animation for this page only. */
+    main.main-content {
+        animation: none !important;
+        transform: none !important;
     }
 
     .analytics-page {
         background: linear-gradient(135deg, #f0f4ff 0%, #f8faff 50%, #ffffff 100%);
         padding: 2rem 0 0.5rem;
         position: relative;
-        overflow-x: hidden;
+        /* overflow-x: hidden removed — it was making this div the containing block
+           for position:fixed pseudo-elements, causing bottom:-40% to be computed
+           against the ~7700px div height instead of the viewport, adding ~3000px
+           of invisible scroll space below the footer. */
     }
     
     .analytics-page::before {
