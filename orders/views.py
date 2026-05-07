@@ -95,7 +95,7 @@ def checkout_view(request):
 			items = cart.items.select_related('product', 'variant').all()
 			from decimal import Decimal
 			base_total = sum(item.subtotal() for item in items)
-			total = base_total + (delivery_fee or Decimal('0.00'))
+			total = base_total  # Store ONLY products subtotal, not delivery fee
 
 		if payment_method == 'manual':
 			if not enable_manual:
@@ -157,7 +157,9 @@ def checkout_view(request):
 			if not enable_pay_on_delivery:
 				messages.error(request, 'Pay on Delivery is not enabled.')
 				return redirect('orders:checkout')
-			if total > pay_on_delivery_max:
+			# Check if order total (products + delivery) exceeds pay-on-delivery limit
+			grand_total = total + (delivery_fee or Decimal('0.00'))
+			if grand_total > pay_on_delivery_max:
 				messages.error(request, f'Pay on Delivery is only available for orders up to ₦{pay_on_delivery_max:.2f}.')
 				return redirect('orders:checkout')
 			# Reserve stock and create the order as pending
@@ -237,8 +239,10 @@ def checkout_view(request):
 				if tx_currency != 'NGN':
 					messages.error(request, f'This store only accepts Nigerian Naira (₦). Your payment was charged in {tx_currency}. Please contact support for a refund.')
 					return redirect('orders:checkout')
+				# Verify payment amount matches expected total (products + delivery)
 				amount_kobo = int(data.get('amount', 0))
-				expected_kobo = int(round(float(total) * 100))
+				expected_total = total + (delivery_fee or Decimal('0.00'))
+				expected_kobo = int(round(float(expected_total) * 100))
 				if amount_kobo != expected_kobo:
 					messages.error(request, 'Payment amount mismatch. Please contact support.')
 					return redirect('checkout')
