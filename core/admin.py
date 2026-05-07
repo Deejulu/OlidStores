@@ -81,3 +81,23 @@ class TeamMemberAdmin(admin.ModelAdmin):
     list_editable = ('order', 'is_active')
     search_fields = ('name', 'title')
 
+
+from .models import Newsletter
+
+@admin.register(Newsletter)
+class NewsletterAdmin(admin.ModelAdmin):
+    list_display = ('email', 'is_active', 'subscribed_at', 'unsubscribed_at')
+    list_filter = ('is_active', 'subscribed_at')
+    search_fields = ('email',)
+    readonly_fields = ('subscribed_at', 'unsubscribed_at')
+    actions = ['activate_subscriptions', 'deactivate_subscriptions']
+    
+    def activate_subscriptions(self, request, queryset):
+        queryset.update(is_active=True, unsubscribed_at=None)
+    activate_subscriptions.short_description = 'Activate selected subscriptions'
+    
+    def deactivate_subscriptions(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(is_active=False, unsubscribed_at=timezone.now())
+    deactivate_subscriptions.short_description = 'Deactivate selected subscriptions'
+

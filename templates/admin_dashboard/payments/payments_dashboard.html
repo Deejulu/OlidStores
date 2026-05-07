@@ -1,33 +1,31 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-    /* Prevent horizontal scrolling */
-    body, html {
-        overflow-x: hidden !important;
-        max-width: 100vw !important;
-    }
-    
-    * {
-        box-sizing: border-box;
-    }
-    
     .payments-page {
-        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%);
-        color: #0f1720;
+        background: #f8fafc;
         min-height: 100vh;
-        padding: 2rem 0 3rem;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        position: relative;
-        overflow-x: hidden;
+        padding: 2rem 0;
     }
     
-    .payments-page::before,
-    .payments-page::after {
-        content: '';
-        position: absolute;
-        border-radius: 50%;
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .page-title i {
+        color: #10b981;
+    }
+    
+    .page-description {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
         background: radial-gradient(circle, rgba(16,185,129,.06) 0%, transparent 70%);
         pointer-events: none;
         z-index: 0;
@@ -445,6 +443,37 @@
         justify-content: center;
         font-size: 1.1rem;
     }
+    
+    .btn-export {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+    }
+    
+    .btn-export:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+    }
+    
+    .btn-export:active {
+        transform: translateY(0);
+    }
+    
+    @media (max-width: 576px) {
+        .btn-export .export-text {
+            display: none;
+        }
+    }
 
     /* Desktop table layout */
     .transactions-table {
@@ -483,6 +512,16 @@
 
     .transactions-table tbody tr:hover {
         background: #fafbff;
+    }
+    
+    .transactions-table tbody tr.clickable-row:hover {
+        background: linear-gradient(90deg, #f0fdf4 0%, #fafbff 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(16,185,129,0.1);
+    }
+    
+    .transactions-table tbody tr.clickable-row:active {
+        transform: scale(0.995);
     }
 
     .transactions-table tbody td {
@@ -743,22 +782,10 @@
 
     @media (max-width: 768px) {
         .payments-page {
-            padding: 1.5rem 0 3.5rem;
-            overflow-x: hidden;
+            padding: 1.5rem 0;
         }
 
-        .page-header {
-            padding: 2rem 1.5rem;
-            margin: 0 1rem 2rem;
-            border-radius: 18px;
-            max-width: calc(100vw - 2rem);
-            box-sizing: border-box;
-        }
-
-        .page-header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            font-weight: 900;
+        .stats-grid {
             letter-spacing: -0.5px;
         }
 
@@ -1359,6 +1386,13 @@
             border-radius: 12px;
             border: 2px solid #e5e7eb;
             transition: all 0.3s ease;
+        }
+
+        .unreconciled-item:hover {
+            border-color: #f59e0b;
+            background: white;
+            box-shadow: 0 4px 16px rgba(245,158,11,0.15);
+            transform: translateY(-2px);
         }
 
         .unreconciled-item:active {
@@ -2064,43 +2098,16 @@
 
 <div class="payments-page">
     <div class="container">
-        <!-- Header -->
-        <div class="page-header">
-            <div class="page-header-content">
-                <div>
-                    <h1>
-                        <i class="bi bi-credit-card-fill"></i>
-                        Paystack Payments
-                    </h1>
-                    <p>Monitor all payment transactions and reconciliation status</p>
-                </div>
-                <a href="{% url 'admin_dashboard:order_list' %}" class="btn-back">
-                    <i class="bi bi-arrow-left"></i> Back to Orders
-                </a>
-            </div>
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h1 class="page-title">
+                <i class="bi bi-credit-card-fill"></i>
+                Paystack Payments
+            </h1>
+            <p class="page-description">Monitor all payment transactions and reconciliation status</p>
         </div>
 
-        <!-- Quick Stats Strip (Mobile) -->
-        <div class="quick-stats">
-            <div class="qs-item">
-                <span class="qs-value">{{ total_transactions }}</span>
-                <span class="qs-label">Total</span>
-            </div>
-            <div class="qs-item qs-success">
-                <span class="qs-value">{{ successful_transactions }}</span>
-                <span class="qs-label">Success</span>
-            </div>
-            <div class="qs-item qs-failed">
-                <span class="qs-value">{{ failed_transactions }}</span>
-                <span class="qs-label">Failed</span>
-            </div>
-            <div class="qs-item qs-amount">
-                <span class="qs-value">₦{{ total_amount|floatformat:0 }}</span>
-                <span class="qs-label">Revenue</span>
-            </div>
-        </div>
-
-        <!-- Tab Navigation (Mobile) -->
+        <!-- Tab Navigation -->
         <div class="tabs-container">
             <button class="tab-button active" data-tab="transactions">
                 <i class="bi bi-card-list"></i>
@@ -2202,7 +2209,15 @@
                     <div class="table-icon"><i class="bi bi-card-list"></i></div>
                     <span>Recent Transactions</span>
                 </div>
-                <span class="tx-count">Showing <strong>{{ transactions|length }}</strong> of {{ total_transactions }}</span>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span class="tx-count">Showing <strong>{{ transactions|length }}</strong> of {{ total_transactions }}</span>
+                    {% if transactions %}
+                    <button onclick="exportTableToCSV('payments-export.csv')" class="btn-export" title="Export to CSV">
+                        <i class="bi bi-download"></i>
+                        <span class="export-text">Export</span>
+                    </button>
+                    {% endif %}
+                </div>
             </div>
             <div class="tx-search-bar">
                 <form method="get" id="txSearchForm">
@@ -2245,7 +2260,7 @@
                     <tbody>
                         {% for tx in transactions %}
                         <!-- Desktop table row -->
-                        <tr class="desktop-row" style="display: none;">
+                        <tr class="desktop-row clickable-row" data-href="{% url 'admin_dashboard:payment_detail' tx.reference %}" style="display: none; cursor: pointer;" title="Click to view details">
                             <td>
                                 <div style="font-weight: 600; color: #1f2937;">
                                     {% if tx.order %}{{ tx.order.full_name }}{% else %}<em>Unknown</em>{% endif %}
@@ -2257,7 +2272,7 @@
                             <td><span class="tx-reference">{{ tx.reference }}</span></td>
                             <td>
                                 {% if tx.order %}
-                                <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link">#{{ tx.order.id }}</a>
+                                <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link" onclick="event.stopPropagation();">#{{ tx.order.id }}</a>
                                 {% else %}
                                 <span style="color: #d1d5db;">—</span>
                                 {% endif %}
@@ -2282,6 +2297,7 @@
                         <!-- Mobile card rows -->
                         <tr class="mobile-row">
                             <td colspan="7" class="mobile-card-cell">
+                                <a href="{% url 'admin_dashboard:payment_detail' tx.reference %}" style="text-decoration: none; color: inherit; display: block;">
                                 <div class="tx-card">
                                     <div class="tx-card-header">
                                         <div class="tx-customer-info">
@@ -2316,9 +2332,9 @@
                                         <div class="tx-card-row">
                                             <span class="tx-card-label">Order</span>
                                             {% if tx.order %}
-                                            <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link-badge">
+                                            <span class="tx-order-link-badge" onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{% url 'admin_dashboard:order_detail' tx.order.id %}';">
                                                 <i class="bi bi-box-seam me-1"></i>#{{ tx.order.id }}
-                                            </a>
+                                            </span>
                                             {% else %}
                                             <span class="tx-card-value">—</span>
                                             {% endif %}
@@ -2327,8 +2343,17 @@
                                             <span class="tx-card-label">Date</span>
                                             <span class="tx-card-value tx-date-value">{{ tx.created_at|date:"M d, Y · H:i" }}</span>
                                         </div>
+                                        <div class="tx-card-row" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb;">
+                                            <span class="tx-card-label" style="color: #10b981;">
+                                                <i class="bi bi-eye"></i> View Details
+                                            </span>
+                                            <span class="tx-card-value">
+                                                <i class="bi bi-chevron-right" style="color: #10b981;"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -2356,6 +2381,7 @@
                 </div>
                 <div class="unreconciled-list">
                     {% for tx in unreconciled %}
+                    <a href="{% url 'admin_dashboard:payment_detail' tx.reference %}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="unreconciled-item">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb;">
                             <div>
@@ -2386,12 +2412,19 @@
                                 {% endif %}
                             </div>
                             {% if tx.order %}
-                            <a href="{% url 'admin_dashboard:order_detail' tx.order.id %}" class="tx-order-link-badge">Order #{{ tx.order.id }}</a>
+                            <span class="tx-order-link-badge" onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{% url 'admin_dashboard:order_detail' tx.order.id %}';">Order #{{ tx.order.id }}</span>
                             {% else %}
                             <span style="color: #9ca3af; font-size: 0.85rem;">No order</span>
                             {% endif %}
                         </div>
+                        <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #10b981; font-weight: 600; font-size: 0.85rem;">
+                                <i class="bi bi-eye"></i> View Details
+                            </span>
+                            <i class="bi bi-chevron-right" style="color: #10b981;"></i>
+                        </div>
                     </div>
+                    </a>
                     {% endfor %}
                 </div>
             </div>
@@ -2497,5 +2530,65 @@
             }
         });
     });
+    
+    // Make table rows clickable
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('tr.clickable-row').forEach(row => {
+            row.addEventListener('click', function() {
+                const href = this.dataset.href;
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    });
+    
+    // Export table to CSV
+    function exportTableToCSV(filename) {
+        const csv = [];
+        const rows = document.querySelectorAll('.transactions-table tr.desktop-row');
+        
+        // Header row
+        csv.push(['Customer Name', 'Email', 'Reference', 'Order ID', 'Amount', 'Currency', 'Method', 'Status', 'Date'].join(','));
+        
+        // Data rows
+        rows.forEach(row => {
+            const cols = [];
+            const customerName = row.querySelector('td:nth-child(1) div:first-child')?.textContent.trim() || '';
+            const customerEmail = row.querySelector('td:nth-child(1) div:nth-child(2)')?.textContent.trim() || '';
+            const reference = row.querySelector('td:nth-child(2)')?.textContent.trim() || '';
+            const order = row.querySelector('td:nth-child(3)')?.textContent.trim() || '';
+            const amount = row.querySelector('td:nth-child(4)')?.textContent.trim() || '';
+            const method = row.querySelector('td:nth-child(5)')?.textContent.trim() || '';
+            const status = row.querySelector('td:nth-child(6)')?.textContent.trim() || '';
+            const date = row.querySelector('td:nth-child(7)')?.textContent.trim() || '';
+            
+            cols.push(`"${customerName}"`);
+            cols.push(`"${customerEmail}"`);
+            cols.push(`"${reference}"`);
+            cols.push(`"${order}"`);
+            cols.push(`"${amount}"`);
+            cols.push('"NGN"');
+            cols.push(`"${method}"`);
+            cols.push(`"${status}"`);
+            cols.push(`"${date}"`);
+            
+            csv.push(cols.join(','));
+        });
+        
+        // Download CSV
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
 </script>
 {% endblock %}

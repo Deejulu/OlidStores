@@ -370,3 +370,22 @@ class ChatAutoReply(models.Model):
 	def keyword_list(self):
 		"""Return cleaned list of lowercase keyword strings."""
 		return [k.strip().lower() for k in self.keywords.split(',') if k.strip()]
+
+
+class Newsletter(models.Model):
+	"""
+	Newsletter subscription model to store email addresses of subscribers.
+	"""
+	email = models.EmailField(unique=True, help_text='Subscriber email address')
+	is_active = models.BooleanField(default=True, help_text='Active subscription')
+	subscribed_at = models.DateTimeField(auto_now_add=True)
+	unsubscribed_at = models.DateTimeField(null=True, blank=True)
+	
+	class Meta:
+		ordering = ['-subscribed_at']
+		verbose_name = 'Newsletter Subscription'
+		verbose_name_plural = 'Newsletter Subscriptions'
+	
+	def __str__(self):
+		status = 'Active' if self.is_active else 'Unsubscribed'
+		return f"{self.email} ({status})"

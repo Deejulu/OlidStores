@@ -1641,6 +1641,43 @@ def payments_dashboard_view(request):
     return render(request, 'admin_dashboard/payments/payments_dashboard.html', context)
 
 
+@admin_role_required
+def payment_detail_view(request, reference):
+    """View detailed information about a specific payment transaction"""
+    from orders.models import PaymentTransaction
+    from django.shortcuts import get_object_or_404
+    
+    transaction = get_object_or_404(PaymentTransaction, reference=reference)
+    
+    # Get related order details if available
+    order = transaction.order
+    
+    context = {
+        'transaction': transaction,
+        'order': order,
+        'page_title': f'Payment Details - {reference}',
+    }
+    
+    return render(request, 'admin_dashboard/payments/payment_detail.html', context)
+
+
+@admin_role_required
+def payment_print_slip(request, reference):
+    """Generate printable payment slip"""
+    from orders.models import PaymentTransaction
+    from django.shortcuts import get_object_or_404
+    
+    transaction = get_object_or_404(PaymentTransaction, reference=reference)
+    order = transaction.order
+    
+    context = {
+        'transaction': transaction,
+        'order': order,
+    }
+    
+    return render(request, 'admin_dashboard/payments/payment_slip.html', context)
+
+
 # ── Admin live chat management ────────────────────────────────────────────────
 
 @admin_role_required

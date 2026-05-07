@@ -68,12 +68,16 @@ def notify_new_order(order):
     ).distinct()
     
     customer_name = order.full_name or "Guest"
+    
+    # Get payment method - handle if field has no choices or is empty
+    payment_info = order.payment_method or 'Pending'
+    
     for admin in admin_users:
         Notification.objects.create(
             user=admin,
             notification_type=Notification.TYPE_ORDER,
             title=f"New Order #{order.id} from {customer_name}",
-            message=f"Order total: ₦{order.grand_total():,.2f} | Payment: {order.get_payment_method_display() or 'Pending'}",
+            message=f"Order total: ₦{order.grand_total():,.2f} | Payment: {payment_info}",
             order_id=order.id,
             action_url=f"/admin-dashboard/orders/{order.id}/",
             is_important=True

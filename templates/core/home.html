@@ -2766,18 +2766,74 @@ document.addEventListener('DOMContentLoaded', function() {
     if (newsletterForm) {
         newsletterForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = this.querySelector('input[type="email"]').value;
+            const emailInput = this.querySelector('input[type="email"]');
+            const email = emailInput.value.trim();
             const button = this.querySelector('.btn');
             const originalText = button.innerHTML;
             
-            button.innerHTML = '<i class="bi bi-check-circle me-2"></i>Subscribed!';
-            button.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
             
-            setTimeout(() => {
+            // Disable button and show loading state
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Subscribing...';
+            
+            // Send AJAX request to backend
+            fetch('{% url "core:newsletter_subscribe" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success
+                    button.innerHTML = '<i class="bi bi-check-circle me-2"></i>Subscribed!';
+                    button.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                    emailInput.value = '';
+                    
+                    // Show success message
+                    const message = document.createElement('div');
+                    message.className = 'alert alert-success mt-3';
+                    message.textContent = data.message;
+                    newsletterForm.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.remove();
+                        button.innerHTML = originalText;
+                        button.style.background = '';
+                        button.disabled = false;
+                    }, 3000);
+                } else {
+                    // Error
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    
+                    const message = document.createElement('div');
+                    message.className = 'alert alert-danger mt-3';
+                    message.textContent = data.error || 'An error occurred. Please try again.';
+                    newsletterForm.appendChild(message);
+                    
+                    setTimeout(() => message.remove(), 5000);
+                }
+            })
+            .catch(error => {
+                console.error('Newsletter subscription error:', error);
                 button.innerHTML = originalText;
-                button.style.background = '';
-                this.reset();
-            }, 2000);
+                button.disabled = false;
+                
+                const message = document.createElement('div');
+                message.className = 'alert alert-danger mt-3';
+                message.textContent = 'An error occurred. Please try again later.';
+                newsletterForm.appendChild(message);
+                
+                setTimeout(() => message.remove(), 5000);
+            });
         });
     }
     

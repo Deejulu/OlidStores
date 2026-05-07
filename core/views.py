@@ -643,3 +643,74 @@ def chat_history(request, conv_id):
             for m in conv.messages.all()
         ],
     })
+
+
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from django.utils import timezone
+
+@require_http_methods(['POST'])
+def newsletter_subscribe(request):
+    """Handle newsletter subscription via AJAX."""
+    from core.models import Newsletter
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return JsonResponse({'success': False, 'error': 'Email is required.'}, status=400)
+        
+        # Validate email format
+        from django.core.validators import validate_email
+        from django.core.exceptions import ValidationError
+        try:
+            validate_email(email)
+        except ValidationError:
+            return JsonResponse({'success': False, 'error': 'Invalid email address.'}, status=400)
+        
+        # Check if email already exists
+        existing = Newsletter.objects.filter(email=email).first()
+        if existing:
+            if existing.is_active:
+                return JsonResponse({'success': False, 'error': 'This email is already subscribed.'}, status=400)
+            else:
+                # Reactivate subscription
+                existing.is_active = True
+                existing.unsubscribed_at = None
+                existing.save()
+                return JsonResponse({'success': True, 'message': 'Welcome back! Your subscription has been reactivated.'})
+        
+        # Create new subscription
+        Newsletter.objects.create(email=email)
+        return JsonResponse({'success': True, 'message': 'Thank you for subscribing! You\'ll receive our latest updates.'})
+    
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid request.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'An error occurred. Please try again.'}, status=500)
+
+
+class ShippingPolicyView(TemplateView):
+    template_name = 'shipping_policy.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        shipping = _get_sitecontent('shipping')
+        context['shipping_title'] = shipping.title if shipping else 'Shipping & Delivery Policy'
+        context['shipping_content'] = shipping.content if shipping else ''
+        context['shipping_updated'] = shipping.updated_at if shipping else None
+        return context
+
+
+class ReturnsPolicyView(TemplateView):
+    template_name = 'returns_policy.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        returns = _get_sitecontent('returns')
+        context['returns_title'] = returns.title if returns else 'Returns & Refunds Policy'
+        context['returns_content'] = returns.content if returns else ''
+        context['returns_updated'] = returns.updated_at if returns else None
+        return context

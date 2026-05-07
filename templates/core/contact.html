@@ -823,6 +823,17 @@
         transform: scale(1.2);
     }
     
+    /* FAQ Section */
+    .faq-section {
+        margin: 4rem 0 2rem;
+    }
+    
+    .faq-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
+        border-color: var(--accent-color) !important;
+    }
+    
     /* Map Section */
     .map-section {
         margin-top: 4rem;
@@ -1537,6 +1548,63 @@
                         <i class="bi bi-phone-fill"></i>
                         <span>+234 803 710 5898</span>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section" style="margin-top: 4rem;">
+        <h2 style="text-align: center; font-weight: 900; font-size: 2.5rem; color: #1a1a1a; margin-bottom: 1rem;">
+            <i class="bi bi-question-circle-fill" style="color: var(--accent-color); margin-right: 0.75rem;"></i>
+            Frequently Asked Questions
+        </h2>
+        <p style="text-align: center; color: #6b7280; font-size: 1.1rem; margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+            Find quick answers to common questions
+        </p>
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="faq-item" style="background: white; border-radius: 16px; padding: 2rem; border: 2px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                    <h4 style="color: var(--accent-color); font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-clock-history" style="font-size: 1.25rem;"></i>
+                        What are your business hours?
+                    </h4>
+                    <p style="color: #4a5568; line-height: 1.7; margin: 0;">
+                        We're open Monday to Saturday, 9:00 AM - 7:00 PM (WAT). Our customer support via WhatsApp and email is available 24/7. We respond to all messages within 24 hours.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="faq-item" style="background: white; border-radius: 16px; padding: 2rem; border: 2px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                    <h4 style="color: var(--accent-color); font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-truck" style="font-size: 1.25rem;"></i>
+                        Do you offer delivery?
+                    </h4>
+                    <p style="color: #4a5568; line-height: 1.7; margin: 0;">
+                        Yes! We deliver across Nigeria with express (24h) and standard (2-3 days) options. Delivery fees vary by location. Check our <a href="{% url 'core:shipping_policy' %}" style="color: var(--accent-color); text-decoration: underline;">shipping policy</a> for details.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="faq-item" style="background: white; border-radius: 16px; padding: 2rem; border: 2px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                    <h4 style="color: var(--accent-color); font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-credit-card" style="font-size: 1.25rem;"></i>
+                        What payment methods do you accept?
+                    </h4>
+                    <p style="color: #4a5568; line-height: 1.7; margin: 0;">
+                        We accept online payments via Paystack (cards, bank transfer), manual bank transfer, and pay on delivery for select locations. All online payments are secure and encrypted.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="faq-item" style="background: white; border-radius: 16px; padding: 2rem; border: 2px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                    <h4 style="color: var(--accent-color); font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-arrow-return-left" style="font-size: 1.25rem;"></i>
+                        Can I return or exchange items?
+                    </h4>
+                    <p style="color: #4a5568; line-height: 1.7; margin: 0;">
+                        Absolutely! We offer a 14-day return policy on unused items in original packaging. See our <a href="{% url 'core:returns_policy' %}" style="color: var(--accent-color); text-decoration: underline;">returns policy</a> for complete details.
+                    </p>
                 </div>
             </div>
         </div>

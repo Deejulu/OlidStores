@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<style>
+    .payment-detail-page {
+        padding: 2rem 0;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .page-description {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .detail-header-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .reference-text {
+        font-size: 1rem;
+        color: #6b7280;
+    }
+    
+    .reference-text strong {
+        color: #111827;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .status-badge.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-badge.failed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .detail-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 2px solid #f3f4f6;
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f3f4f6;
+    }
+    
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .info-row:first-child {
+        padding-top: 0;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-value {
+        font-weight: 700;
+        color: #1f2937;
+        text-align: right;
+        word-break: break-word;
+    }
+    
+    .amount-highlight {
+        font-size: 2rem;
+        color: #059669;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        flex: 1;
+        min-width: 200px;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    
+    .btn-action i {
+        font-size: 1.2rem;
+    }
+    
+    .btn-print {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(37,99,235,0.3);
+    }
+    
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37,99,235,0.4);
+        color: white;
+    }
+    
+    .btn-order {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+    }
+    
+    .btn-order:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+        color: white;
+    }
+    
+    .raw-data-card {
+        grid-column: 1 / -1;
+    }
+    
+    .raw-data {
+        background: #1f2937;
+        color: #10b981;
+        padding: 1.5rem;
+        border-radius: 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .raw-data pre {
+        margin: 0;
+        color: #10b981;
+    }
+    
+    @media (max-width: 768px) {
+        .payment-detail-page {
+            padding: 1.5rem 0;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .detail-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            min-width: 100%;
+        }
+        
+        .info-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .info-value {
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="payment-detail-page">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h1 class="page-title">
+                <i class="bi bi-receipt"></i>
+                Payment Details
+            </h1>
+            <div class="detail-header-info">
+                <span class="reference-text">Reference: <strong>{{ transaction.reference }}</strong></span>
+                <span class="status-badge {% if transaction.status == 'success' %}success{% elif transaction.status == 'failed' %}failed{% else %}pending{% endif %}">
+                    <i class="bi bi-{% if transaction.status == 'success' %}check-circle-fill{% elif transaction.status == 'failed' %}x-circle-fill{% else %}clock-fill{% endif %}"></i>
+                    {{ transaction.status|title }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Details Grid -->
+        <div class="detail-grid">
+            <!-- Transaction Information -->
+            <div class="detail-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <h3 class="card-title">Transaction Info</h3>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-cash-coin"></i>
+                        Amount
+                    </span>
+                    <span class="info-value amount-highlight">
+                        ₦{{ transaction.amount|floatformat:2 }}
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-currency-exchange"></i>
+                        Currency
+                    </span>
+                    <span class="info-value">{{ transaction.currency }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-wallet2"></i>
+                        Payment Method
+                    </span>
+                    <span class="info-value">{{ transaction.payment_method|default:"N/A"|title }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-calendar-event"></i>
+                        Transaction Date
+                    </span>
+                    <span class="info-value">{{ transaction.created_at|date:"F d, Y · H:i" }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-hash"></i>
+                        Reference
+                    </span>
+                    <span class="info-value" style="font-size: 0.85rem;">{{ transaction.reference }}</span>
+                </div>
+            </div>
+            
+            <!-- Order Information -->
+            <div class="detail-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <h3 class="card-title">Order Info</h3>
+                </div>
+                
+                {% if order %}
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-receipt"></i>
+                        Order ID
+                    </span>
+                    <span class="info-value">#{{ order.id }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-person"></i>
+                        Customer
+                    </span>
+                    <span class="info-value">{{ order.full_name }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-envelope"></i>
+                        Email
+                    </span>
+                    <span class="info-value" style="font-size: 0.9rem;">{{ order.email }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-telephone"></i>
+                        Phone
+                    </span>
+                    <span class="info-value">{{ order.phone }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-flag"></i>
+                        Order Status
+                    </span>
+                    <span class="info-value">{{ order.status }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-cash"></i>
+                        Order Total
+                    </span>
+                    <span class="info-value">₦{{ order.total|floatformat:2 }}</span>
+                </div>
+                {% else %}
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Status
+                    </span>
+                    <span class="info-value">No order linked</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Raw Response Data -->
+            {% if transaction.raw_response %}
+            <div class="detail-card raw-data-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="bi bi-code-square"></i>
+                    </div>
+                    <h3 class="card-title">Raw API Response</h3>
+                </div>
+                
+                <div class="raw-data">
+                    <pre>{{ transaction.raw_response|pprint }}</pre>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'admin_dashboard:payment_print_slip' transaction.reference %}" target="_blank" class="btn-action btn-print">
+                <i class="bi bi-printer"></i>
+                Print Payment Slip
+            </a>
+            
+            {% if order %}
+            <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="btn-action btn-order">
+                <i class="bi bi-box-seam"></i>
+                View Order Details
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

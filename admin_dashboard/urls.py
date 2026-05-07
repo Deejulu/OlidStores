@@ -10,7 +10,7 @@ from .views import (
     analytics_dashboard, generate_sample_data, send_analytics_report, compute_daily_metrics_view,
     content_manage,
     feedback_list, notification_list, contact_message_list, mark_all_notifications_read,
-    pending_orders_view, payments_dashboard_view,
+    pending_orders_view, payments_dashboard_view, payment_detail_view, payment_print_slip,
     chat_conversation_list, chat_conversation_detail, chat_admin_poll,
     auto_reply_manage,
 )
@@ -43,6 +43,8 @@ urlpatterns = [
     path('orders/pending/', pending_orders_view, name='pending_orders'),
     # Payments
     path('payments/', payments_dashboard_view, name='payments_dashboard'),
+    path('payments/<str:reference>/', payment_detail_view, name='payment_detail'),
+    path('payments/<str:reference>/print/', payment_print_slip, name='payment_print_slip'),
     # Customers
     path('customers/', customer_list, name='customer_list'),
     path('customers/add/', add_customer, name='add_customer'),
