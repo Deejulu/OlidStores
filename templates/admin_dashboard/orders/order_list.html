@@ -7,15 +7,15 @@
     --bg-primary: #ffffff;
     --bg-secondary: #f8f9fa;
     --bg-tertiary: #e9ecef;
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    --text-muted: #adb5bd;
-    --border-color: #dee2e6;
+    --text-primary: #1a202c;
+    --text-secondary: #4a5568;
+    --text-muted: #718096;
+    --border-color: #e2e8f0;
     --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.1);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    --accent: #667eea;
-    --accent-hover: #5568d3;
+    --accent: #5a67d8;
+    --accent-hover: #4c51bf;
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
@@ -23,16 +23,18 @@
 }
 
 [data-bs-theme="dark"] {
-    --bg-primary: #1a1d24;
-    --bg-secondary: #22252c;
-    --bg-tertiary: #2b2e36;
-    --text-primary: #e9ecef;
-    --text-secondary: #adb5bd;
-    --text-muted: #6c757d;
-    --border-color: #3d4148;
-    --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+    --bg-primary: #1a202c;
+    --bg-secondary: #2d3748;
+    --bg-tertiary: #4a5568;
+    --text-primary: #f7fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #cbd5e0;
+    --border-color: #4a5568;
+    --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.5);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6);
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
 }
 
 /* Base Layout */
@@ -50,14 +52,16 @@
 
 .page-title {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-primary);
     margin: 0 0 0.5rem 0;
+    letter-spacing: -0.025em;
 }
 
 .page-subtitle {
     color: var(--text-secondary);
     font-size: 1rem;
+    font-weight: 500;
     margin: 0;
 }
 
@@ -120,16 +124,18 @@
 }
 
 .stat-value {
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 900;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
 }
 
 .stat-label {
     color: var(--text-secondary);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.025em;
 }
 
 /* Attention Banner */
@@ -156,24 +162,28 @@
 }
 
 .attention-content h4 {
-    color: #92400e;
+    color: #78350f;
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 800;
     margin: 0 0 0.25rem 0;
+    letter-spacing: -0.015em;
 }
 
 [data-bs-theme="dark"] .attention-content h4 {
-    color: #fde68a;
+    color: #fef3c7;
+    font-weight: 800;
 }
 
 .attention-content p {
-    color: #78350f;
+    color: #92400e;
     font-size: 0.875rem;
+    font-weight: 600;
     margin: 0;
 }
 
 [data-bs-theme="dark"] .attention-content p {
     color: #fde68a;
+    font-weight: 600;
 }
 
 .attention-link {
@@ -236,7 +246,8 @@
 }
 
 .search-input::placeholder {
-    color: var(--text-muted);
+    color: var(--text-secondary);
+    opacity: 0.7;
 }
 
 .search-clear-btn {
@@ -290,7 +301,7 @@
     color: var(--text-primary);
     text-decoration: none;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -307,15 +318,16 @@
 }
 
 .filter-count {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.15);
     padding: 0.15rem 0.5rem;
     border-radius: 50px;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .filter-pill.active .filter-count {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
+    font-weight: 800;
 }
 
 /* Bulk Actions */
@@ -417,10 +429,11 @@
     padding: 1rem;
     text-align: left;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
+    letter-spacing: 0.075em;
+    color: var(--text-primary);
+    opacity: 0.8;
     border-bottom: 2px solid var(--border-color);
 }
 
@@ -466,18 +479,20 @@
 }
 
 .customer-name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
 .customer-email {
     font-size: 0.85rem;
     color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .order-amount {
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-primary);
+    font-size: 0.95rem;
 }
 
 /* Status Badges */
@@ -488,7 +503,8 @@
     padding: 0.35rem 0.75rem;
     border-radius: 50px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.025em;
 }
 
 .status-pending {
@@ -549,7 +565,7 @@
 }
 
 .order-date .date {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
     font-size: 0.9rem;
 }
@@ -557,6 +573,7 @@
 .order-date .time {
     font-size: 0.8rem;
     color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .action-btn {
@@ -641,13 +658,14 @@
 }
 
 .order-card-name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
 .order-card-email {
     font-size: 0.85rem;
     color: var(--text-secondary);
+    font-weight: 500;
 }
 
 .order-card-footer {
@@ -680,12 +698,14 @@
 
 .empty-state h3 {
     font-size: 1.25rem;
+    font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
 .empty-state p {
     color: var(--text-secondary);
+    font-weight: 500;
     margin-bottom: 1.5rem;
 }
 
