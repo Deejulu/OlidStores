@@ -225,15 +225,12 @@ def checkout_view(request):
 						return redirect('orders:checkout')
 			# Verify with Paystack
 			resp = _verify_paystack_reference(paystack_reference)
-			print('DEBUG verify resp', resp)
 			if not resp or not resp.get('status'):
 				messages.error(request, 'Payment verification failed. Please contact support.')
 				return redirect('orders:checkout')
 			data = resp.get('data', {})
-			print('DEBUG data', data)
 			# Check transaction status and amount
 			if data.get('status') == 'success':
-				print('DEBUG entered success block')
 				# Reject non-NGN transactions (e.g. USD multi-currency)
 				tx_currency = (data.get('currency') or 'NGN').upper()
 				if tx_currency != 'NGN':
@@ -296,19 +293,19 @@ def checkout_view(request):
 						raw_response=data
 					)
 					cart.items.all().delete()
-			# Track activity
-			user = request.user
-			if user.is_authenticated:
-				try:
-					from users.models_activity import Activity
-					Activity.objects.create(user=user, activity_type='order', order_id=order.id)
-				except Exception:
-					pass
-			messages.success(request, 'Payment verified and order created. Thank you!')
-			return redirect('orders:cart')
-		else:
-			messages.error(request, 'Payment was not successful. Please try again or contact support.')
-			return redirect('orders:checkout')
+				# Track activity
+				user = request.user
+				if user.is_authenticated:
+					try:
+						from users.models_activity import Activity
+						Activity.objects.create(user=user, activity_type='order', order_id=order.id)
+					except Exception:
+						pass
+				messages.success(request, 'Payment verified and order created. Thank you!')
+				return redirect('orders:cart')
+			else:
+				messages.error(request, 'Payment was not successful. Please try again or contact support.')
+				return redirect('orders:checkout')
 		else:
 			messages.error(request, 'Invalid payment method or missing information.')
 	if cart:

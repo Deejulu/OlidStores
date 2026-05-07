@@ -14,51 +14,58 @@ class OrderUpdateForm(forms.ModelForm):
     class Meta:
         model = Order
         fields = ['status', 'notes', 'delivery_fee']
-    
+
+    # Valid status transitions: which statuses can follow the current one
+    VALID_TRANSITIONS = {
+        'Pending':     ['Processing', 'Cancelled'],
+        'Processing':  ['Shipped', 'Cancelled'],
+        'Shipped':     ['Delivered', 'Cancelled'],
+        'Delivered':   ['Completed'],
+        'Completed':   [],
+        'Cancelled':   [],
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Check if order has successful PAYSTACK payment (not manual receipt)
+        # Show contextual help text and restrict choices to valid next statuses
         if self.instance and self.instance.pk:
+            current = self.instance.status
+            allowed = self.VALID_TRANSITIONS.get(current, [])
+            # Build choices: keep current status + allowed next statuses
+            valid_values = set([current] + allowed)
+            self.fields['status'].choices = [
+                choice for choice in Order.STATUS_CHOICES if choice[0] in valid_values
+            ]
             from orders.models import PaymentTransaction
-            has_paystack_payment = PaymentTransaction.objects.filter(
-                order=self.instance,
-                status='success'
-            ).exists()
-            
-            # Only protect orders with Paystack payments
-            # Manual receipt payments can be freely modified
-            if has_paystack_payment:
-                self.fields['status'].help_text = '⚠️ Status locked - Paystack payment confirmed'
-                # Only allow forward progression (cannot go back to Pending)
-                current_status = self.instance.status
-                if current_status in ['Processing', 'Shipped', 'Delivered']:
-                    status_choices = list(Order.STATUS_CHOICES)
-                    # Remove 'Pending' option
-                    status_choices = [choice for choice in status_choices if choice[0] != 'Pending']
-                    self.fields['status'].choices = status_choices
+            if PaymentTransaction.objects.filter(order=self.instance, status='success').exists():
+                self.fields['status'].help_text = '⚠️ Paystack payment confirmed — only forward transitions allowed'
             elif self.instance.receipt:
-                # Manual payment - show help text
-                self.fields['status'].help_text = '📄 Manual payment receipt uploaded - verify before updating'
-    
+                self.fields['status'].help_text = '📄 Manual payment receipt uploaded — verify before updating'
+
     def clean_status(self):
         status = self.cleaned_data.get('status')
-        
-        # Additional server-side validation
+
         if self.instance and self.instance.pk:
+            current = self.instance.status
+            if status != current:
+                allowed = self.VALID_TRANSITIONS.get(current, [])
+                if status not in allowed:
+                    allowed_str = ', '.join(allowed) if allowed else 'none'
+                    raise forms.ValidationError(
+                        f'Cannot change status from "{current}" to "{status}". '
+                        f'Allowed next statuses: {allowed_str}.'
+                    )
+
             from orders.models import PaymentTransaction
             has_paystack_payment = PaymentTransaction.objects.filter(
                 order=self.instance,
                 status='success'
             ).exists()
-            
-            # Only restrict Paystack payments, not manual receipts
-            if has_paystack_payment:
-                # Cannot change status back to Pending if Paystack payment is successful
-                if status == 'Pending' and self.instance.status != 'Pending':
-                    raise forms.ValidationError(
-                        'Cannot change order back to Pending - Paystack payment confirmed.'
-                    )
-        
+            if has_paystack_payment and status == 'Pending':
+                raise forms.ValidationError(
+                    'Cannot change order back to Pending — Paystack payment confirmed.'
+                )
+
         return status
 
     def save(self, commit=True):

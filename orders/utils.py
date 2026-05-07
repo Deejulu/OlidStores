@@ -60,32 +60,19 @@ def process_paystack_webhook(payload):
         amount_kobo = int(txdata.get('amount', 0))
         amount_value = float(amount_kobo) / 100.0
         
-        # Find associated order by reference (orders store paystack_reference in metadata)
-        # Try to find order with matching payment reference
+        # Find associated order: use the existing PaymentTransaction link only.
+        # We never guess by amount+timestamp — that can silently pay the wrong order.
         order = None
-        
-        # First check if existing transaction has an order
         if existing and existing.order:
             order = existing.order
         else:
-            # Try to find order that was created with this reference
-            # Check for orders that might have been created during checkout
-            # We'll match by close amount and timestamp (within last hour)
-            from django.utils import timezone
-            from datetime import timedelta
-            from decimal import Decimal
-            
-            recent_threshold = timezone.now() - timedelta(hours=1)
-            potential_orders = Order.objects.filter(
-                created_at__gte=recent_threshold,
-                status='Pending'
+            # No existing transaction for this reference — transaction will be saved
+            # without an order link and can be reconciled manually in the admin.
+            logger.warning(
+                'Paystack webhook: no order found for reference %s (amount=%.2f). '
+                'PaymentTransaction saved without order link for manual reconciliation.',
+                reference, amount_value
             )
-            
-            # Try to match by total amount (convert to match Paystack amount)
-            for po in potential_orders:
-                if abs(float(po.total) - amount_value) < 1.0:  # Allow small difference
-                    order = po
-                    break
         
         # Extract payment method from Paystack response
         payment_method = txdata.get('channel', '')

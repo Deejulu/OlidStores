@@ -791,9 +791,34 @@ def order_detail(request, pk):
         payment_method = 'manual'
     
     if request.method == 'POST':
+        old_status = order.status
+        old_notes = order.notes
+        old_delivery_fee = str(order.delivery_fee)
         form = OrderUpdateForm(request.POST, instance=order)
         if form.is_valid():
             form.save()
+            # --- Audit trail ---
+            from .models import AdminAuditLog
+            changes = {}
+            if order.status != old_status:
+                changes['status'] = [old_status, order.status]
+            if order.notes != old_notes:
+                changes['notes'] = [old_notes, order.notes]
+            if str(order.delivery_fee) != old_delivery_fee:
+                changes['delivery_fee'] = [old_delivery_fee, str(order.delivery_fee)]
+            if changes:
+                ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+                if ',' in ip:
+                    ip = ip.split(',')[0].strip()
+                AdminAuditLog.objects.create(
+                    admin_user=request.user,
+                    action=AdminAuditLog.ACTION_UPDATE,
+                    model_name='Order',
+                    object_id=str(order.pk),
+                    object_repr=str(order),
+                    changes=changes,
+                    ip_address=ip or None,
+                )
             messages.success(request, 'Order updated successfully.')
             return redirect('admin_dashboard:order_list')
         else:
@@ -804,12 +829,15 @@ def order_detail(request, pk):
             return redirect('admin_dashboard:order_detail', pk=pk)
     else:
         form = OrderUpdateForm(instance=order)
-    
+
+    from .models import AdminAuditLog
+    audit_logs = AdminAuditLog.objects.filter(model_name='Order', object_id=str(pk)).select_related('admin_user')[:20]
     return render(request, 'admin_dashboard/orders/order_detail.html', {
         'order': order,
         'form': form,
         'paystack_payment': paystack_payment,
         'payment_method': payment_method,
+        'audit_logs': audit_logs,
     })
 
 
