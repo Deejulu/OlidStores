@@ -21,10 +21,23 @@
         --admin-shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
+    /* Force body/html to not stretch on this page */
+    body {
+        min-height: auto !important;
+    }
+    
+    .main-content {
+        padding-bottom: 0 !important;
+        flex: none !important;
+    }
+    
+    .main-footer {
+        margin-top: 0 !important;
+    }
+
     .analytics-page {
         background: linear-gradient(135deg, #f0f4ff 0%, #f8faff 50%, #ffffff 100%);
-        min-height: 100vh;
-        padding: 2rem 0;
+        padding: 2rem 0 0.5rem;
         position: relative;
         overflow-x: hidden;
     }
@@ -1095,7 +1108,7 @@
     
     .btn-back-wrapper {
         text-align: center;
-        margin: 4rem 0 2rem;
+        margin: 2rem 0 0;
     }
 
     /* Empty States */
@@ -2130,6 +2143,16 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
+    // Force remove min-height and flex from body/main-content on this page
+    (function() {
+        document.body.style.minHeight = 'auto';
+        var mc = document.querySelector('.main-content');
+        if (mc) {
+            mc.style.paddingBottom = '0';
+            mc.style.flex = 'none';
+        }
+    })();
+
     // Toast notification system
     function showToast(message, type = 'info', duration = 4000) {
         const container = document.getElementById('toastContainer');
