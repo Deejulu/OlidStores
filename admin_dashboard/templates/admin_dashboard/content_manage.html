@@ -173,7 +173,7 @@
         outline: none;
     }
 
-    .quick-link:hover, .quick-link:focus {
+    .quick-link:hover, .quick-link:focus, .quick-link.active {
         background: var(--primary-gradient);
         color: white !important;
         border-color: var(--primary-color);
@@ -184,13 +184,15 @@
     }
     
     .quick-link:hover span,
-    .quick-link:focus span {
+    .quick-link:focus span,
+    .quick-link.active span {
         color: white !important;
         -webkit-text-fill-color: white !important;
     }
     
     .quick-link:hover i,
-    .quick-link:focus i {
+    .quick-link:focus i,
+    .quick-link.active i {
         color: white !important;
     }
 
@@ -443,6 +445,7 @@
     .file-upload-area.dragover {
         border-color: var(--primary-color);
         background: rgba(102, 126, 234, 0.06);
+    }
 
     .upload-icon {
         font-size: 3rem;
@@ -812,50 +815,255 @@
         }
     }
 
-    /* Dark Mode */
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --glass-bg: rgba(26, 29, 41, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff;
-            --text-secondary: #b0b5d6;
-            --text-tertiary: #8c91b5;
-            --accent-light: rgba(102, 126, 234, 0.2);
-        }
+    /* ── Per-section Save Button ── */
+    .section-save-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1.25rem;
+        background: rgba(102, 126, 234, 0.1);
+        border: 1.5px solid rgba(102, 126, 234, 0.3);
+        border-radius: 999px;
+        color: #667eea;
+        font-weight: 700;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: var(--transition-all);
+        line-height: 1.35;
+    }
+    .section-save-btn:hover {
+        background: var(--primary-gradient);
+        color: white !important;
+        border-color: #667eea;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+    .section-save-btn.saving {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+    .section-save-btn.saved {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white !important;
+        border-color: #10b981;
+    }
 
-        .form-control,
-        .form-select,
-        textarea {
-            background: rgba(15, 23, 42, 0.8);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
+    /* ── Collapse/Expand ── */
+    .collapse-toggle {
+        background: none;
+        border: none;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 8px;
+        transition: var(--transition-all);
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+    .collapse-toggle:hover { background: var(--accent-light); color: #667eea; }
+    .section-body { transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    .section-body.collapsed { display: none; }
 
-        .form-control:focus,
-        .form-select:focus,
-        textarea:focus {
-            background: rgba(15, 23, 42, 1);
-            border-color: #667eea;
-        }
+    /* ── Section header row layout ── */
+    .section-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2.5rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .section-header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex: 1;
+        min-width: 0;
+    }
+    .section-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
 
-        .file-upload-area {
-            background: rgba(15, 23, 42, 0.5);
-            border-color: rgba(102, 126, 234, 0.2);
-        }
+    /* ── View Live Link ── */
+    .section-live-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        border: 1.5px solid rgba(102, 126, 234, 0.2);
+        transition: var(--transition-all);
+    }
+    .section-live-link:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #5a67d8 !important;
+        border-color: #667eea;
+    }
 
-        .preview-card {
-            background: rgba(255, 255, 255, 0.05);
-        }
+    /* ── Character counter ── */
+    .char-counter {
+        font-size: 0.78rem;
+        color: var(--text-tertiary);
+        text-align: right;
+        margin-top: 0.35rem;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+    .char-counter.warn { color: #f59e0b; }
+    .char-counter.over { color: #ef4444; }
 
-        .progress-bar {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .btn-save,
-        .quick-link:hover,
-        .quick-link:focus {
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
+    /* ── Copy button ── */
+    .copy-btn {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        border-radius: 6px;
+        padding: 0.35rem 0.6rem;
+        color: #667eea;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: var(--transition-all);
+    }
+    .copy-btn:hover { background: rgba(102, 126, 234, 0.2); }
+    .copy-btn.copied { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+    .has-copy-btn input { padding-right: 3rem; }
+
+    /* ── Section completion dot ── */
+    .section-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: inline-block;
+        flex-shrink: 0;
+        transition: background 0.3s;
+    }
+    .section-dot.filled { background: #10b981; }
+
+    /* ── Unsaved indicator ── */
+    .unsaved-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .25s;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        border: 1px solid #fde68a;
+    }
+
+    /* ── Spin animation for save button ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { display: inline-block; animation: spin .7s linear infinite; }
+
+    /* ── Last saved timestamp ── */
+    .last-saved-text {
+        font-size: 0.82rem;
+        color: var(--text-tertiary);
+        font-weight: 500;
+    }
+
+    /* Dark Mode — uses data-theme attribute set by base.html */
+    [data-theme="dark"] {
+        --glass-bg: rgba(26, 29, 41, 0.92);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-primary: #f7fafc;
+        --text-secondary: #b0b5d6;
+        --text-tertiary: #8c91b5;
+        --accent-light: rgba(102, 126, 234, 0.2);
+    }
+
+    [data-theme="dark"] .form-section {
+        background: rgba(26, 29, 41, 0.95);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select,
+    [data-theme="dark"] textarea {
+        background: #1e2535 !important;
+        border-color: rgba(255, 255, 255, 0.12);
+        color: #f7fafc !important;
+    }
+
+    [data-theme="dark"] .form-control:focus,
+    [data-theme="dark"] .form-select:focus,
+    [data-theme="dark"] textarea:focus {
+        background: #252f45 !important;
+        border-color: #667eea;
+    }
+
+    [data-theme="dark"] .form-label {
+        color: #e2e8f0 !important;
+    }
+
+    [data-theme="dark"] .section-title {
+        color: #f7fafc !important;
+    }
+
+    [data-theme="dark"] .section-description {
+        color: #b0b5d6 !important;
+    }
+
+    [data-theme="dark"] .quick-link {
+        background: rgba(26, 29, 41, 0.85);
+        color: #b0b5d6 !important;
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .section-save-btn {
+        background: rgba(102, 126, 234, 0.15);
+        color: #a5b4fc !important;
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    [data-theme="dark"] .progress-card,
+    [data-theme="dark"] .submit-card {
+        background: rgba(26, 29, 41, 0.95);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .progress-bar {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .file-upload-area {
+        background: rgba(15, 23, 42, 0.5);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    [data-theme="dark"] .char-counter {
+        color: #8c91b5 !important;
+    }
+
+    [data-theme="dark"] .section-live-link {
+        color: #a5b4fc !important;
+    }
+
+    [data-theme="dark"] .collapse-toggle {
+        color: #8c91b5 !important;
+    }
+
+    [data-theme="dark"] .sticky-nav {
+        background: rgba(26, 29, 41, 0.96) !important;
+    }
+
+    [data-theme="dark"] .skip-link {
+        color: #a5b4fc !important;
     }
 </style>
 {% endblock %}
@@ -919,24 +1127,38 @@
         {% if site_settings_form %}
         <!-- Site Settings Section (NEW) -->
         <section class="form-section" id="site-settings-section" aria-labelledby="site-settings-title" role="region" style="border-left: 4px solid #667eea;">
-            <div class="section-header">
-                <div class="section-icon" aria-hidden="true">
-                    <i class="bi bi-gear-fill" aria-hidden="true"></i>
+            <div class="section-header-row">
+                <div class="section-header-left">
+                    <div class="section-icon" aria-hidden="true">
+                        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title" id="site-settings-title">
+                            Site Settings
+                            <span class="section-dot" id="dot-site_settings" style="margin-left:.5rem;"></span>
+                        </h3>
+                        <p class="section-description">
+                            Set your store name, logo, social links, SEO tags, and shipping rules. Changes appear across your entire site.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="section-title" id="site-settings-title">Site Settings</h3>
-                    <p class="section-description">
-                        Configure your store name, branding, social media, shipping policies, and SEO settings.
-                    </p>
+                <div class="section-header-actions">
+                    <span class="unsaved-badge" id="unsaved-site_settings"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Unsaved</span>
+                    <button type="button" class="section-save-btn" data-section="site_settings" aria-label="Save site settings">
+                        <i class="bi bi-cloud-check"></i> Save Section
+                    </button>
+                    <button type="button" class="collapse-toggle" data-target="body-site-settings" aria-label="Collapse section" title="Collapse">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Site Identity -->
-            <div style="margin-bottom:2rem;">
+            <div id="body-site-settings" class="section-body">
                 <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
                     <i class="bi bi-shop" style="color:#667eea;"></i> Store Identity
                 </h4>
-                <div class="form-grid">
+                <div class="form-grid" style="margin-bottom:2rem;">
                     {% for field in site_settings_form.visible_fields %}
                         {% if field.name in 'site_name,site_tagline,site_logo,favicon,footer_text' %}
                         <div class="form-group" role="group" aria-label="{{ field.label }}">
@@ -954,14 +1176,12 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-            </div>
 
             <!-- Business Info -->
-            <div style="margin-bottom:2rem;">
-                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i class="bi bi-building" style="color:#667eea;"></i> Business Information
-                </h4>
-                <div class="form-grid">
+            <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-building" style="color:#667eea;"></i> Business Information
+            </h4>
+                <div class="form-grid" style="margin-bottom:2rem;">
                     {% for field in site_settings_form.visible_fields %}
                         {% if field.name in 'store_address,business_hours' %}
                         <div class="form-group" role="group" aria-label="{{ field.label }}">
@@ -979,14 +1199,12 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-            </div>
 
             <!-- Social Media -->
-            <div style="margin-bottom:2rem;">
-                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i class="bi bi-share" style="color:#667eea;"></i> Social Media Links
-                </h4>
-                <div class="form-grid">
+            <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-share" style="color:#667eea;"></i> Social Media Links
+            </h4>
+                <div class="form-grid" style="margin-bottom:2rem;">
                     {% for field in site_settings_form.visible_fields %}
                         {% if '_handle' in field.name or '_number' in field.name %}
                         <div class="form-group" role="group" aria-label="{{ field.label }}">
@@ -1004,14 +1222,12 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-            </div>
 
-            <!-- Shipping & Policies -->
-            <div style="margin-bottom:2rem;">
-                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i class="bi bi-truck" style="color:#667eea;"></i> Shipping & Returns
-                </h4>
-                <div class="form-grid">
+            <!-- Shipping & Returns -->
+            <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-truck" style="color:#667eea;"></i> Shipping &amp; Returns
+            </h4>
+                <div class="form-grid" style="margin-bottom:2rem;">
                     {% for field in site_settings_form.visible_fields %}
                         {% if field.name in 'free_shipping_threshold,return_policy_days' %}
                         <div class="form-group" role="group" aria-label="{{ field.label }}">
@@ -1029,13 +1245,11 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-            </div>
 
             <!-- SEO -->
-            <div style="margin-bottom:1rem;">
-                <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i class="bi bi-search" style="color:#667eea;"></i> SEO Settings
-                </h4>
+            <h4 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-search" style="color:#667eea;"></i> SEO Settings
+            </h4>
                 <div class="form-grid">
                     {% for field in site_settings_form.visible_fields %}
                         {% if field.name in 'meta_description,meta_keywords' %}
@@ -1054,26 +1268,40 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-            </div>
+            </div>{# end body-site-settings #}
         </section>
         {% endif %}
 
         {% if banner_form %}
         <!-- Banner Section -->
         <section class="form-section" id="banner-section" aria-labelledby="banner-title" tabindex="14" role="region">
-            <div class="section-header">
-                <div class="section-icon" aria-hidden="true">
-                    <i class="bi bi-image-alt" aria-hidden="true"></i>
+            <div class="section-header-row">
+                <div class="section-header-left">
+                    <div class="section-icon" aria-hidden="true">
+                        <i class="bi bi-image-alt" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title" id="banner-title">
+                            Homepage Banner
+                            <span class="section-dot" id="dot-banner" style="margin-left:.5rem;"></span>
+                        </h3>
+                        <p class="section-description">
+                            Control your homepage headline, banner text, background style, and rotating announcement messages.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="section-title" id="banner-title">Homepage Banner</h3>
-                    <p class="section-description">
-                        Create an engaging first impression with a stunning banner that showcases your brand.
-                    </p>
+                <div class="section-header-actions">
+                    <a href="/" target="_blank" class="section-live-link" title="View homepage live"><i class="bi bi-box-arrow-up-right"></i> View Live</a>
+                    <span class="unsaved-badge" id="unsaved-banner"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Unsaved</span>
+                    <button type="button" class="section-save-btn" data-section="banner" aria-label="Save banner">
+                        <i class="bi bi-cloud-check"></i> Save Section
+                    </button>
+                    <button type="button" class="collapse-toggle" data-target="body-banner" aria-label="Collapse section" title="Collapse">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
                 </div>
             </div>
-
-            <div class="form-grid">
+            <div id="body-banner" class="section-body">
                 {{ banner_form.non_field_errors }}
                 {% for field in banner_form.visible_fields %}
                 <div class="form-group" role="group" aria-label="{{ field.label }}">
@@ -1140,19 +1368,33 @@
         {% if about_form %}
         <!-- About Section -->
         <section class="form-section" id="about-section" aria-labelledby="about-title" tabindex="11" role="region">
-            <div class="section-header">
-                <div class="section-icon" aria-hidden="true">
-                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <div class="section-header-row">
+                <div class="section-header-left">
+                    <div class="section-icon" aria-hidden="true">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title" id="about-title">
+                            About Us
+                            <span class="section-dot" id="dot-about" style="margin-left:.5rem;"></span>
+                        </h3>
+                        <p class="section-description">
+                            Tell your brand story. This content appears on your About Us page.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="section-title" id="about-title">About Us</h3>
-                    <p class="section-description">
-                        Welcome to OD. We launched as a small, local online boutique with a simple goal: make thoughtfully curated products accessible and affordable.<br>
-                        We're a lean team focused on fast, friendly service — hand-packing each order and working directly with a small group of trusted makers and suppliers.<br>
-                        As a growing business, we prioritize product quality, clear communication, and listening to early customers so we can improve quickly.
-                    </p>
+                <div class="section-header-actions">
+                    <a href="/about/" target="_blank" class="section-live-link" title="View About page"><i class="bi bi-box-arrow-up-right"></i> View Live</a>
+                    <span class="unsaved-badge" id="unsaved-about"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Unsaved</span>
+                    <button type="button" class="section-save-btn" data-section="about" aria-label="Save about content">
+                        <i class="bi bi-cloud-check"></i> Save Section
+                    </button>
+                    <button type="button" class="collapse-toggle" data-target="body-about" aria-label="Collapse section" title="Collapse">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
                 </div>
             </div>
+            <div id="body-about" class="section-body">
                 <div class="form-grid">
                 {{ about_form.non_field_errors }}
                 {% with about_placeholder="Welcome to OD. We launched as a small, local online boutique with a simple goal: make thoughtfully curated products accessible and affordable. We're a lean team focused on fast, friendly service — hand-packing each order and working directly with a small group of trusted makers and suppliers. As a growing business, we prioritise product quality, clear communication, and listening to early customers so we can improve quickly." %}
@@ -1212,7 +1454,7 @@
                 </div>
                 {% endfor %}
                 {% endwith %}
-            </div>
+            </div>{# end body-about #}
         </section>
         {% else %}
         <section class="form-section" id="about-section" aria-labelledby="about-title" tabindex="11" role="region">
@@ -1222,27 +1464,42 @@
                 </div>
                 <div>
                     <h3 class="section-title" id="about-title">About Us</h3>
-                    <p class="section-description">No about form available. Please add about content.</p>
+                    <p class="section-description">No about form available.</p>
                 </div>
             </div>
-            <div style="color:var(--text-tertiary);font-size:1rem;">No about fields to display.</div>
         </section>
         {% endif %}
 
         {% if contact_form %}
         <!-- Contact Section -->
         <section class="form-section" id="contact-section" aria-labelledby="contact-title" tabindex="12" role="region">
-            <div class="section-header">
-                <div class="section-icon" aria-hidden="true">
-                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            <div class="section-header-row">
+                <div class="section-header-left">
+                    <div class="section-icon" aria-hidden="true">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title" id="contact-title">
+                            Contact Information
+                            <span class="section-dot" id="dot-contact" style="margin-left:.5rem;"></span>
+                        </h3>
+                        <p class="section-description">
+                            Add your phone number, email, and social media links. Shown on the Contact page and in the site footer.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="section-title" id="contact-title">Contact Information</h3>
-                    <p class="section-description">
-                        Make it easy for customers to reach you. Add your location, phone, email, and social links.
-                    </p>
+                <div class="section-header-actions">
+                    <a href="/contact/" target="_blank" class="section-live-link" title="View Contact page"><i class="bi bi-box-arrow-up-right"></i> View Live</a>
+                    <span class="unsaved-badge" id="unsaved-contact"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Unsaved</span>
+                    <button type="button" class="section-save-btn" data-section="contact" aria-label="Save contact information">
+                        <i class="bi bi-cloud-check"></i> Save Section
+                    </button>
+                    <button type="button" class="collapse-toggle" data-target="body-contact" aria-label="Collapse section" title="Collapse">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
                 </div>
             </div>
+            <div id="body-contact" class="section-body">
             <div class="form-grid">
                 {{ contact_form.non_field_errors }}
                 {% for field in contact_form.visible_fields %}
@@ -1281,6 +1538,7 @@
                 </div>
                 {% endfor %}
             </div>
+            </div>{# end body-contact #}
         </section>
         {% else %}
         <section class="form-section" id="contact-section" aria-labelledby="contact-title" tabindex="12" role="region">
@@ -1290,27 +1548,41 @@
                 </div>
                 <div>
                     <h3 class="section-title" id="contact-title">Contact Information</h3>
-                    <p class="section-description">No contact form available. Please add contact content.</p>
+                    <p class="section-description">No contact form available.</p>
                 </div>
             </div>
-            <div style="color:var(--text-tertiary);font-size:1rem;">No contact fields to display.</div>
         </section>
         {% endif %}
 
         {% if checkout_form %}
         <!-- Checkout Section -->
         <section class="form-section" id="checkout-section" aria-labelledby="checkout-title" tabindex="13" role="region">
-            <div class="section-header">
-                <div class="section-icon" aria-hidden="true">
-                    <i class="bi bi-credit-card" aria-hidden="true"></i>
+            <div class="section-header-row">
+                <div class="section-header-left">
+                    <div class="section-icon" aria-hidden="true">
+                        <i class="bi bi-credit-card" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title" id="checkout-title">
+                            Checkout &amp; Payment Settings
+                            <span class="section-dot" id="dot-checkout" style="margin-left:.5rem;"></span>
+                        </h3>
+                        <p class="section-description">
+                            Set delivery fees, bank transfer details, and notes shown at checkout. These values affect every order.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="section-title" id="checkout-title">Checkout & Payment Settings</h3>
-                    <p class="section-description">
-                        Configure payment options, delivery fees, and bank transfer details for manual payments.
-                    </p>
+                <div class="section-header-actions">
+                    <span class="unsaved-badge" id="unsaved-checkout"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Unsaved</span>
+                    <button type="button" class="section-save-btn" data-section="checkout" aria-label="Save checkout settings">
+                        <i class="bi bi-cloud-check"></i> Save Section
+                    </button>
+                    <button type="button" class="collapse-toggle" data-target="body-checkout" aria-label="Collapse section" title="Collapse">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
                 </div>
             </div>
+            <div id="body-checkout" class="section-body">
             <div class="form-grid">
                 {{ checkout_form.non_field_errors }}
                 {% for field in checkout_form.visible_fields %}
@@ -1340,6 +1612,7 @@
                 </div>
                 {% endfor %}
             </div>
+            </div>{# end body-checkout #}
         </section>
         {% else %}
         <section class="form-section" id="checkout-section" aria-labelledby="checkout-title" tabindex="13" role="region">
@@ -1348,8 +1621,8 @@
                     <i class="bi bi-credit-card" aria-hidden="true"></i>
                 </div>
                 <div>
-                    <h3 class="section-title" id="checkout-title">Checkout & Payment Settings</h3>
-                    <p class="section-description">No checkout form available. Please add checkout content.</p>
+                    <h3 class="section-title" id="checkout-title">Checkout &amp; Payment Settings</h3>
+                    <p class="section-description">No checkout form available.</p>
                 </div>
             </div>
             <div style="color:var(--text-tertiary);font-size:1rem;">No checkout fields to display.</div>
@@ -1358,17 +1631,33 @@
 
         <!-- Policies Section (FAQ, Privacy, Terms) -->
         <section class="form-section" id="policies-section" aria-labelledby="policies-title" role="region" style="border-left: 4px solid #10b981;">
-            <div class="section-header">
-                <div class="section-icon" aria-hidden="true" style="background: linear-gradient(135deg, #10b981, #059669);">
-                    <i class="bi bi-file-earmark-text" aria-hidden="true" style="color: white;"></i>
+            <div class="section-header-row">
+                <div class="section-header-left">
+                    <div class="section-icon" aria-hidden="true" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="bi bi-file-earmark-text" aria-hidden="true" style="color: white;"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title" id="policies-title">
+                            Legal &amp; Policy Pages
+                            <span class="section-dot" id="dot-policies" style="margin-left:.5rem;"></span>
+                        </h3>
+                        <p class="section-description">
+                            Manage your FAQ, Privacy Policy, and Terms &amp; Conditions. Changes go live immediately when saved.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="section-title" id="policies-title">Legal & Policy Pages</h3>
-                    <p class="section-description">
-                        Edit your FAQ, Privacy Policy, and Terms & Conditions pages content.
-                    </p>
+                <div class="section-header-actions">
+                    <a href="/faq/" target="_blank" class="section-live-link" title="View FAQ page"><i class="bi bi-box-arrow-up-right"></i> View Live</a>
+                    <span class="unsaved-badge" id="unsaved-policies"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Unsaved</span>
+                    <button type="button" class="section-save-btn" data-section="policies" aria-label="Save all policy pages">
+                        <i class="bi bi-cloud-check"></i> Save Section
+                    </button>
+                    <button type="button" class="collapse-toggle" data-target="body-policies" aria-label="Collapse section" title="Collapse">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
                 </div>
             </div>
+            <div id="body-policies" class="section-body">
 
             <!-- FAQ -->
             {% if faq_form %}
@@ -1444,9 +1733,8 @@
                 </div>
             </div>
             {% endif %}
+            </div>{# end body-policies #}
         </section>
-
-        <!-- Preview Mode Stub -->
         <section class="form-section" id="preview-section" aria-label="Preview Mode" tabindex="14" role="region" style="background:rgba(255,255,255,0.85);border:2px dashed var(--primary-light);">
             <div class="section-header">
                 <div class="section-icon" aria-hidden="true">
@@ -1556,22 +1844,220 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Quick links smooth scrolling
+
+        /* ═══════════════════════════════════════════════
+           SECTION COLLAPSE / EXPAND
+           ═══════════════════════════════════════════════ */
+        document.querySelectorAll('.collapse-toggle').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const bodyId = this.dataset.target;
+                const body = document.getElementById(bodyId);
+                if (!body) return;
+                const icon = this.querySelector('i');
+                const isCollapsed = body.classList.toggle('collapsed');
+                if (icon) {
+                    icon.className = isCollapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+                }
+                this.setAttribute('aria-label', isCollapsed ? 'Expand section' : 'Collapse section');
+            });
+        });
+
+        /* ═══════════════════════════════════════════════
+           QUICK LINKS + SCROLLSPY
+           ═══════════════════════════════════════════════ */
         const quickLinks = document.querySelectorAll('.quick-link');
+
+        // Smooth scroll
         quickLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                const targetId = this.getAttribute('href');
-                const targetSection = document.querySelector(targetId);
-                
+                const targetSection = document.querySelector(this.getAttribute('href'));
                 if (targetSection) {
-                    targetSection.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
         });
+
+        // Scrollspy via IntersectionObserver
+        const sections = document.querySelectorAll('.form-section[id]');
+        const spyObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = '#' + entry.target.id;
+                    quickLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === id));
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+        sections.forEach(s => spyObserver.observe(s));
+
+        /* ═══════════════════════════════════════════════
+           PER-SECTION AJAX SAVE
+           ═══════════════════════════════════════════════ */
+        // Map section key → form prefix(es) used in POST data
+        const sectionPrefixMap = {
+            'site_settings': ['site_settings'],
+            'banner':        ['banner'],
+            'about':         ['about'],
+            'contact':       ['contact'],
+            'checkout':      ['checkout'],
+            'policies':      ['faq', 'privacy', 'terms']
+        };
+
+        function getFormData(sectionKey) {
+            const form = document.getElementById('content-form');
+            const fd = new FormData();
+            const prefixes = sectionPrefixMap[sectionKey] || [sectionKey];
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrf) fd.append('csrfmiddlewaretoken', csrf.value);
+
+            // Collect inputs whose name starts with one of the prefixes
+            form.querySelectorAll('input, textarea, select').forEach(el => {
+                if (!el.name) return;
+                const match = prefixes.some(p => el.name.startsWith(p + '-') || el.name === p);
+                if (!match) return;
+                if (el.type === 'checkbox') { fd.append(el.name, el.checked ? 'on' : ''); return; }
+                if (el.type === 'radio') { if (el.checked) fd.append(el.name, el.value); return; }
+                if (el.type === 'file') { if (el.files && el.files[0]) fd.append(el.name, el.files[0]); return; }
+                fd.append(el.name, el.value);
+            });
+            return fd;
+        }
+
+        async function saveSection(sectionKey, btn) {
+            const origHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Saving…';
+
+            try {
+                const resp = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: getFormData(sectionKey),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (resp.ok) {
+                    btn.innerHTML = '<i class="bi bi-check2"></i> Saved!';
+                    btn.style.background = 'rgba(16,185,129,.15)';
+                    btn.style.borderColor = '#10b981';
+                    btn.style.color = '#10b981';
+
+                    const unsaved = document.getElementById('unsaved-' + sectionKey);
+                    if (unsaved) { unsaved.style.opacity = '0'; }
+
+                    // Update last-saved timestamp if shown
+                    const ts = btn.closest('.section-header-actions')?.querySelector('.last-saved-text');
+                    if (ts) {
+                        const now = new Date();
+                        ts.textContent = 'Saved ' + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                        ts.style.display = 'inline';
+                    }
+
+                    setTimeout(() => {
+                        btn.innerHTML = origHTML;
+                        btn.style.background = '';
+                        btn.style.borderColor = '';
+                        btn.style.color = '';
+                        btn.disabled = false;
+                    }, 2500);
+                } else {
+                    throw new Error('Server error ' + resp.status);
+                }
+            } catch (err) {
+                btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error';
+                btn.style.borderColor = '#ef4444';
+                btn.style.color = '#ef4444';
+                setTimeout(() => {
+                    btn.innerHTML = origHTML;
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                    btn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        document.querySelectorAll('.section-save-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const key = this.dataset.section;
+                if (key) saveSection(key, this);
+            });
+        });
+
+        /* ═══════════════════════════════════════════════
+           UNSAVED INDICATOR per section
+           ═══════════════════════════════════════════════ */
+        const bodyToKey = {
+            'body-site-settings': 'site_settings',
+            'body-banner':   'banner',
+            'body-about':    'about',
+            'body-contact':  'contact',
+            'body-checkout': 'checkout',
+            'body-policies': 'policies'
+        };
+        Object.entries(bodyToKey).forEach(([bodyId, key]) => {
+            const body = document.getElementById(bodyId);
+            if (!body) return;
+            body.querySelectorAll('input, textarea, select').forEach(el => {
+                el.addEventListener('input', () => {
+                    const badge = document.getElementById('unsaved-' + key);
+                    if (badge) { badge.style.opacity = '1'; }
+                });
+            });
+        });
+
+        /* ═══════════════════════════════════════════════
+           CHARACTER COUNTER for meta_description
+           ═══════════════════════════════════════════════ */
+        const metaDesc = document.querySelector('[name*="meta_description"]');
+        if (metaDesc) {
+            const MAX = 160;
+            const counter = document.createElement('div');
+            counter.className = 'char-counter';
+            counter.textContent = `${metaDesc.value.length} / ${MAX}`;
+            metaDesc.parentNode.appendChild(counter);
+            metaDesc.addEventListener('input', () => {
+                const len = metaDesc.value.length;
+                counter.textContent = `${len} / ${MAX}`;
+                counter.style.color = len > MAX ? '#ef4444' : len > MAX * 0.9 ? '#f59e0b' : '';
+            });
+        }
+
+        /* ═══════════════════════════════════════════════
+           COPY BUTTON for bank account number
+           ═══════════════════════════════════════════════ */
+        const acctInput = document.querySelector('[name*="account_number"]');
+        if (acctInput) {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'position:relative;display:flex;gap:.5rem;align-items:center;';
+            acctInput.parentNode.insertBefore(wrap, acctInput);
+            wrap.appendChild(acctInput);
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'copy-btn';
+            copyBtn.title = 'Copy account number';
+            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i>';
+            wrap.appendChild(copyBtn);
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(acctInput.value || '').then(() => {
+                    copyBtn.innerHTML = '<i class="bi bi-clipboard-check"></i>';
+                    setTimeout(() => { copyBtn.innerHTML = '<i class="bi bi-clipboard"></i>'; }, 2000);
+                });
+            });
+        }
+
+        /* ═══════════════════════════════════════════════
+           SECTION DOTS (filled indicator)
+           ═══════════════════════════════════════════════ */
+        function refreshDots() {
+            Object.entries(bodyToKey).forEach(([bodyId, key]) => {
+                const body = document.getElementById(bodyId);
+                const dot = document.getElementById('dot-' + key);
+                if (!body || !dot) return;
+                const filled = [...body.querySelectorAll('input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="tel"], textarea')].some(el => el.value.trim() !== '');
+                dot.classList.toggle('filled', filled);
+            });
+        }
+        refreshDots();
+        document.getElementById('content-form')?.addEventListener('input', refreshDots);
 
         // Form progress tracking
         const form = document.getElementById('content-form');
