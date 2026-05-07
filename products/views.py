@@ -283,7 +283,7 @@ from orders.models import Order
 @login_required
 def submit_review(request, slug):
 	"""Submit a product review"""
-	product = get_object_or_400(Product, slug=slug)
+	product = get_object_or_404(Product, slug=slug)
 	
 	# Check if user has already reviewed
 	existing_review = ProductReview.objects.filter(product=product, user=request.user).first()

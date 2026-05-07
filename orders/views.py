@@ -265,38 +265,37 @@ def checkout_view(request):
 							p.save()
 					# Create order and items
 					order = Order.objects.create(
-					user=request.user if request.user.is_authenticated else None,
-					full_name=full_name,
-					phone=phone,
-					email=email,
-					delivery_address=delivery_address,
-					total=total,
-					delivery_fee=delivery_fee,
-					delivery_option=delivery_option or '2d',
-					status='Processing',
-					notes=notes
-				)
-				for item in items:
-					OrderItem.objects.create(
-						order=order,
-						product=item.product,
-						variant=item.variant,
-						quantity=item.quantity,
-						price=item.price
+						user=request.user if request.user.is_authenticated else None,
+						full_name=full_name,
+						phone=phone,
+						email=email,
+						delivery_address=delivery_address,
+						total=total,
+						delivery_fee=delivery_fee,
+						delivery_option=delivery_option or '2d',
+						status='Processing',
+						notes=notes
 					)
-				# record transaction
-				payment_channel = data.get('channel') or (data.get('authorization') or {}).get('channel') or ''
-				pt = PaymentTransaction.objects.create(
-					reference=paystack_reference,
-					order=order,
-					amount=float(data.get('amount', 0)) / 100.0,
-					currency=data.get('currency', 'NGN'),
-					status=data.get('status', ''),
-					payment_method=payment_channel,
-					raw_response=data
-				)
-				print('DEBUG created order', order.id, 'pt', pt.reference)
-				cart.items.all().delete()
+					for item in items:
+						OrderItem.objects.create(
+							order=order,
+							product=item.product,
+							variant=item.variant,
+							quantity=item.quantity,
+							price=item.price
+						)
+					# record transaction
+					payment_channel = data.get('channel') or (data.get('authorization') or {}).get('channel') or ''
+					pt = PaymentTransaction.objects.create(
+						reference=paystack_reference,
+						order=order,
+						amount=float(data.get('amount', 0)) / 100.0,
+						currency=data.get('currency', 'NGN'),
+						status=data.get('status', ''),
+						payment_method=payment_channel,
+						raw_response=data
+					)
+					cart.items.all().delete()
 			# Track activity
 			user = request.user
 			if user.is_authenticated:
@@ -307,8 +306,8 @@ def checkout_view(request):
 					pass
 			messages.success(request, 'Payment verified and order created. Thank you!')
 			return redirect('orders:cart')
-			# Payment not successful
-			messages.error(request, 'Payment not successful.')
+		else:
+			messages.error(request, 'Payment was not successful. Please try again or contact support.')
 			return redirect('orders:checkout')
 		else:
 			messages.error(request, 'Invalid payment method or missing information.')

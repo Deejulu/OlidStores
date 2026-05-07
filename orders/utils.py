@@ -1,5 +1,8 @@
+import logging
 import requests
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def verify_paystack_reference(reference):
@@ -10,9 +13,17 @@ def verify_paystack_reference(reference):
     try:
         resp = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers, timeout=10)
         if resp.status_code != 200:
+            logger.error("Paystack verify returned HTTP %s for reference %s: %s", resp.status_code, reference, resp.text[:500])
             return None
         return resp.json()
-    except Exception:
+    except requests.exceptions.Timeout:
+        logger.error("Paystack verify timed out for reference %s", reference)
+        return None
+    except requests.exceptions.ConnectionError as e:
+        logger.error("Paystack verify connection error for reference %s: %s", reference, e)
+        return None
+    except Exception as e:
+        logger.exception("Paystack verify unexpected error for reference %s: %s", reference, e)
         return None
 
 
