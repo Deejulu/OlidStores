@@ -70,21 +70,11 @@ E-Stores Team
 </html>
 """
     
-    # Debug mode - skip actual email sending, just print to console
-    if getattr(settings, 'OTP_DEBUG_MODE', False):
-        logger.info(f"[DEBUG] Email OTP for {email}: {otp_code}")
-        print(f"\n{'='*50}")
-        print(f"EMAIL OTP DEBUG")
-        print(f"To: {email}")
-        print(f"Subject: {subject}")
-        print(f"Code: {otp_code}")
-        print(f"Expires: {settings.OTP_EXPIRY_MINUTES} minutes")
-        print(f"{'='*50}\n")
-        return True, None
-    
-    # Production mode - send real email via SendGrid
     try:
-        logger.info('Sending OTP email to %s from %s', email, settings.DEFAULT_FROM_EMAIL)
+        logger.info('Preparing to send OTP email to %s from %s', email, settings.DEFAULT_FROM_EMAIL)
+        if getattr(settings, 'OTP_DEBUG_MODE', False):
+            logger.debug('[DEBUG] Email OTP for %s: %s', email, otp_code)
+            logger.debug('OTP sender: %s', settings.DEFAULT_FROM_EMAIL)
         
         send_mail(
             subject=subject,
@@ -94,7 +84,7 @@ E-Stores Team
             html_message=html_message,
             fail_silently=False
         )
-        logger.info('OTP email sent successfully to %s', email)
+        logger.info('OTP email send_mail call completed for %s', email)
         return True, None
     except Exception as e:
         logger.error(f"Failed to send email OTP to {email}: {e}", exc_info=True)
