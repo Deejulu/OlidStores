@@ -46,7 +46,7 @@ class ShopListView(ListView):
 		elif sort == 'newest':
 			queryset = queryset.order_by('-created_at')
 		elif sort == 'popular':
-			queryset = queryset.order_by('-created_at')
+			queryset = queryset.annotate(order_count=Count('orderitem')).order_by('-order_count', '-created_at')
 		else:
 			queryset = queryset.order_by('-created_at')
 		return queryset
