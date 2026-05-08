@@ -6,7 +6,7 @@ from .views import (
     product_list, product_create, product_edit, product_delete, product_toggle, product_populate_sample, product_remove_sample,
     category_list, category_create, category_edit, category_delete, category_toggle, category_populate_sample, category_remove_sample,
     order_list, order_detail,
-    customer_list, customer_detail, add_customer,
+    customer_list, customer_detail, add_customer, verify_customer_otp,
     analytics_dashboard, generate_sample_data, send_analytics_report, compute_daily_metrics_view,
     content_manage,
     feedback_list, notification_list, contact_message_list, mark_all_notifications_read,
@@ -48,6 +48,7 @@ urlpatterns = [
     # Customers
     path('customers/', customer_list, name='customer_list'),
     path('customers/add/', add_customer, name='add_customer'),
+    path('customers/verify-otp/', verify_customer_otp, name='verify_customer_otp'),
     path('customers/<int:pk>/', customer_detail, name='customer_detail'),
     # Analytics
     path('analytics/', analytics_dashboard, name='analytics_dashboard'),

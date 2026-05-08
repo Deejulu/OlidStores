@@ -887,11 +887,16 @@ def add_customer(request):
                     expiry_minutes=30
                 )
                 send_email_otp(user.email, otp.otp_code, purpose='email_verification')
-                messages.success(
+                
+                # Store user ID in session for OTP verification
+                request.session['pending_customer_id'] = user.id
+                request.session['pending_customer_email'] = user.email
+                
+                messages.info(
                     request, 
-                    f'✓ Customer "{user.username}" added successfully! '
-                    f'Email OTP has been sent to {user.email} for verification.'
+                    f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
                 )
+                return redirect('admin_dashboard:verify_customer_otp')
             except Exception as e:
                 # Still create the customer even if OTP sending fails
                 messages.warning(
@@ -899,12 +904,121 @@ def add_customer(request):
                     f'Customer "{user.username}" created, but OTP email failed to send. '
                     f'Error: {str(e)}'
                 )
-            
-            return redirect('admin_dashboard:customer_list')
+                return redirect('admin_dashboard:customer_list')
     else:
         form = AddCustomerForm(initial={'is_active': True, 'role': 'customer'})
     
     return render(request, 'admin_dashboard/customers/add_customer.html', {'form': form})
+
+
+@admin_role_required
+def verify_customer_otp(request):
+    """Admin verifies the OTP for newly created customer"""
+    from users.models import OTPVerification
+    from users.otp_utils import send_email_otp
+    from django.utils import timezone
+    
+    # Get customer info from session
+    customer_id = request.session.get('pending_customer_id')
+    customer_email = request.session.get('pending_customer_email')
+    
+    if not customer_id or not customer_email:
+        messages.error(request, 'No pending customer verification found.')
+        return redirect('admin_dashboard:customer_list')
+    
+    try:
+        customer = User.objects.get(id=customer_id)
+    except User.DoesNotExist:
+        messages.error(request, 'Customer not found.')
+        del request.session['pending_customer_id']
+        del request.session['pending_customer_email']
+        return redirect('admin_dashboard:customer_list')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # Handle resend OTP
+        if action == 'resend':
+            try:
+                otp = OTPVerification.create_otp(
+                    otp_type='email',
+                    email=customer.email,
+                    user=customer,
+                    expiry_minutes=30
+                )
+                send_email_otp(customer.email, otp.otp_code, purpose='email_verification')
+                messages.success(request, f'New OTP sent to {customer.email}')
+            except Exception as e:
+                messages.error(request, f'Failed to resend OTP: {str(e)}')
+            return redirect('admin_dashboard:verify_customer_otp')
+        
+        # Handle skip verification
+        elif action == 'skip':
+            messages.info(
+                request, 
+                f'Verification skipped. Customer "{customer.username}" will need to verify email on first login.'
+            )
+            # Clear session
+            del request.session['pending_customer_id']
+            del request.session['pending_customer_email']
+            return redirect('admin_dashboard:customer_list')
+        
+        # Handle OTP verification
+        else:
+            otp_code = request.POST.get('otp_code', '').strip()
+            
+            if not otp_code:
+                messages.error(request, 'Please enter the OTP code.')
+                return redirect('admin_dashboard:verify_customer_otp')
+            
+            try:
+                # Find the OTP
+                otp = OTPVerification.objects.filter(
+                    email=customer.email,
+                    otp_type='email',
+                    is_verified=False
+                ).order_by('-created_at').first()
+                
+                if not otp:
+                    messages.error(request, 'No OTP found. Please request a new one.')
+                    return redirect('admin_dashboard:verify_customer_otp')
+                
+                # Check if expired
+                if otp.expires_at < timezone.now():
+                    messages.error(request, 'OTP has expired. Please request a new one.')
+                    return redirect('admin_dashboard:verify_customer_otp')
+                
+                # Verify OTP
+                if otp.verify(otp_code):
+                    # Mark email as verified
+                    customer.email_verified = True
+                    customer.save()
+                    
+                    messages.success(
+                        request, 
+                        f'✓ Customer "{customer.username}" verified successfully! '
+                        f'They can now log in with full access.'
+                    )
+                    
+                    # Clear session
+                    del request.session['pending_customer_id']
+                    del request.session['pending_customer_email']
+                    
+                    return redirect('admin_dashboard:customer_list')
+                else:
+                    messages.error(request, 'Invalid OTP code. Please try again.')
+                    return redirect('admin_dashboard:verify_customer_otp')
+                    
+            except Exception as e:
+                messages.error(request, f'Verification failed: {str(e)}')
+                return redirect('admin_dashboard:verify_customer_otp')
+    
+    # GET request - show verification form
+    context = {
+        'customer': customer,
+        'customer_email': customer_email,
+    }
+    return render(request, 'admin_dashboard/customers/verify_otp.html', context)
 
 
 @admin_role_required
