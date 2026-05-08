@@ -286,18 +286,17 @@
             Account Information
         </h3>
         
-        <div class="form-group">
-            <label for="{{ form.username.id_for_label }}">
-                Username
-                <span class="required">*</span>
-            </label>
-            {{ form.username }}
-            {% if form.username.help_text %}
-            <div class="help-text">
-                <i class="bi bi-info-circle"></i>
-                {{ form.username.help_text }}
+        <!-- Username Auto-Generated Notice -->
+        <div class="alert alert-info" style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+                <i class="bi bi-info-circle-fill" style="color: #3b82f6; font-size: 1.25rem; margin-top: 0.15rem;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Username Auto-Generated</div>
+                    <div style="font-size: 0.9rem; color: #1e40af; opacity: 0.9;">
+                        The username will be automatically created from the first and last name (e.g., JohnDoe007).
+                    </div>
+                </div>
             </div>
-            {% endif %}
         </div>
         
         <div class="form-group">
@@ -318,6 +317,7 @@
             <div class="form-group">
                 <label for="{{ form.first_name.id_for_label }}">
                     First Name
+                    <span class="required">*</span>
                 </label>
                 {{ form.first_name }}
             </div>
@@ -325,6 +325,7 @@
             <div class="form-group">
                 <label for="{{ form.last_name.id_for_label }}">
                     Last Name
+                    <span class="required">*</span>
                 </label>
                 {{ form.last_name }}
             </div>

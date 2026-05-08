@@ -97,15 +97,32 @@ class AddCustomerForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'role', 'is_active']
+        fields = ['email', 'first_name', 'last_name', 'role', 'is_active']
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
             'role': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make first_name and last_name required
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+    
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if not first_name or not first_name.strip():
+            raise forms.ValidationError('First name is required to generate username.')
+        return first_name.strip()
+    
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if not last_name or not last_name.strip():
+            raise forms.ValidationError('Last name is required to generate username.')
+        return last_name.strip()
     
     def clean_password_confirm(self):
         password = self.cleaned_data.get('password')
@@ -146,7 +163,17 @@ class AddCustomerForm(forms.ModelForm):
     
     def save(self, commit=True):
         user = super().save(commit=False)
+        
+        # Auto-generate username from first_name + last_name
+        from users.views_verification import generate_username
+        user.username = generate_username(
+            self.cleaned_data['first_name'],
+            self.cleaned_data['last_name']
+        )
+        
+        # Set password
         user.set_password(self.cleaned_data['password'])
+        
         if commit:
             user.save()
         return user
