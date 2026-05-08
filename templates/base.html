@@ -1744,19 +1744,56 @@
     .alert-message.success { 
         border-left-color: var(--success); 
         background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        color: #065f46;
     }
     .alert-message.error, .alert-message.danger { 
         border-left-color: var(--error); 
         background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        color: #991b1b;
     }
     .alert-message.warning { 
         border-left-color: var(--warning); 
         background: linear-gradient(135deg, #fffbeb, #fef3c7);
+        color: #92400e;
     }
     .alert-message.info { 
         border-left-color: var(--info); 
         background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        color: #1e40af;
     }
+    
+    /* Dark mode support for messages */
+    [data-theme="dark"] .alert-message {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    [data-theme="dark"] .alert-message.success { 
+        background: linear-gradient(135deg, #064e3b, #065f46);
+        color: #d1fae5;
+        border-left-color: #34d399;
+    }
+    [data-theme="dark"] .alert-message.error,
+    [data-theme="dark"] .alert-message.danger { 
+        background: linear-gradient(135deg, #7f1d1d, #991b1b);
+        color: #fecaca;
+        border-left-color: #f87171;
+    }
+    [data-theme="dark"] .alert-message.warning { 
+        background: linear-gradient(135deg, #78350f, #92400e);
+        color: #fde68a;
+        border-left-color: #fbbf24;
+    }
+    [data-theme="dark"] .alert-message.info { 
+        background: linear-gradient(135deg, #1e3a8a, #1e40af);
+        color: #bfdbfe;
+        border-left-color: #60a5fa;
+    }
+    [data-theme="dark"] .alert-message .alert-close {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    [data-theme="dark"] .alert-message .alert-close:hover {
+        color: rgba(255, 255, 255, 1);
+    }
+    
     @keyframes messageSlideIn {
         from {
             opacity: 0;
