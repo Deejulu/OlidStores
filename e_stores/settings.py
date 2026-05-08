@@ -87,6 +87,14 @@ TEMPLATES = [
 				'admin_dashboard.context_processors.admin_notifications',
 				'core.context_processors.customer_notifications',
 			],
+			# Enable template caching in production for significant speed boost
+			'loaders': [
+				('django.template.loaders.cached.Loader', [
+					'django.template.loaders.filesystem.Loader',
+					'django.template.loaders.app_directories.Loader',
+				]) if not DEBUG else 'django.template.loaders.filesystem.Loader',
+				'django.template.loaders.app_directories.Loader',
+			] if not DEBUG else None,
 		},
 	},
 ]
@@ -117,12 +125,43 @@ if DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
         DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 
 CACHE_TTL = int(os.getenv('CACHE_TTL', '300'))
-CACHES = {
-    'default': {
-        'BACKEND': os.getenv('DJANGO_CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
-        'LOCATION': os.getenv('DJANGO_CACHE_LOCATION', 'e-stores-cache'),
+
+# Cache Configuration with Redis support for production
+# For development: uses local memory cache (fast, simple)
+# For production: set REDIS_URL environment variable for Redis backend
+REDIS_URL = os.getenv('REDIS_URL', '')
+
+if REDIS_URL:
+    # Production: Use Redis for distributed caching (recommended for Render, Heroku, etc.)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+                'CONNECTION_POOL_KWARGS': {'max_connections': 50},
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+            },
+            'KEY_PREFIX': 'estore',
+            'TIMEOUT': CACHE_TTL,
+        }
     }
-}
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+else:
+    # Development: Use local memory cache (faster for single-server development)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'e-stores-cache',
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000,
+            },
+            'TIMEOUT': CACHE_TTL,
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
 	{
