@@ -886,16 +886,25 @@ def add_customer(request):
                     user=user,
                     expiry_minutes=30
                 )
-                send_email_otp(user.email, otp.otp_code, purpose='email_verification')
+                email_sent = send_email_otp(user.email, otp.otp_code, purpose='email_verification')
                 
                 # Store user ID in session for OTP verification
                 request.session['pending_customer_id'] = user.id
                 request.session['pending_customer_email'] = user.email
                 
-                messages.info(
-                    request, 
-                    f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
-                )
+                # Check if in debug mode
+                from django.conf import settings
+                if settings.OTP_DEBUG_MODE:
+                    messages.warning(
+                        request,
+                        f'🔧 DEBUG MODE: OTP not sent to email. Check console for code. '
+                        f'OTP Code: {otp.otp_code}'
+                    )
+                else:
+                    messages.info(
+                        request, 
+                        f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
+                    )
                 return redirect('admin_dashboard:verify_customer_otp')
             except Exception as e:
                 # Still create the customer even if OTP sending fails
@@ -947,7 +956,13 @@ def verify_customer_otp(request):
                     expiry_minutes=30
                 )
                 send_email_otp(customer.email, otp.otp_code, purpose='email_verification')
-                messages.success(request, f'New OTP sent to {customer.email}')
+                
+                # Show OTP in debug mode
+                from django.conf import settings
+                if settings.OTP_DEBUG_MODE:
+                    messages.success(request, f'🔧 DEBUG MODE: New OTP Code: {otp.otp_code}')
+                else:
+                    messages.success(request, f'New OTP sent to {customer.email}')
             except Exception as e:
                 messages.error(request, f'Failed to resend OTP: {str(e)}')
             return redirect('admin_dashboard:verify_customer_otp')
@@ -988,8 +1003,10 @@ def verify_customer_otp(request):
                     messages.error(request, 'OTP has expired. Please request a new one.')
                     return redirect('admin_dashboard:verify_customer_otp')
                 
-                # Verify OTP
-                if otp.verify(otp_code):
+                # Verify OTP - CRITICAL: verify() returns (bool, message) tuple
+                is_valid, verify_message = otp.verify(otp_code)
+                
+                if is_valid:
                     # Mark email as verified
                     customer.email_verified = True
                     customer.save()
@@ -1006,7 +1023,7 @@ def verify_customer_otp(request):
                     
                     return redirect('admin_dashboard:customer_list')
                 else:
-                    messages.error(request, 'Invalid OTP code. Please try again.')
+                    messages.error(request, f'Invalid OTP: {verify_message}')
                     return redirect('admin_dashboard:verify_customer_otp')
                     
             except Exception as e:
