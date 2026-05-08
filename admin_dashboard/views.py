@@ -886,7 +886,17 @@ def add_customer(request):
                     user=user,
                     expiry_minutes=30
                 )
-                email_sent = send_email_otp(user.email, otp.otp_code, purpose='email_verification')
+                
+                # Send OTP via email (or show in console if DEBUG mode)
+                success, error_msg = send_email_otp(user.email, otp.otp_code, purpose='email_verification')
+                
+                if not success:
+                    messages.error(
+                        request,
+                        f'Failed to send verification code: {error_msg}. '
+                        f'Please check email configuration or enable DEBUG mode.'
+                    )
+                    return redirect('admin_dashboard:customer_list')
                 
                 # Store user ID in session for OTP verification
                 request.session['pending_customer_id'] = user.id
@@ -897,8 +907,8 @@ def add_customer(request):
                 if settings.OTP_DEBUG_MODE:
                     messages.warning(
                         request,
-                        f'🔧 DEBUG MODE: OTP not sent to email. Check console for code. '
-                        f'OTP Code: {otp.otp_code}'
+                        f'🔧 DEBUG MODE: OTP shown in console. '
+                        f'Code: {otp.otp_code}'
                     )
                 else:
                     messages.info(
@@ -955,7 +965,13 @@ def verify_customer_otp(request):
                     user=customer,
                     expiry_minutes=30
                 )
-                send_email_otp(customer.email, otp.otp_code, purpose='email_verification')
+                
+                # Send OTP via email (or show in console if DEBUG mode)
+                success, error_msg = send_email_otp(customer.email, otp.otp_code, purpose='email_verification')
+                
+                if not success:
+                    messages.error(request, f'Failed to resend OTP: {error_msg}')
+                    return redirect('admin_dashboard:verify_customer_otp')
                 
                 # Show OTP in debug mode
                 from django.conf import settings
