@@ -2,6 +2,17 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from products.models import Product, ProductVariant
+from django.utils import timezone
+
+# Custom manager to exclude soft-deleted orders by default
+class ActiveOrderManager(models.Manager):
+	"""Manager that excludes soft-deleted orders."""
+	def get_queryset(self):
+		return super().get_queryset().filter(is_deleted=False)
+
+class AllOrderManager(models.Manager):
+	"""Manager that includes all orders (including deleted ones)."""
+	pass
 
 class Cart(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
@@ -69,6 +80,14 @@ class Order(models.Model):
 	shipped_at = models.DateTimeField(null=True, blank=True, help_text='When the order was marked shipped')
 	delivered_at = models.DateTimeField(null=True, blank=True, help_text='When the order was marked delivered')
 
+	# Soft delete fields
+	is_deleted = models.BooleanField(default=False, db_index=True)
+	deleted_at = models.DateTimeField(null=True, blank=True)
+
+	# Custom managers
+	objects = ActiveOrderManager()  # Default manager (excludes deleted)
+	all_objects = AllOrderManager()  # Includes deleted orders
+
 	class Meta:
 		ordering = ['-created_at']
 		indexes = [
@@ -83,6 +102,18 @@ class Order(models.Model):
 	def grand_total(self):
 		"""Calculate grand total (subtotal + delivery fee)"""
 		return self.total + self.delivery_fee
+
+	def soft_delete(self):
+		"""Mark order as deleted without removing from database and reverse stock."""
+		from .utils import reverse_order_stock
+		
+		# Reverse stock before marking as deleted
+		reverse_order_stock(self)
+		
+		# Mark as deleted
+		self.is_deleted = True
+		self.deleted_at = timezone.now()
+		self.save(update_fields=['is_deleted', 'deleted_at', 'updated_at'])
 
 class OrderItem(models.Model):
 	order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
@@ -130,6 +161,31 @@ class WebhookEvent(models.Model):
 
 	def __str__(self):
 		return f"Webhook {self.provider}:{self.event_type} ref={self.reference} processed={self.processed}"
+
+class OrderAuditLog(models.Model):
+	"""Audit log for tracking order changes, including stock reversals."""
+	ACTION_CHOICES = (
+		('cancel', 'Cancelled'),
+		('delete', 'Deleted'),
+		('status_change', 'Status Changed'),
+		('stock_reversal', 'Stock Reversal'),
+		('update', 'Updated'),
+	)
+	
+	order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='audit_logs')
+	action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+	changes = models.JSONField(default=dict, blank=True, help_text='Dict of field changes with [old_value, new_value]')
+	stock_reversed = models.JSONField(default=dict, blank=True, help_text='Stock reversals: {product_id: qty, variant_id: qty}')
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		indexes = [
+			models.Index(fields=['order', '-created_at'], name='orderaudit_order_created'),
+		]
+
+	def __str__(self):
+		return f"Order {self.order.id} - {self.action} at {self.created_at}"
 
 class CheckoutSettings(models.Model):
     delivery_fee_24h = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Delivery fee for 24-hour delivery")

@@ -49,9 +49,9 @@ class VerificationMiddleware:
             
             # Skip for admin users - they're auto-verified
             if getattr(user, 'role', None) == 'admin':
-                if not user.email_verified or not user.phone_verified:
+                if not user.email_verified:
                     user.email_verified = True
-                    user.phone_verified = True
+                    user.phone_verified = True  # Phone always auto-verified (optional field)
                     user.save(update_fields=['email_verified', 'phone_verified'])
             
             # Only check customer users

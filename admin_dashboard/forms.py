@@ -120,6 +120,30 @@ class AddCustomerForm(forms.ModelForm):
             raise forms.ValidationError('Password must be at least 8 characters long')
         return password
     
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Validate that email is not a disposable/temporary email
+            disposable_domains = {
+                'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'mailinator.com',
+                '10minutemail.com', 'throwaway.email', 'yopmail.com', 'trashmail.com',
+                'fake-mail.com', 'tempemail.com', 'maildrop.cc', 'temp-mail.io',
+                'tmail.com', 'fakeinbox.com', 'minutemail.com', 'sharklasers.com',
+            }
+            
+            domain = email.split('@')[1].lower() if '@' in email else ''
+            if domain in disposable_domains:
+                raise forms.ValidationError(
+                    f'"{domain}" is a temporary/disposable email provider. '
+                    'Please use a real email address.'
+                )
+            
+            # Check if email already exists
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError('This email is already registered.')
+        
+        return email
+    
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data['password'])

@@ -294,23 +294,6 @@ from django.contrib import messages
 
 User = get_user_model()
 
-def admin_role_required(view_func):
-    @wraps(view_func)
-    @login_required
-    def _wrapped_view(request, *args, **kwargs):
-        if getattr(request.user, 'role', None) == 'admin':
-            return view_func(request, *args, **kwargs)
-        # Log unauthorized access attempt
-        security_logger.warning(
-            'Unauthorized admin access attempt: user=%s, role=%s, ip=%s, path=%s',
-            request.user.username if request.user.is_authenticated else 'anonymous',
-            getattr(request.user, 'role', 'none'),
-            request.META.get('REMOTE_ADDR', 'unknown'),
-            request.path
-        )
-        return redirect('core:home')
-    return _wrapped_view
-
 # ...existing code...
 
 
@@ -697,7 +680,9 @@ def order_list(request):
                 # Only delete orders without successful payment
                 protected_count = orders_with_payment.count()
                 count = modifiable_orders.count()
-                modifiable_orders.delete()
+                # Soft delete orders instead of hard delete (preserves audit trail and allows stock reversal)
+                for order in modifiable_orders:
+                    order.soft_delete()
                 messages.success(request, f'Deleted {count} orders.')
                 if protected_count > 0:
                     messages.warning(request, f'{protected_count} orders with confirmed payments cannot be deleted.')
@@ -885,12 +870,36 @@ def customer_list(request):
 @admin_role_required
 def add_customer(request):
     from admin_dashboard.forms import AddCustomerForm
+    from users.models import OTPVerification
+    from users.otp_utils import send_email_otp
     
     if request.method == 'POST':
         form = AddCustomerForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, f'Customer "{user.username}" added successfully!')
+            
+            # Create and send OTP for email verification
+            try:
+                otp = OTPVerification.create_otp(
+                    otp_type='email',
+                    email=user.email,
+                    user=user,
+                    expiry_minutes=30
+                )
+                send_email_otp(user.email, otp.otp_code, purpose='email_verification')
+                messages.success(
+                    request, 
+                    f'✓ Customer "{user.username}" added successfully! '
+                    f'Email OTP has been sent to {user.email} for verification.'
+                )
+            except Exception as e:
+                # Still create the customer even if OTP sending fails
+                messages.warning(
+                    request,
+                    f'Customer "{user.username}" created, but OTP email failed to send. '
+                    f'Error: {str(e)}'
+                )
+            
             return redirect('admin_dashboard:customer_list')
     else:
         form = AddCustomerForm(initial={'is_active': True, 'role': 'customer'})

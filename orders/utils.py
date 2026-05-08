@@ -136,3 +136,79 @@ def process_paystack_webhook(payload):
         import traceback
         return (False, f'{str(e)}: {traceback.format_exc()}')
 
+
+def reverse_order_stock(order):
+	"""
+	Reverse stock for all items in an order.
+	Used when orders are cancelled or deleted.
+	
+	Returns:
+		dict: {
+			'success': bool,
+			'message': str,
+			'reversed_items': [{'product_id': id, 'variant_id': id, 'quantity': qty}, ...]
+		}
+	"""
+	from django.db import transaction
+	from .models import OrderItem, OrderAuditLog
+	from products.models import Product, ProductVariant
+	
+	try:
+		with transaction.atomic():
+			reversed_items = []
+			
+			# Get all items for this order
+			items = order.items.all()
+			
+			for item in items:
+				# Reverse product stock
+				if item.product:
+					product = Product.objects.select_for_update().get(id=item.product.id)
+					product.stock += item.quantity
+					product.save(update_fields=['stock', 'updated_at'])
+					
+					reversed_items.append({
+						'product_id': item.product.id,
+						'product_name': item.product.name,
+						'quantity': item.quantity,
+						'type': 'Product'
+					})
+				
+				# Reverse variant stock if applicable
+				if item.variant:
+					variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
+					variant.stock += item.quantity
+					variant.save(update_fields=['stock', 'updated_at'])
+					
+					reversed_items.append({
+						'variant_id': item.variant.id,
+						'variant_name': str(item.variant),
+						'quantity': item.quantity,
+						'type': 'ProductVariant'
+					})
+			
+			# Log the reversal in OrderAuditLog
+			if reversed_items:
+				OrderAuditLog.objects.create(
+					order=order,
+					action='stock_reversal',
+					stock_reversed={
+						'items': reversed_items,
+						'total_items': len(items)
+					}
+				)
+			
+			return {
+				'success': True,
+				'message': f'Successfully reversed stock for {len(items)} items',
+				'reversed_items': reversed_items
+			}
+			
+	except Exception as e:
+		logger.exception(f"Error reversing stock for order {order.id}: {str(e)}")
+		return {
+			'success': False,
+			'message': f'Error reversing stock: {str(e)}',
+			'reversed_items': []
+		}
+

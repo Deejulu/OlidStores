@@ -57,18 +57,55 @@ def checkout_view(request):
 			session_key = request.session.session_key
 		cart = Cart.objects.filter(session_key=session_key, user=None).first()
 
-	# Block access if any cart item exceeds available stock
+	# Block access if any cart item exceeds available stock or is critically low
 	if cart:
 		items = cart.items.select_related('product', 'variant').all()
 		for item in items:
 			if item.variant:
+				# Check if stock is critically low
+				if item.variant.stock <= 1:
+					messages.error(request, f"'{item.variant.name}' is critically low in stock and cannot be ordered.")
+					return redirect('orders:cart')
 				if item.variant.stock < item.quantity:
 					messages.error(request, f"Insufficient stock for {item.variant.name}. Please adjust your cart.")
 					return redirect('orders:cart')
 			else:
+				# Check if stock is critically low
+				if item.product.stock <= 1:
+					messages.error(request, f"'{item.product.name}' is critically low in stock and cannot be ordered.")
+					return redirect('orders:cart')
 				if item.product.stock < item.quantity:
 					messages.error(request, f"Insufficient stock for {item.product.name}. Please adjust your cart.")
 					return redirect('orders:cart')
+	
+	# Validate cart prices (warn if prices have changed since item was added)
+	if cart:
+		items = cart.items.select_related('product', 'variant').all()
+		price_changes = []
+		for item in items:
+			current_price = float(item.product.price)
+			cart_price = float(item.price)
+			if current_price != cart_price:
+				price_changes.append({
+					'product': item.product.name,
+					'old_price': cart_price,
+					'new_price': current_price,
+					'difference': current_price - cart_price
+				})
+		
+		# Display price change warnings (but allow checkout to proceed)
+		for change in price_changes:
+			if change['difference'] > 0:
+				messages.warning(
+					request,
+					f"{change['product']} price increased from ₦{change['old_price']:.2f} to ₦{change['new_price']:.2f} (difference: +₦{change['difference']:.2f})"
+				)
+			else:
+				messages.info(
+					request,
+					f"{change['product']} price decreased from ₦{change['old_price']:.2f} to ₦{change['new_price']:.2f} (difference: -₦{abs(change['difference']):.2f})"
+				)
+	
 	if request.method == 'POST':
 		payment_method = request.POST.get('payment_method')
 		full_name = request.POST.get('full_name')
@@ -442,6 +479,16 @@ def add_to_cart(request):
 		cart = get_or_create_cart(request)
 		# enforce stock limits
 		available_stock = variant.stock if variant else product.stock
+		
+		# Block if stock is critically low (≤ 1)
+		if available_stock <= 1:
+			msg = f"'{product.name}' is critically low in stock and unavailable for orders."
+			if not is_ajax:
+				messages.error(request, msg)
+			if is_ajax:
+				return JsonResponse({'success': False, 'message': msg, 'cart_count': cart.total_items(), 'available_stock': available_stock})
+			return redirect(request.META.get('HTTP_REFERER', 'products:shop'))
+		
 		if available_stock <= 0:
 			msg = f"'{product.name}' is out of stock."
 			if not is_ajax:
@@ -594,6 +641,114 @@ def cart_update_view(request):
 		# Non-AJAX fallback
 		return redirect('orders:cart')
 	return redirect('orders:cart')
+
+
+def validate_cart_items(request):
+	"""
+	AJAX endpoint to validate cart items against current product state.
+	Returns JSON with:
+	- Validation status for each item (in stock, out of stock, quantity exceeds available)
+	- Price differences (current vs cart price)
+	- Out of stock warnings
+	- Quantity adjustment suggestions
+	"""
+	cart = get_or_create_cart(request)
+	items = cart.items.all() if cart else []
+	
+	validation_result = {
+		'success': True,
+		'valid': True,  # True if all items are valid
+		'items': [],
+		'warnings': [],
+		'messages': []
+	}
+	
+	for cart_item in items:
+		item_validation = {
+			'item_id': cart_item.id,
+			'product_id': cart_item.product.id if cart_item.product else None,
+			'variant_id': cart_item.variant.id if cart_item.variant else None,
+			'product_name': cart_item.product.name if cart_item.product else 'Unknown',
+			'cart_quantity': cart_item.quantity,
+			'cart_price': float(cart_item.price),
+			'is_valid': True,
+			'issues': []
+		}
+		
+		try:
+			# Check product availability
+			product = cart_item.product
+			if not product:
+				item_validation['is_valid'] = False
+				item_validation['issues'].append('Product no longer available')
+				validation_result['valid'] = False
+				validation_result['items'].append(item_validation)
+				continue
+			
+			# Check current stock
+			current_stock = cart_item.variant.stock if cart_item.variant else product.stock
+			
+			# Check if stock is critically low (≤ 1)
+			if current_stock <= 1:
+				item_validation['is_valid'] = False
+				item_validation['issues'].append('Critically low stock - unavailable for orders')
+				validation_result['valid'] = False
+				validation_result['warnings'].append(
+					f"{cart_item.product.name}: Critically low in stock and unavailable for orders"
+				)
+			elif current_stock <= 0:
+				item_validation['is_valid'] = False
+				item_validation['issues'].append('Out of stock')
+				validation_result['valid'] = False
+				validation_result['warnings'].append(
+					f"{cart_item.product.name}: No longer in stock"
+				)
+			elif current_stock < cart_item.quantity:
+				item_validation['is_valid'] = False
+				item_validation['issues'].append(
+					f'Only {current_stock} available (requested {cart_item.quantity})'
+				)
+				item_validation['available_quantity'] = current_stock
+				validation_result['valid'] = False
+				validation_result['warnings'].append(
+					f"{cart_item.product.name}: Only {current_stock} available"
+				)
+			
+			item_validation['available_quantity'] = current_stock
+			
+			# Check price changes
+			current_price = float(product.price)
+			if current_price != float(cart_item.price):
+				item_validation['price_changed'] = True
+				item_validation['current_price'] = current_price
+				item_validation['price_difference'] = current_price - float(cart_item.price)
+				
+				old_subtotal = float(cart_item.price) * cart_item.quantity
+				new_subtotal = current_price * cart_item.quantity
+				subtotal_diff = new_subtotal - old_subtotal
+				
+				if subtotal_diff > 0:
+					validation_result['warnings'].append(
+						f"{cart_item.product.name}: Price increased by ₦{subtotal_diff:.2f}"
+					)
+				else:
+					validation_result['messages'].append(
+						f"{cart_item.product.name}: Price decreased by ₦{abs(subtotal_diff):.2f}"
+					)
+		
+		except Exception as e:
+			item_validation['is_valid'] = False
+			item_validation['issues'].append(f'Error validating item: {str(e)}')
+			validation_result['valid'] = False
+		
+		validation_result['items'].append(item_validation)
+	
+	if validation_result['valid']:
+		validation_result['message'] = 'All items are valid and ready for checkout'
+	else:
+		validation_result['message'] = f'Found {len([i for i in validation_result["items"] if not i["is_valid"]])} issue(s) with cart items'
+	
+	return JsonResponse(validation_result)
 
 from django.contrib.auth.decorators import login_required
 from .models import Order

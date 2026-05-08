@@ -1,11 +1,11 @@
 """
 Signals for orders app - handles notifications for order events
 """
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, pre_delete
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.db import models
-from .models import Order
+from .models import Order, OrderAuditLog
 from users.models_notification import Notification
 
 User = get_user_model()
@@ -32,6 +32,7 @@ def notify_order_events(sender, instance, created, **kwargs):
     Send notifications for order events:
     1. New order placed - notify customer and admin
     2. Order status changes - notify customer
+    3. Order cancelled - reverse stock
     """
     if created:
         # New order created
@@ -41,6 +42,10 @@ def notify_order_events(sender, instance, created, **kwargs):
         old_status = getattr(instance, '_old_status', None)
         if old_status and old_status != instance.status:
             notify_order_status_change(instance, old_status, instance.status)
+            
+            # Reverse stock if order is being cancelled
+            if instance.status == 'Cancelled' and old_status != 'Cancelled':
+                reverse_stock_for_cancelled_order(instance)
 
 
 def notify_new_order(order):
@@ -130,4 +135,44 @@ def notify_order_status_change(order, old_status, new_status):
             order_id=order.id,
             action_url=f"/users/order-history/",
             is_important=notification_data['important']
+        )
+
+@receiver(pre_delete, sender=Order)
+def reverse_stock_on_order_delete(sender, instance, **kwargs):
+    """
+    Reverse stock when an order is deleted (hard delete).
+    This ensures inventory is restored even if order is permanently removed.
+    """
+    reverse_stock_for_cancelled_order(instance)
+
+
+def reverse_stock_for_cancelled_order(order):
+    """
+    Reverse stock for a cancelled or deleted order.
+    Calls the utility function and logs the result.
+    """
+    from .utils import reverse_order_stock
+    
+    result = reverse_order_stock(order)
+    
+    if result['success']:
+        # Log success in audit trail
+        OrderAuditLog.objects.create(
+            order=order,
+            action='stock_reversal',
+            changes={
+                'reversed': True,
+                'item_count': len(result['reversed_items']),
+                'message': result['message']
+            }
+        )
+    else:
+        # Log failure in audit trail
+        OrderAuditLog.objects.create(
+            order=order,
+            action='stock_reversal',
+            changes={
+                'reversed': False,
+                'error': result['message']
+            }
         )

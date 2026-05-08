@@ -1,5 +1,6 @@
 """
-OTP Verification Views - Email Only
+OTP Verification Views
+Email verification required, phone is optional (no OTP)
 """
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
@@ -23,33 +24,16 @@ def signup_step1(request):
     if request.method == 'POST':
         form = SignupStep1Form(request.POST)
         if form.is_valid():
-            email = form.cleaned_data.get('email', '')
-            phone = form.cleaned_data.get('phone', '')
+            email = form.cleaned_data['email']  # Email is required
+            phone = form.cleaned_data.get('phone', '')  # Phone is optional
             
-            # Determine OTP delivery method
-            if email:
-                otp = OTPVerification.create_otp(
-                    otp_type='email',
-                    email=email,
-                    expiry_minutes=settings.OTP_EXPIRY_MINUTES
-                )
-                sent, error_message = send_email_otp(email, otp.otp_code)
-                method = 'email'
-                session_key = 'email_otp_id'
-                redirect_url = 'users:signup_verify_email'
-                message_text = f'Verification code sent to {email}!'
-            else:
-                otp = OTPVerification.create_otp(
-                    otp_type='phone',
-                    phone=phone,
-                    expiry_minutes=settings.OTP_EXPIRY_MINUTES
-                )
-                sent = send_sms_otp(phone, otp.otp_code)
-                error_message = None
-                method = 'phone'
-                session_key = 'phone_otp_id'
-                redirect_url = 'users:signup_verify_phone'
-                message_text = f'Verification code sent to {phone}!'
+            # Always send email OTP (phone is optional, no OTP)
+            otp = OTPVerification.create_otp(
+                otp_type='email',
+                email=email,
+                expiry_minutes=settings.OTP_EXPIRY_MINUTES
+            )
+            sent, error_message = send_email_otp(email, otp.otp_code)
             
             if not sent:
                 error_text = "Failed to send verification code. Please try again."
@@ -58,15 +42,15 @@ def signup_step1(request):
                 messages.error(request, error_text)
                 return render(request, 'users/signup_step1.html', {'form': form, 'error_message': error_message})
             
+            # Store in session
             request.session['signup_email'] = email
-            request.session['signup_phone'] = phone
-            request.session[session_key] = otp.id
-            request.session['signup_method'] = method
+            request.session['signup_phone'] = phone  # Store phone but don't verify it
+            request.session['email_otp_id'] = otp.id
             request.session['email_verified'] = False
-            request.session['phone_verified'] = False
+            request.session['phone_verified'] = True  # Phone auto-verified (optional field)
             
-            messages.success(request, message_text)
-            return redirect(redirect_url)
+            messages.success(request, f'Verification code sent to {email}!')
+            return redirect('users:signup_verify_email')
     else:
         form = SignupStep1Form()
     
@@ -196,17 +180,16 @@ def signup_complete(request):
         return redirect('core:home')
     
     email = request.session.get('signup_email', '')
-    phone = request.session.get('signup_phone', '')
+    phone = request.session.get('signup_phone', '')  # Optional
     email_verified = request.session.get('email_verified', False)
-    phone_verified = request.session.get('phone_verified', False)
     
-    if not email and not phone:
+    if not email:
         messages.error(request, "Session expired. Please start over.")
         return redirect('users:signup')
     
-    if not email_verified and not phone_verified:
-        messages.error(request, "Please verify your contact method first.")
-        return redirect('users:signup')
+    if not email_verified:
+        messages.error(request, "Please verify your email first.")
+        return redirect('users:signup_verify_email')
     
     if request.method == 'POST':
         form = SignupStep2Form(request.POST)
@@ -220,9 +203,9 @@ def signup_complete(request):
                 username=username,
                 email=email,
                 password=form.cleaned_data['password1'],
-                phone=phone,
+                phone=phone if phone else None,  # Phone is optional
                 email_verified=email_verified,
-                phone_verified=phone_verified,
+                phone_verified=True,  # Phone always auto-verified (optional field)
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name']
             )
@@ -319,14 +302,13 @@ def verify_existing_user(request):
     if user.is_fully_verified:
         return redirect('users:dashboard')
     
-    # Determine what needs verification
+    # Only email verification required (phone is optional, no OTP)
     needs_email = not user.email_verified
-    needs_phone = not user.phone_verified and user.phone
     
     return render(request, 'users/verify_existing_user.html', {
         'user': user,
         'needs_email': needs_email,
-        'needs_phone': needs_phone
+        'needs_phone': False  # Phone OTP disabled - phone is optional field only
     })
 
 
@@ -417,10 +399,10 @@ def verify_existing_email(request):
                 
                 if success:
                     user.email_verified = True
-                    user.phone_verified = True  # Auto-verify phone since we skip it
+                    user.phone_verified = True  # Phone always auto-verified (optional field, no OTP required)
                     user.save()
                     request.session.pop('existing_email_otp_id', None)
-                    messages.success(request, "Email verified! Your account is now verified.")
+                    messages.success(request, "Email verified! Your account is now fully verified.")
                     return redirect('users:dashboard')
                 else:
                     messages.error(request, message)

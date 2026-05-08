@@ -106,9 +106,9 @@ class AddressForm(forms.ModelForm):
 import re
 
 class SignupStep1Form(forms.Form):
-    """Step 1: Collect email and phone for OTP verification."""
+    """Step 1: Collect email (required) and optional phone. Only email gets OTP."""
     email = forms.EmailField(
-        required=False,
+        required=True,  # Email is required for verification
         widget=forms.EmailInput(attrs={
             'class': 'form-control form-control-lg',
             'placeholder': 'example@email.com',
@@ -117,10 +117,10 @@ class SignupStep1Form(forms.Form):
     )
     phone = forms.CharField(
         max_length=20,
-        required=False,  # Phone is optional, but one contact method is required
+        required=False,  # Phone is optional, no OTP verification needed
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-lg',
-            'placeholder': '+234 801 234 5678'
+            'placeholder': '+234 801 234 5678 (optional)'
         })
     )
     
@@ -169,10 +169,7 @@ class SignupStep1Form(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        email = cleaned_data.get('email')
-        phone = cleaned_data.get('phone')
-        if not email and not phone:
-            raise forms.ValidationError("Please provide either an email address or a phone number.")
+        # Email is required (enforced by field), phone is optional for contact purposes only
         return cleaned_data
 
 

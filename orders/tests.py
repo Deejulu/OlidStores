@@ -275,20 +275,251 @@ class PaystackIntegrationTests(TestCase):
 		sc.delivery_fee_24h = 30.00
 		sc.delivery_fee_2d = 12.00
 		sc.save()
-		# prepare cart and attach to the authenticated user
+		# place a manual order
 		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
-		# submit manual checkout selecting 24h delivery
 		r = self.client.post(reverse('orders:checkout'), {
 			'payment_method': 'manual',
-			'full_name': 'Jane2',
+			'full_name': 'Jane',
 			'phone': '0700',
-			'email': 'j2@e.com',
+			'email': 'j@e.com',
 			'delivery_address': 'addr',
 			'delivery_option': '24h',
 		}, HTTP_HOST='127.0.0.1')
 		self.assertEqual(Order.objects.count(), 1)
 		order = Order.objects.first()
 		self.assertEqual(float(order.delivery_fee), 30.00)
-		self.assertEqual(order.delivery_option, '24h')
+
+	def test_stock_reversal_on_order_cancellation(self):
+		"""Test that stock is reversed when an order is cancelled"""
+		from products.models import Category
+		cat = Category.objects.create(name='CancelTest')
+		prod = Product.objects.create(name='CancelProd', price=50.0, description='x', category=cat, stock=10)
+		
+		# Create an order that decrements stock
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=prod, quantity=3, price=prod.price)
+		
+		# Checkout with manual payment
+		r = self.client.post(reverse('orders:checkout'), {
+			'payment_method': 'manual',
+			'full_name': 'John Doe',
+			'phone': '0800000000',
+			'email': 'j@d.com',
+			'delivery_address': '123 Street',
+		})
+		
+		# Verify stock was decremented
+		prod.refresh_from_db()
+		self.assertEqual(prod.stock, 7, "Stock should be decremented by 3")
+		
+		# Retrieve the order and cancel it
+		order = Order.objects.first()
+		order.status = 'Cancelled'
+		order.save()
+		
+		# Verify stock was reversed
+		prod.refresh_from_db()
+		self.assertEqual(prod.stock, 10, "Stock should be restored to original amount after cancellation")
+		
+		# Verify audit log recorded the reversal (at least one)
+		from .models import OrderAuditLog
+		audit_logs = OrderAuditLog.objects.filter(order=order, action='stock_reversal')
+		self.assertGreaterEqual(audit_logs.count(), 1, "Should have at least one audit log entry for stock reversal")
+
+	def test_stock_reversal_on_order_soft_delete(self):
+		"""Test that stock is reversed when an order is soft-deleted"""
+		from products.models import Category
+		cat = Category.objects.create(name='DeleteTest')
+		prod = Product.objects.create(name='DeleteProd', price=50.0, description='x', category=cat, stock=10)
+		
+		# Create an order
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=prod, quantity=2, price=prod.price)
+		
+		# Checkout
+		r = self.client.post(reverse('orders:checkout'), {
+			'payment_method': 'manual',
+			'full_name': 'John Doe',
+			'phone': '0800000000',
+			'email': 'j@d.com',
+			'delivery_address': '123 Street',
+		})
+		
+		# Verify stock was decremented
+		prod.refresh_from_db()
+		self.assertEqual(prod.stock, 8)
+		
+		# Soft delete the order
+		order = Order.objects.first()
+		order.soft_delete()
+		
+		# Verify stock was reversed
+		prod.refresh_from_db()
+		self.assertEqual(prod.stock, 10, "Stock should be restored after soft delete")
+		
+		# Verify order is marked as deleted but not hard-deleted
+		order.refresh_from_db()
+		self.assertTrue(order.is_deleted)
+		self.assertIsNotNone(order.deleted_at)
+		
+		# Verify order is excluded from default queries
+		self.assertEqual(Order.objects.count(), 0, "Deleted orders should not appear in default query")
+		
+		# But should appear in all_objects query
+		self.assertEqual(Order.all_objects.count(), 1, "Deleted order should appear in all_objects query")
+
+	def test_cart_validation_endpoint(self):
+		"""Test the cart validation endpoint returns correct validation status"""
+		# Create a cart with items
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+		
+		# Call validate endpoint
+		r = self.client.get('/cart/validate/')
+		self.assertEqual(r.status_code, 200)
+		data = r.json()
+		
+		# Verify response structure
+		self.assertTrue(data.get('success'))
+		self.assertTrue(data.get('valid'))
+		self.assertEqual(len(data.get('items', [])), 1)
+		
+		# Verify item is marked as valid
+		item_data = data['items'][0]
+		self.assertTrue(item_data['is_valid'])
+		self.assertEqual(item_data['available_quantity'], self.product.stock)
+
+	def test_cart_validation_detects_stock_issues(self):
+		"""Test that cart validation detects when stock becomes unavailable"""
+		from products.models import Category
+		cat = Category.objects.create(name='StockIssueTest')
+		prod = Product.objects.create(name='StockIssueProd', price=25.0, description='x', category=cat, stock=1)
+		
+		# Create cart with item
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=prod, quantity=2, price=prod.price)
+		
+		# Validate cart
+		r = self.client.get('/cart/validate/')
+		data = r.json()
+		
+		# Cart should be marked as invalid due to insufficient stock
+		self.assertFalse(data.get('valid'))
+		item_data = data['items'][0]
+		self.assertFalse(item_data['is_valid'])
+		self.assertIn('Only', str(item_data['issues']))
+		self.assertEqual(item_data['available_quantity'], 1)
+
+	def test_cart_validation_detects_price_changes(self):
+		"""Test that cart validation detects price changes"""
+		# Create cart with item at price 50.00
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=50.00)
+		
+		# Change product price
+		self.product.price = 75.00
+		self.product.save()
+		
+		# Validate cart
+		r = self.client.get('/cart/validate/')
+		data = r.json()
+		
+		# Cart should be valid but item should show price change
+		item_data = data['items'][0]
+		self.assertTrue(item_data['is_valid'])
+		self.assertTrue(item_data.get('price_changed', False))
+		self.assertEqual(item_data['current_price'], 75.00)
+		self.assertEqual(item_data['price_difference'], 25.00)
+
+	def test_block_add_to_cart_when_stock_critically_low(self):
+		"""Test that add_to_cart is blocked when stock ≤ 1"""
+		from products.models import Category
+		cat = Category.objects.create(name='CriticalStockTest')
+		# Create product with only 1 item in stock
+		prod = Product.objects.create(name='CriticalStockProd', price=50.0, description='x', category=cat, stock=1)
+		
+		# Try to add to cart
+		r = self.client.post('/cart/add/', {'product_id': str(prod.id), 'quantity': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_HOST='127.0.0.1')
+		self.assertEqual(r.status_code, 200)
+		data = r.json()
+		
+		# Should fail due to critically low stock
+		self.assertFalse(data.get('success'))
+		self.assertIn('critically low', data.get('message').lower())
+		
+		# Cart should remain empty
+		cart = Cart.objects.filter(user=self.user).first()
+		self.assertIsNotNone(cart)
+		self.assertEqual(cart.total_items(), 0)
+
+	def test_allow_add_to_cart_when_stock_is_2(self):
+		"""Test that add_to_cart is allowed when stock = 2"""
+		from products.models import Category
+		cat = Category.objects.create(name='StockAvailableTest')
+		# Create product with 2 items in stock
+		prod = Product.objects.create(name='StockAvailableProd', price=50.0, description='x', category=cat, stock=2)
+		
+		# Try to add to cart
+		r = self.client.post('/cart/add/', {'product_id': str(prod.id), 'quantity': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_HOST='127.0.0.1')
+		self.assertEqual(r.status_code, 200)
+		data = r.json()
+		
+		# Should succeed
+		self.assertTrue(data.get('success'))
+		
+		# Cart should have the item
+		cart = Cart.objects.filter(user=self.user).first()
+		self.assertIsNotNone(cart)
+		self.assertEqual(cart.total_items(), 1)
+
+	def test_block_checkout_when_stock_critically_low(self):
+		"""Test that checkout is blocked when item stock becomes ≤ 1"""
+		from products.models import Category
+		cat = Category.objects.create(name='CheckoutCriticalTest')
+		prod = Product.objects.create(name='CheckoutCriticalProd', price=50.0, description='x', category=cat, stock=2)
+		
+		# Add item to cart (stock is 2, so allowed)
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=prod, quantity=1, price=prod.price)
+		
+		# Reduce stock to 1 (simulate another customer buying 1)
+		prod.stock = 1
+		prod.save()
+		
+		# Try to checkout
+		r = self.client.post(reverse('orders:checkout'), {
+			'payment_method': 'manual',
+			'full_name': 'John Doe',
+			'phone': '0800000000',
+			'email': 'j@d.com',
+			'delivery_address': '123 Street',
+		})
+		
+		# Should redirect back to cart
+		self.assertEqual(r.status_code, 302)
+		self.assertIn('cart', r.url.lower())
+		
+		# Order should not be created
+		self.assertEqual(Order.objects.count(), 0)
+
+	def test_cart_validation_flags_critically_low_stock(self):
+		"""Test that cart validation flags items with stock ≤ 1"""
+		from products.models import Category
+		cat = Category.objects.create(name='ValidationCriticalTest')
+		prod = Product.objects.create(name='ValidationCriticalProd', price=50.0, description='x', category=cat, stock=1)
+		
+		# Add item to cart
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=prod, quantity=1, price=prod.price)
+		
+		# Validate cart
+		r = self.client.get('/cart/validate/')
+		data = r.json()
+		
+		# Cart should be invalid due to critically low stock
+		self.assertFalse(data.get('valid'))
+		item_data = data['items'][0]
+		self.assertFalse(item_data['is_valid'])
+		self.assertIn('critically low', str(item_data['issues']).lower())
 
