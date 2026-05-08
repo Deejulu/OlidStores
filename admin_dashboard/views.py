@@ -902,19 +902,10 @@ def add_customer(request):
                 request.session['pending_customer_id'] = user.id
                 request.session['pending_customer_email'] = user.email
                 
-                # Check if in debug mode
-                from django.conf import settings
-                if settings.OTP_DEBUG_MODE:
-                    messages.warning(
-                        request,
-                        f'🔧 DEBUG MODE: OTP shown in console. '
-                        f'Code: {otp.otp_code}'
-                    )
-                else:
-                    messages.info(
-                        request, 
-                        f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
-                    )
+                messages.info(
+                    request, 
+                    f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
+                )
                 return redirect('admin_dashboard:verify_customer_otp')
             except Exception as e:
                 # Still create the customer even if OTP sending fails
@@ -973,12 +964,7 @@ def verify_customer_otp(request):
                     messages.error(request, f'Failed to resend OTP: {error_msg}')
                     return redirect('admin_dashboard:verify_customer_otp')
                 
-                # Show OTP in debug mode
-                from django.conf import settings
-                if settings.OTP_DEBUG_MODE:
-                    messages.success(request, f'🔧 DEBUG MODE: New OTP Code: {otp.otp_code}')
-                else:
-                    messages.success(request, f'New OTP sent to {customer.email}')
+                messages.success(request, f'New OTP sent to {customer.email}')
             except Exception as e:
                 messages.error(request, f'Failed to resend OTP: {str(e)}')
             return redirect('admin_dashboard:verify_customer_otp')
