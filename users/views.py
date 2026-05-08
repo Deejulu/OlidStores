@@ -274,7 +274,8 @@ def signup(request):
 		form = CustomUserCreationForm(request.POST)
 		if form.is_valid():
 			user = form.save()
-			login(request, user)
+			# Login with explicit backend (required when multiple backends are configured)
+			login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 			return redirect('core:home')
 	else:
 		form = CustomUserCreationForm()

@@ -213,7 +213,8 @@ def signup_complete(request):
             for key in ['signup_email', 'signup_phone', 'email_otp_id', 'phone_otp_id', 'email_verified', 'phone_verified', 'signup_method']:
                 request.session.pop(key, None)
             
-            login(request, user)
+            # Login with explicit backend (required when multiple backends are configured)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, f"Welcome to E-Stores! Your username is: {user.username}")
             return redirect('core:home')
     else:
