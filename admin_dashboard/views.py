@@ -969,17 +969,6 @@ def verify_customer_otp(request):
                 messages.error(request, f'Failed to resend OTP: {str(e)}')
             return redirect('admin_dashboard:verify_customer_otp')
         
-        # Handle skip verification
-        elif action == 'skip':
-            messages.info(
-                request, 
-                f'Verification skipped. Customer "{customer.username}" will need to verify email on first login.'
-            )
-            # Clear session
-            del request.session['pending_customer_id']
-            del request.session['pending_customer_email']
-            return redirect('admin_dashboard:customer_list')
-        
         # Handle OTP verification
         else:
             otp_code = request.POST.get('otp_code', '').strip()
