@@ -15,7 +15,7 @@ class ShopListView(ListView):
 	paginate_by = 24
 
 	def get_queryset(self):
-		queryset = Product.objects.all().select_related('category').prefetch_related('variants', 'images').annotate(
+		queryset = Product.objects.all().defer('description').select_related('category').prefetch_related('variants', 'images').annotate(
 			avg_rating=Avg('reviews__rating'),
 			review_count=Count('reviews', distinct=True)
 		)

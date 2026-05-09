@@ -4,6 +4,52 @@ from django.urls import reverse
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
+def _compress_image_field(instance, field_name, max_size=(1200, 1200), quality=85):
+    """
+    Resize and compress an ImageField before it is saved to storage.
+    Only processes new uploads (uncommitted files); existing DB records are skipped.
+    Converts to JPEG to maximise compression. Transparent PNGs get a white background.
+    """
+    field = getattr(instance, field_name)
+    # _committed is False only when a new file has been assigned but not yet saved
+    if not field or getattr(field, '_committed', True):
+        return
+    try:
+        from PIL import Image
+        from io import BytesIO
+        from django.core.files.uploadedfile import InMemoryUploadedFile
+
+        img = Image.open(field)
+        # Flatten transparency to white background
+        if img.mode in ('RGBA', 'P', 'LA'):
+            bg = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'RGBA':
+                bg.paste(img, mask=img.split()[3])
+            else:
+                bg.paste(img.convert('RGBA'), mask=img.convert('RGBA').split()[3])
+            img = bg
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        img.thumbnail(max_size, Image.LANCZOS)
+
+        output = BytesIO()
+        img.save(output, format='JPEG', quality=quality, optimize=True)
+        output.seek(0)
+        size = output.getbuffer().nbytes
+
+        original_name = getattr(field, 'name', 'image')
+        base_name = original_name.rsplit('.', 1)[0] if '.' in original_name else original_name
+        new_name = f"{base_name}.jpg"
+
+        setattr(instance, field_name, InMemoryUploadedFile(
+            output, 'ImageField', new_name, 'image/jpeg', size, None
+        ))
+    except Exception:
+        pass  # Never break a save due to compression failure
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
@@ -53,6 +99,7 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
+        _compress_image_field(self, 'image', max_size=(1200, 1200))
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -90,24 +137,18 @@ class Product(models.Model):
 
     @property
     def primary_image(self):
-        """Get the primary image for the product (main image or first additional image)"""
-        # Return an ImageFieldFile only if the underlying file exists in storage.
-        try:
-            if self.image and getattr(self.image, 'name', None):
-                if self.image.storage.exists(self.image.name):
-                    return self.image
+        """Get the primary image for the product (main image or first additional image).
+        
+        Trusts that if an image field has a name, the file exists in storage.
+        Avoids making HTTP calls to Supabase to verify existence on every render.
+        """
+        if self.image and getattr(self.image, 'name', None):
+            return self.image
 
-            # Check additional product images
-            qs = self.images.all()
-            if qs.exists():
-                first = qs.first().image
-                if first and getattr(first, 'name', None) and first.storage.exists(first.name):
-                    return first
-        except Exception:
-            # If storage is misconfigured (missing credentials, unreachable backend, etc.)
-            # accessing storage may raise; swallow errors and fall back to None so templates
-            # don't blow up with a 500 when trying to access `.url`.
-            pass
+        # Use .all() to respect prefetch_related cache from product listing queries
+        for pi in self.images.all():
+            if pi.image and getattr(pi.image, 'name', None):
+                return pi.image
 
         return None
 
@@ -138,6 +179,7 @@ class ProductImage(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
+        _compress_image_field(self, 'image', max_size=(1200, 1200))
         super().save(*args, **kwargs)
 
     def __str__(self):

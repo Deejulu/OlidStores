@@ -1,14 +1,40 @@
 """
 Signals for orders app - handles notifications for order events
 """
-from django.db.models.signals import post_save, pre_save, pre_delete
+from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import models
-from .models import Order, OrderAuditLog
+from .models import Order, OrderAuditLog, CartItem
 from users.models_notification import Notification
 
 User = get_user_model()
+
+
+def _invalidate_cart_cache(cart_item):
+    """Remove the cached cart count for the user/session owning this cart item."""
+    try:
+        cart = cart_item.cart
+        if cart.user_id:
+            cache.delete(f'cart_count_user_{cart.user_id}')
+        elif cart.session_key:
+            cache.delete(f'cart_count_session_{cart.session_key}')
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=CartItem)
+def bust_cart_count_on_save(sender, instance, **kwargs):
+    _invalidate_cart_cache(instance)
+
+
+@receiver(post_delete, sender=CartItem)
+def bust_cart_count_on_delete(sender, instance, **kwargs):
+    _invalidate_cart_cache(instance)
+
+
+
 
 
 @receiver(pre_save, sender=Order)
