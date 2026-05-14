@@ -4,7 +4,7 @@ services:
     env: python
     plan: starter
     region: oregon
-    buildCommand: pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py fix_delivery_fee_totals && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py fix_delivery_fee_totals && python manage.py axes_reset && python manage.py collectstatic --noinput
     startCommand: gunicorn e_stores.wsgi:application
     healthCheckPath: /
     envVars:

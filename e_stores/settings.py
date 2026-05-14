@@ -323,7 +323,7 @@ AXES_FAILURE_LIMIT = 5  # Lock account after 5 failed login attempts
 AXES_COOLOFF_TIME = 1  # Lock duration in hours (1 hour)
 AXES_RESET_ON_SUCCESS = True  # Reset failure count on successful login
 AXES_LOCKOUT_TEMPLATE = None  # Use default Django login form with error message
-AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]  # Track by username and IP combination
+AXES_LOCKOUT_PARAMETERS = [['username']]  # Track by username only (IP tracking is unreliable behind Render's proxy)
 AXES_ENABLE_ACCESS_FAILURE_LOG = True  # Log all failed attempts
 AXES_VERBOSE = True  # Enable detailed logging
 # Whitelist local development IPs
