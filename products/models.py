@@ -98,7 +98,14 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            qs = Product.objects.exclude(pk=self.pk) if self.pk else Product.objects.all()
+            while qs.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
         _compress_image_field(self, 'image', max_size=(1200, 1200))
         super().save(*args, **kwargs)
 
