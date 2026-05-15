@@ -785,6 +785,10 @@
                             <i class="bi bi-plus-circle"></i>
                             Add New Product
                         </a>
+                        <a href="{% url 'admin_dashboard:product_bulk_create' %}" class="btn-add-product btn-secondary">
+                            <i class="bi bi-boxes"></i>
+                            Bulk Add Products
+                        </a>
                         <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return confirmPopulate(event)">
                             {% csrf_token %}
                             <button type="submit" class="btn-add-product btn-secondary" id="populate-btn">

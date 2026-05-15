@@ -1,0 +1,702 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Add Products{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ================================================================
+   BULK ADD WIZARD  –  complete styles
+   ================================================================ */
+:root {
+    --bw-primary:    #667eea;
+    --bw-primary-dk: #4f46e5;
+    --bw-success:    #22c55e;
+    --bw-warning:    #f59e0b;
+    --bw-danger:     #ef4444;
+    --bw-bg:         #f1f5f9;
+    --bw-card:       #ffffff;
+    --bw-border:     #e2e8f0;
+    --bw-radius:     16px;
+    --bw-shadow:     0 4px 24px rgba(0,0,0,.09);
+}
+
+/* ── Outer page shell ──────────────────────────────────────────── */
+.bw-page { background: var(--bw-bg); min-height: 100vh; padding: 0 0 5rem; }
+
+/* ================================================================
+   SCREEN 1 — SETUP
+   ================================================================ */
+.setup-wrap {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 85vh; padding: 2rem 1rem;
+}
+.setup-card {
+    background: var(--bw-card);
+    border-radius: var(--bw-radius);
+    box-shadow: var(--bw-shadow);
+    padding: 3rem 2.5rem;
+    width: 100%; max-width: 520px;
+    text-align: center;
+}
+.setup-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--bw-primary), var(--bw-primary-dk));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 2.25rem; margin-bottom: 1.25rem;
+    box-shadow: 0 8px 28px rgba(102,126,234,.35);
+}
+.setup-card h1 { font-size: 1.9rem; font-weight: 800; margin: 0 0 .5rem; color: #1e293b; }
+.setup-card > p { color: #64748b; margin-bottom: 2rem; font-size: .97rem; }
+
+.setup-field { text-align: left; margin-bottom: 1.5rem; }
+.setup-field label { display: block; font-weight: 700; font-size: .9rem; color: #374151; margin-bottom: .45rem; }
+.setup-field select {
+    width: 100%; padding: .7rem 1rem;
+    border: 2px solid var(--bw-border); border-radius: 10px;
+    font-size: .95rem; color: #1e293b; background: #f8fafc;
+    transition: border-color .2s;
+}
+.setup-field select:focus { outline: none; border-color: var(--bw-primary); box-shadow: 0 0 0 3px rgba(102,126,234,.15); }
+
+/* Count picker */
+.count-picker {
+    display: flex; align-items: center; justify-content: center; gap: 1.25rem;
+    margin: .5rem 0 .9rem;
+}
+.count-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid var(--bw-primary); background: #f0f4ff;
+    color: var(--bw-primary); font-size: 1.5rem; font-weight: 700;
+    cursor: pointer; transition: all .2s; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+}
+.count-btn:hover { background: var(--bw-primary); color: #fff; }
+.count-display {
+    font-size: 3rem; font-weight: 900; color: var(--bw-primary);
+    min-width: 80px; text-align: center; line-height: 1;
+}
+.count-note { font-size: .8rem; color: #94a3b8; margin: 0; }
+
+.presets { display: flex; gap: .5rem; justify-content: center; margin-bottom: .75rem; }
+.preset-btn {
+    padding: .3rem .85rem; border-radius: 999px;
+    border: 1.5px solid var(--bw-border); background: #f8fafc;
+    font-size: .82rem; font-weight: 600; color: #64748b; cursor: pointer;
+    transition: all .2s;
+}
+.preset-btn:hover,
+.preset-btn.active { border-color: var(--bw-primary); background: #f0f4ff; color: var(--bw-primary); }
+
+.btn-begin {
+    width: 100%; padding: .95rem; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, var(--bw-primary), var(--bw-primary-dk));
+    color: #fff; font-size: 1.05rem; font-weight: 700;
+    cursor: pointer; transition: all .25s;
+    box-shadow: 0 6px 20px rgba(102,126,234,.4);
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+}
+.btn-begin:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(102,126,234,.5); }
+
+/* ================================================================
+   SCREEN 2 — WIZARD
+   ================================================================ */
+
+/* Wizard header bar */
+.wiz-header {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(135deg, var(--bw-primary) 0%, var(--bw-primary-dk) 100%);
+    color: #fff; padding: .9rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+}
+.wiz-header-left { display: flex; align-items: center; gap: .75rem; font-weight: 700; font-size: 1rem; }
+.wiz-header-left i { font-size: 1.4rem; opacity: .85; }
+.wiz-cat { opacity: .8; font-weight: 400; font-size: .9rem; }
+.btn-back {
+    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
+    color: #fff; border-radius: 8px; padding: .38rem 1rem;
+    font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .2s;
+    white-space: nowrap;
+}
+.btn-back:hover { background: rgba(255,255,255,.28); }
+
+/* Step strip */
+.steps-scroll {
+    background: var(--bw-card);
+    border-bottom: 1px solid var(--bw-border);
+    padding: .85rem 1.25rem;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.steps-scroll::-webkit-scrollbar { display: none; }
+.steps-inner { display: flex; gap: .5rem; min-width: max-content; align-items: center; }
+
+.step-pill {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 2px solid var(--bw-border);
+    background: #f1f5f9; color: #94a3b8;
+    font-size: .78rem; font-weight: 700;
+    cursor: pointer; transition: all .2s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+}
+.step-pill.has-data    { border-color: var(--bw-success); background: #f0fdf4; color: var(--bw-success); }
+.step-pill.is-partial  { border-color: var(--bw-warning); background: #fffbeb; color: var(--bw-warning); }
+.step-pill.has-error   { border-color: var(--bw-danger);  background: #fef2f2; color: var(--bw-danger); }
+.step-pill.is-current  { border-color: var(--bw-primary); background: var(--bw-primary); color: #fff; transform: scale(1.15); }
+
+.step-connector { width: 20px; height: 2px; background: var(--bw-border); flex-shrink: 0; }
+
+/* Panels wrapper */
+.panels-wrap { padding: 1.5rem 1rem 1rem; max-width: 900px; margin: 0 auto; }
+
+/* Panel card */
+.prod-panel { display: none; animation: panelIn .3s ease; }
+.prod-panel.active { display: block; }
+.prod-panel.from-right { animation: panelFromRight .3s ease; }
+.prod-panel.from-left  { animation: panelFromLeft  .3s ease; }
+
+@keyframes panelIn          { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+@keyframes panelFromRight   { from { opacity:0; transform:translateX(40px) } to { opacity:1; transform:translateX(0) } }
+@keyframes panelFromLeft    { from { opacity:0; transform:translateX(-40px)} to { opacity:1; transform:translateX(0) } }
+
+.panel-card {
+    background: var(--bw-card);
+    border-radius: var(--bw-radius);
+    box-shadow: var(--bw-shadow);
+    overflow: hidden;
+}
+.panel-head {
+    background: linear-gradient(90deg,#f8fafc,#eff6ff);
+    border-bottom: 1px solid var(--bw-border);
+    padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: .75rem;
+}
+.panel-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg,var(--bw-primary),var(--bw-primary-dk));
+    color:#fff; font-weight:800; font-size:.9rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+}
+.panel-head-text { font-weight: 700; color: #1e293b; font-size: .97rem; }
+.panel-head-sub  { font-size: .8rem; color: #64748b; }
+.panel-opt-badge {
+    margin-left: auto; background: #f1f5f9; border-radius: 999px;
+    padding: .2rem .8rem; font-size: .75rem; color: #94a3b8; font-weight: 600;
+}
+
+.panel-body { padding: 1.5rem; }
+
+/* Two-column layout inside panel */
+.panel-grid {
+    display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem;
+}
+@media (max-width: 700px) { .panel-grid { grid-template-columns: 1fr; } }
+
+.field-g { margin-bottom: 1.1rem; }
+.field-g:last-child { margin-bottom: 0; }
+.field-g label {
+    display: block; font-weight: 600; font-size: .85rem;
+    color: #374151; margin-bottom: .35rem;
+}
+.field-g label .req { color: var(--bw-danger); }
+.field-g input,
+.field-g textarea {
+    width: 100%; padding: .55rem .9rem;
+    border: 1.5px solid var(--bw-border); border-radius: 9px;
+    font-size: .9rem; color: #1e293b; background: #fafbfc;
+    transition: border-color .2s, box-shadow .2s;
+}
+.field-g input:focus,
+.field-g textarea:focus {
+    outline: none; border-color: var(--bw-primary);
+    box-shadow: 0 0 0 3px rgba(102,126,234,.13); background: #fff;
+}
+.field-g textarea { resize: vertical; min-height: 100px; }
+.field-g input.invalid { border-color: var(--bw-danger) !important; background: #fff5f5; }
+.field-g textarea.invalid { border-color: var(--bw-danger) !important; background: #fff5f5; }
+
+.price-wrap { position: relative; }
+.price-sym { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: #64748b; pointer-events: none; }
+.price-wrap input { padding-left: 2rem; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+/* Image drop zone */
+.img-drop {
+    border: 2px dashed var(--bw-border);
+    border-radius: 10px; padding: 1.1rem;
+    text-align: center; cursor: pointer;
+    position: relative; background: #f8fafc;
+    transition: border-color .2s, background .2s;
+}
+.img-drop:hover { border-color: var(--bw-primary); background: #f0f4ff; }
+.img-drop input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.img-thumb {
+    width: 80px; height: 80px; border-radius: 8px; object-fit: cover;
+    display: none; margin: 0 auto .5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
+}
+.img-thumb.visible { display: block; }
+.img-ph { pointer-events: none; }
+.img-ph i { font-size: 2rem; color: #94a3b8; display: block; margin-bottom: .3rem; }
+.img-ph span { font-size: .8rem; color: #94a3b8; font-weight: 500; }
+
+/* Panel error box */
+.panel-errs { padding: 0 1.5rem 1rem; display: none; }
+.panel-errs.visible { display: block; }
+.err-item {
+    background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 8px; padding: .5rem .85rem;
+    color: var(--bw-danger); font-size: .82rem; font-weight: 600;
+    display: flex; align-items: center; gap: .4rem; margin-bottom: .4rem;
+}
+
+/* ── Bottom Nav bar ────────────────────────────────────────────── */
+.wiz-nav {
+    position: sticky; bottom: 0; z-index: 50;
+    background: var(--bw-card);
+    border-top: 1px solid var(--bw-border);
+    padding: .85rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.07);
+    flex-wrap: wrap;
+}
+.nav-arrows { display: flex; align-items: center; gap: .75rem; }
+.nav-btn {
+    display: flex; align-items: center; gap: .45rem;
+    padding: .65rem 1.35rem; border-radius: 10px; border: 1.5px solid var(--bw-border);
+    background: #f8fafc; color: #374151;
+    font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s;
+}
+.nav-btn:hover:not(:disabled) { border-color: var(--bw-primary); color: var(--bw-primary); background: #f0f4ff; }
+.nav-btn:disabled { opacity: .4; cursor: not-allowed; }
+.nav-counter {
+    font-size: .9rem; font-weight: 700; color: #64748b;
+    background: #f1f5f9; padding: .45rem 1rem; border-radius: 999px;
+    white-space: nowrap;
+}
+.save-group { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.save-info { font-size: .82rem; color: #64748b; font-weight: 500; white-space: nowrap; }
+.btn-save-all {
+    display: flex; align-items: center; gap: .55rem;
+    padding: .7rem 1.75rem; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, var(--bw-primary), var(--bw-primary-dk));
+    color: #fff; font-weight: 700; font-size: .95rem;
+    cursor: pointer; transition: all .25s;
+    box-shadow: 0 4px 16px rgba(102,126,234,.35);
+    white-space: nowrap;
+}
+.btn-save-all:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,.45); }
+.btn-save-all:disabled { opacity: .65; transform: none; cursor: not-allowed; }
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .setup-card { padding: 2rem 1.25rem; }
+    .wiz-nav { gap: .6rem; }
+    .nav-btn { padding: .55rem .9rem; font-size: .82rem; }
+    .btn-save-all { padding: .6rem 1.25rem; font-size: .88rem; }
+    .panel-body { padding: 1rem; }
+    .panel-head { padding: .85rem 1rem; }
+}
+@media (max-width: 400px) {
+    .count-display { font-size: 2.25rem; }
+    .count-btn { width: 40px; height: 40px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ──────────────── Everything is inside one form ──────────────── #}
+<form id="bulkForm" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {# Category + management form (hidden) #}
+    <input type="hidden" name="category"           id="fCategory">
+    <input type="hidden" name="form-TOTAL_FORMS"   id="fTotal"   value="0">
+    <input type="hidden" name="form-INITIAL_FORMS"            value="0">
+    <input type="hidden" name="form-MIN_NUM_FORMS"            value="0">
+    <input type="hidden" name="form-MAX_NUM_FORMS"            value="100">
+    {# JS appends product panels here #}
+    <div id="panelsContainer"></div>
+
+    <div class="bw-page">
+
+    {# ══════════════ SCREEN 1 : SETUP ══════════════ #}
+    <div id="screenSetup">
+        <div class="setup-wrap">
+            <div class="setup-card">
+                <div class="setup-icon">📦</div>
+                <h1>Bulk Add Products</h1>
+                <p>Choose a category and how many products you'd like to add, then fill them in one by one.</p>
+
+                <div class="setup-field">
+                    <label>Category <span style="color:var(--bw-danger)">*</span></label>
+                    <select id="catSelect">
+                        <option value="">— Select a category —</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.pk }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="setup-field">
+                    <label>How many products do you want to add?</label>
+                    <div class="count-picker">
+                        <button type="button" class="count-btn" onclick="changeCount(-1)">−</button>
+                        <div class="count-display" id="countDisplay">5</div>
+                        <button type="button" class="count-btn" onclick="changeCount(1)">+</button>
+                    </div>
+                    <div class="presets">
+                        <button type="button" class="preset-btn" data-count="3"  onclick="setCount(3)">3</button>
+                        <button type="button" class="preset-btn active" data-count="5"  onclick="setCount(5)">5</button>
+                        <button type="button" class="preset-btn" data-count="10" onclick="setCount(10)">10</button>
+                        <button type="button" class="preset-btn" data-count="20" onclick="setCount(20)">20</button>
+                        <button type="button" class="preset-btn" data-count="50" onclick="setCount(50)">50</button>
+                    </div>
+                    <p class="count-note">Up to 100. Rows you leave empty are skipped automatically.</p>
+                </div>
+
+                <div id="setupError" style="display:none;color:var(--bw-danger);font-size:.88rem;margin-bottom:1rem;font-weight:600;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <span id="setupErrorMsg"></span>
+                </div>
+
+                <button type="button" class="btn-begin" onclick="beginWizard()">
+                    <i class="bi bi-lightning-charge-fill"></i> Begin Adding Products
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# ══════════════ SCREEN 2 : WIZARD ══════════════ #}
+    <div id="screenWizard" style="display:none">
+
+        {# Sticky header #}
+        <div class="wiz-header">
+            <div class="wiz-header-left">
+                <i class="bi bi-boxes"></i>
+                <div>
+                    <div>Bulk Add Products</div>
+                    <div class="wiz-cat">Category: <strong id="wCategoryName"></strong></div>
+                </div>
+            </div>
+            <button type="button" class="btn-back" onclick="backToSetup()">
+                <i class="bi bi-arrow-left"></i> Change settings
+            </button>
+        </div>
+
+        {# Step strip #}
+        <div class="steps-scroll">
+            <div class="steps-inner" id="stepsInner"></div>
+        </div>
+
+        {# Panels (JS-rendered inside panelsContainer which is outside bw-page but we move it) #}
+        <div class="panels-wrap" id="panelsWrap"></div>
+
+        {# Sticky nav bar #}
+        <div class="wiz-nav">
+            <div class="nav-arrows">
+                <button type="button" class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>
+                    <i class="bi bi-arrow-left"></i> Prev
+                </button>
+                <div class="nav-counter" id="navCounter">1 / 5</div>
+                <button type="button" class="nav-btn" id="nextBtn" onclick="navigate(1)">
+                    Next <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+            <div class="save-group">
+                <span class="save-info" id="saveInfo"></span>
+                <button type="button" class="btn-save-all" onclick="submitAll()">
+                    <i class="bi bi-check2-all"></i> Save All Products
+                </button>
+            </div>
+        </div>
+
+    </div>
+    </div>{# /bw-page #}
+</form>
+
+<script>
+/* ================================================================
+   BULK-ADD WIZARD  —  JavaScript
+   ================================================================ */
+var WIZ = { total: 0, cur: 0 };
+
+/* ── Count picker ─────────────────────────────────────────────── */
+function changeCount(d) {
+    var el = document.getElementById('countDisplay');
+    var v  = Math.max(1, Math.min(100, parseInt(el.textContent) + d));
+    el.textContent = v;
+    syncPresets(v);
+}
+function setCount(n) {
+    document.getElementById('countDisplay').textContent = n;
+    syncPresets(n);
+}
+function syncPresets(n) {
+    document.querySelectorAll('.preset-btn').forEach(function(b) {
+        b.classList.toggle('active', parseInt(b.dataset.count) === n);
+    });
+}
+
+/* ── Begin wizard ─────────────────────────────────────────────── */
+function beginWizard() {
+    var catSel  = document.getElementById('catSelect');
+    var catId   = catSel.value;
+    var catName = catSel.options[catSel.selectedIndex]?.text || '';
+    var total   = parseInt(document.getElementById('countDisplay').textContent);
+
+    if (!catId) { showSetupError('Please select a category first.'); return; }
+    hideSetupError();
+
+    WIZ.total = total;
+    WIZ.cur   = 0;
+    document.getElementById('fCategory').value  = catId;
+    document.getElementById('fTotal').value      = total;
+    document.getElementById('wCategoryName').textContent = catName;
+
+    buildPanels(total);
+    buildSteps(total);
+
+    document.getElementById('screenSetup').style.display  = 'none';
+    document.getElementById('screenWizard').style.display = '';
+    showPanel(0, 1);
+    window.scrollTo(0, 0);
+}
+
+function showSetupError(msg) {
+    document.getElementById('setupErrorMsg').textContent = msg;
+    document.getElementById('setupError').style.display = '';
+}
+function hideSetupError() { document.getElementById('setupError').style.display = 'none'; }
+
+function backToSetup() {
+    var hasData = false;
+    for (var i = 0; i < WIZ.total; i++) {
+        var p = document.getElementById('wpanel-' + i);
+        if (p && p.querySelector('.f-name')?.value?.trim()) { hasData = true; break; }
+    }
+    if (hasData && !confirm('Going back will clear all entered data. Continue?')) return;
+    document.getElementById('screenSetup').style.display  = '';
+    document.getElementById('screenWizard').style.display = 'none';
+    document.getElementById('panelsWrap').innerHTML = '';
+    document.getElementById('stepsInner').innerHTML = '';
+    document.getElementById('fTotal').value = 0;
+    WIZ.total = 0;
+    window.scrollTo(0, 0);
+}
+
+/* ── Build panels ─────────────────────────────────────────────── */
+function buildPanels(n) {
+    var wrap = document.getElementById('panelsWrap');
+    wrap.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+        var div = document.createElement('div');
+        div.className = 'prod-panel';
+        div.id = 'wpanel-' + i;
+        div.innerHTML = panelHTML(i, n);
+        wrap.appendChild(div);
+        wireImg(div);
+    }
+}
+
+function panelHTML(i, total) {
+    return '<div class="panel-card">'
+    + '<div class="panel-head">'
+    +   '<div class="panel-num">' + (i+1) + '</div>'
+    +   '<div><div class="panel-head-text">Product ' + (i+1) + '</div>'
+    +       '<div class="panel-head-sub">Fill in the details below &mdash; image is optional</div></div>'
+    +   '<span class="panel-opt-badge">' + (i+1) + ' of ' + total + '</span>'
+    + '</div>'
+    + '<div class="panel-body">'
+    +   '<div class="panel-grid">'
+    +     '<div>'
+    +       '<div class="field-g">'
+    +         '<label>Product Name <span class="req">*</span></label>'
+    +         '<input type="text" name="form-' + i + '-name" class="f-name" placeholder="e.g. Sony Headphones WH-1000XM5" oninput="onFieldChange(' + i + ')">'
+    +       '</div>'
+    +       '<div class="field-g">'
+    +         '<label>Description <span class="req">*</span></label>'
+    +         '<textarea name="form-' + i + '-description" class="f-desc" placeholder="Describe features, specs, benefits..." oninput="onFieldChange(' + i + ')"></textarea>'
+    +       '</div>'
+    +     '</div>'
+    +     '<div>'
+    +       '<div class="field-g">'
+    +         '<label>Price (&#8358;) <span class="req">*</span></label>'
+    +         '<div class="price-wrap"><span class="price-sym">&#8358;</span>'
+    +           '<input type="number" name="form-' + i + '-price" class="f-price" min="0" step="0.01" placeholder="0.00" oninput="onFieldChange(' + i + ')">'
+    +         '</div>'
+    +       '</div>'
+    +       '<div class="two-col">'
+    +         '<div class="field-g"><label>Stock Qty</label>'
+    +           '<input type="number" name="form-' + i + '-stock" min="0" value="0"></div>'
+    +         '<div class="field-g"><label>Reorder At</label>'
+    +           '<input type="number" name="form-' + i + '-reorder_level" min="0" value="5"></div>'
+    +       '</div>'
+    +       '<div class="field-g"><label>Product Image</label>'
+    +         '<div class="img-drop" onclick="this.querySelector(\'input\').click()">'
+    +           '<img class="img-thumb" src="" alt="">'
+    +           '<div class="img-ph"><i class="bi bi-cloud-arrow-up-fill"></i><span>Click to upload</span></div>'
+    +           '<input type="file" name="form-' + i + '-image" accept="image/*">'
+    +         '</div>'
+    +       '</div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="panel-errs" id="perrs-' + i + '"></div>'
+    + '</div>';
+}
+
+/* ── Build step pills ──────────────────────────────────────────── */
+function buildSteps(n) {
+    var inner = document.getElementById('stepsInner');
+    inner.innerHTML = '';
+    for (var i = 0; i < n; i++) {
+        if (i > 0) {
+            var con = document.createElement('div');
+            con.className = 'step-connector';
+            inner.appendChild(con);
+        }
+        var pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'step-pill';
+        pill.id = 'spill-' + i;
+        pill.textContent = i + 1;
+        pill.setAttribute('title', 'Product ' + (i+1));
+        (function(idx){ pill.onclick = function(){ goTo(idx); }; })(i);
+        inner.appendChild(pill);
+    }
+}
+
+/* ── Show / navigate panels ────────────────────────────────────── */
+function showPanel(idx, dir) {
+    document.querySelectorAll('.prod-panel').forEach(function(p) {
+        p.classList.remove('active', 'from-right', 'from-left');
+    });
+    var panel = document.getElementById('wpanel-' + idx);
+    if (!panel) return;
+    panel.classList.add('active', dir >= 0 ? 'from-right' : 'from-left');
+    WIZ.cur = idx;
+
+    // Step pills
+    document.querySelectorAll('.step-pill').forEach(function(p, i) {
+        p.classList.toggle('is-current', i === idx);
+    });
+    var curPill = document.getElementById('spill-' + idx);
+    curPill?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+    // Nav
+    document.getElementById('navCounter').textContent = (idx+1) + ' / ' + WIZ.total;
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = idx === WIZ.total - 1;
+    updateSaveInfo();
+}
+
+function navigate(d) {
+    var nxt = WIZ.cur + d;
+    if (nxt < 0 || nxt >= WIZ.total) return;
+    showPanel(nxt, d);
+}
+
+function goTo(idx) { showPanel(idx, idx >= WIZ.cur ? 1 : -1); }
+
+/* ── Field change — update step pill state ──────────────────────── */
+function onFieldChange(i) {
+    var panel = document.getElementById('wpanel-' + i);
+    var name  = panel.querySelector('.f-name')?.value?.trim() || '';
+    var desc  = panel.querySelector('.f-desc')?.value?.trim() || '';
+    var price = panel.querySelector('.f-price')?.value || '';
+    var pill  = document.getElementById('spill-' + i);
+    if (!pill) return;
+    pill.classList.remove('has-data', 'is-partial', 'has-error');
+    if (name && desc && price) pill.classList.add('has-data');
+    else if (name || desc || price) pill.classList.add('is-partial');
+    updateSaveInfo();
+}
+
+function updateSaveInfo() {
+    var filled = 0;
+    for (var i = 0; i < WIZ.total; i++) {
+        var p = document.getElementById('wpanel-' + i);
+        if (p && p.querySelector('.f-name')?.value?.trim()) filled++;
+    }
+    var s = document.getElementById('saveInfo');
+    if (s) s.textContent = filled + ' of ' + WIZ.total + ' product' + (WIZ.total === 1 ? '' : 's') + ' filled';
+}
+
+/* ── Submit with client-side validation ─────────────────────────── */
+function submitAll() {
+    var firstErr = -1;
+    for (var i = 0; i < WIZ.total; i++) {
+        var panel = document.getElementById('wpanel-' + i);
+        var name  = panel.querySelector('.f-name');
+        var desc  = panel.querySelector('.f-desc');
+        var price = panel.querySelector('.f-price');
+        var errDiv = document.getElementById('perrs-' + i);
+        var pill  = document.getElementById('spill-' + i);
+
+        // Clear previous
+        [name, desc, price].forEach(function(f) { f && f.classList.remove('invalid'); });
+        errDiv.innerHTML = ''; errDiv.classList.remove('visible');
+        pill && pill.classList.remove('has-error');
+
+        var n = name?.value?.trim() || '';
+        var d = desc?.value?.trim() || '';
+        var pr = price?.value || '';
+
+        if (!n && !d && !pr) continue; // empty row, skip
+
+        var errs = [];
+        if (!n)  { name.classList.add('invalid');  errs.push('Product name is required'); }
+        if (!d)  { desc.classList.add('invalid');  errs.push('Description is required'); }
+        if (!pr) { price.classList.add('invalid'); errs.push('Price is required'); }
+
+        if (errs.length) {
+            errDiv.innerHTML = errs.map(function(e) {
+                return '<div class="err-item"><i class="bi bi-exclamation-circle-fill"></i> ' + e + '</div>';
+            }).join('');
+            errDiv.classList.add('visible');
+            pill && pill.classList.add('has-error');
+            if (firstErr === -1) firstErr = i;
+        }
+    }
+
+    if (firstErr !== -1) { goTo(firstErr); return; }
+
+    // At least one filled?
+    var anyFilled = false;
+    for (var j = 0; j < WIZ.total; j++) {
+        var p = document.getElementById('wpanel-' + j);
+        if (p && p.querySelector('.f-name')?.value?.trim()) { anyFilled = true; break; }
+    }
+    if (!anyFilled) { showSetupError('Please fill in at least one product before saving.'); return; }
+
+    var btn = document.querySelector('.btn-save-all');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:1rem;height:1rem;border-width:2px;"></span> Saving\u2026';
+    document.getElementById('bulkForm').submit();
+}
+
+/* ── Image preview ──────────────────────────────────────────────── */
+function wireImg(panel) {
+    var input = panel.querySelector('input[type=file]');
+    var thumb = panel.querySelector('.img-thumb');
+    var ph    = panel.querySelector('.img-ph');
+    if (!input) return;
+    input.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                thumb.src = e.target.result;
+                thumb.classList.add('visible');
+                if (ph) ph.style.display = 'none';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+}
+</script>
+{% endblock %}

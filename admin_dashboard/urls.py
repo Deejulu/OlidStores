@@ -3,7 +3,7 @@ from django.urls import path
 
 from .views import (
     test_admin_dashboard, dashboard_home, admin_profile,
-    product_list, product_create, product_edit, product_delete, product_toggle, product_populate_sample, product_remove_sample,
+    product_list, product_create, product_edit, product_delete, product_toggle, product_populate_sample, product_remove_sample, product_bulk_create,
     category_list, category_create, category_edit, category_delete, category_toggle, category_populate_sample, category_remove_sample,
     order_list, order_detail,
     customer_list, customer_detail, add_customer, verify_customer_otp,
@@ -24,6 +24,7 @@ urlpatterns = [
     path('profile/', admin_profile, name='admin_profile'),
     path('products/', product_list, name='product_list'),
     path('products/add/', product_create, name='product_create'),
+    path('products/bulk-add/', product_bulk_create, name='product_bulk_create'),
     path('products/<int:pk>/edit/', product_edit, name='product_edit'),
     path('products/<int:pk>/delete/', product_delete, name='product_delete'),
     path('products/<int:pk>/toggle/', product_toggle, name='product_toggle'),

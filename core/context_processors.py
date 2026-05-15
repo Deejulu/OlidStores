@@ -162,6 +162,20 @@ def site_contact(request):
 			'accent': '#9be3ff',
 			'accent_light': '#cfeeff',
 		},
+		'gradient_black': {
+			'primary': '#111111',
+			'primary_light': '#333333',
+			'primary_dark': '#000000',
+			'accent': '#ffffff',
+			'accent_light': '#e5e5e5',
+		},
+		'video': {
+			'primary': '#1e3a8a',
+			'primary_light': '#3b82f6',
+			'primary_dark': '#1e40af',
+			'accent': '#60a5fa',
+			'accent_light': '#93c5fd',
+		},
     }
     
     active_theme = theme_colors.get(background_style, theme_colors['particles'])

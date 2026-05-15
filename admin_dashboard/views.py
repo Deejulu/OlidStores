@@ -505,6 +505,64 @@ def product_create(request):
         form = ProductForm()
     return render(request, 'admin_dashboard/products/product_form.html', {'form': form})
 
+
+@admin_role_required
+def product_bulk_create(request):
+    """Create up to 10 products at once under a chosen category."""
+    from products.forms import BulkProductForm
+    from django.forms import formset_factory
+
+    BulkFormSet = formset_factory(BulkProductForm, extra=0, min_num=0, max_num=100, validate_min=False)
+
+    categories = Category.objects.all().order_by('name')
+    category_id = request.POST.get('category') or request.GET.get('category')
+    selected_category = None
+    if category_id:
+        selected_category = get_object_or_404(Category, pk=category_id)
+
+    if request.method == 'POST':
+        formset = BulkFormSet(request.POST, request.FILES)
+        if not selected_category:
+            messages.error(request, 'Please select a category first.')
+        elif formset.is_valid():
+            saved, skipped = 0, 0
+            for form in formset:
+                name = form.cleaned_data.get('name', '').strip()
+                if not name:
+                    skipped += 1
+                    continue
+                product = Product(
+                    name=name,
+                    description=form.cleaned_data.get('description', ''),
+                    price=form.cleaned_data['price'],
+                    stock=form.cleaned_data.get('stock') or 0,
+                    reorder_level=form.cleaned_data.get('reorder_level') or 5,
+                    category=selected_category,
+                    image=form.cleaned_data.get('image') or None,
+                )
+                product.save()
+                saved += 1
+            if saved:
+                messages.success(
+                    request,
+                    f'{saved} product{"s" if saved != 1 else ""} added to "{selected_category.name}" successfully.'
+                    + (f' ({skipped} empty row{"s" if skipped != 1 else ""} skipped.)' if skipped else '')
+                )
+                return redirect('admin_dashboard:product_list')
+            else:
+                messages.error(request, 'No products were saved. Please fill in at least one row.')
+        else:
+            messages.error(request, 'Please fix the errors highlighted below.')
+    else:
+        formset = BulkFormSet()
+
+    return render(request, 'admin_dashboard/products/product_bulk_create.html', {
+        'formset': formset,
+        'categories': categories,
+        'selected_category': selected_category,
+    })
+
+
 @admin_role_required
 def product_edit(request, pk):
     from products.models import ProductImage
@@ -519,7 +577,10 @@ def product_edit(request, pk):
                 ProductImage.objects.filter(product=product).delete()
                 for img in new_images:
                     ProductImage.objects.create(product=product, image=img)
-            return redirect('admin_dashboard:product_list')
+            messages.success(request, f'"{product.name}" has been updated successfully.')
+            return redirect('admin_dashboard:product_edit', pk=product.pk)
+        else:
+            messages.error(request, 'Please fix the errors below before saving.')
     else:
         form = ProductForm(instance=product)
     return render(request, 'admin_dashboard/products/product_form.html', {'form': form, 'product': product})
@@ -1576,6 +1637,12 @@ def content_manage(request):
                 privacy_form.save()
             if present_terms:
                 terms_form.save()
+
+            # Immediately clear cached site content so changes show on the live site right away
+            from django.core.cache import cache
+            for _cache_key in ['about', 'contact', 'homepage_banner', 'checkout', 'site_settings', 'faq', 'privacy', 'terms']:
+                cache.delete(f'site_content_{_cache_key}')
+            cache.delete('site_content_announcement')
             # Process formsets (updates/deletes)
             saved_banners = formset.save()
             saved_heros = hero_formset.save()

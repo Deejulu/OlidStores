@@ -45,3 +45,30 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'description', 'price', 'stock', 'reorder_level', 'category', 'image', 'is_editable']
+
+
+class BulkProductForm(forms.Form):
+    """Single product row used inside the bulk-add formset."""
+    name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Product name'}),
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Description'}),
+    )
+    price = forms.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00', 'step': '0.01'}),
+    )
+    stock = forms.IntegerField(
+        min_value=0, initial=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+    )
+    reorder_level = forms.IntegerField(
+        min_value=0, initial=5, required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '5'}),
+    )
+    image = forms.ImageField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+    )

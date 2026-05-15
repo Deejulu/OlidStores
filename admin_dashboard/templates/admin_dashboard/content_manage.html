@@ -2287,7 +2287,7 @@
         const bannerTitle = bySection('banner-section', '[name*="title"]');
         const bannerContent = bySection('banner-section', 'textarea[name*="content"], textarea');
         const bannerAnnouncement = document.querySelector('[name*="announcement_text"]');
-        const bannerBgSelect = bySection('banner-section', '[name*="background_style"], select');
+        const bannerBgSelect = bySection('banner-section', '[name*="background_style"]');
 
         // About
         const aboutTitle = bySection('about-section', '[name*="title"]');
@@ -2300,14 +2300,18 @@
 
         function applyBannerBackground(styleVal, el) {
             const map = {
-                'neon_pulse': 'linear-gradient(-45deg,#7c3aed 0%,#00f5a0 50%,#ff6b6b 100%)',
-                'sunset_blur': 'linear-gradient(135deg,#ff5f6d 0%,#ff9966 45%,#ffd6a5 100%)',
-                'stellar_night': 'radial-gradient(ellipse at bottom,#0b1020 0%,#0f1724 60%,#071024 100%)',
-                'gradient_orange': 'linear-gradient(135deg,#ea580c 0%,#fb923c 45%,#ffd6a5 100%)',
-                'gradient_blue': 'var(--primary-gradient)',
-                'gradient_purple': 'linear-gradient(135deg,#581c87 0%,#7e22ce 50%,#581c87 100%)',
-                'gradient_green': 'linear-gradient(135deg,#166534 0%,#22c55e 50%,#166534 100%)',
-                'animated_gradient': 'linear-gradient(-45deg,#ee7752,#e73c7e,#23a6d5,#23d5ab)'
+                'gradient_blue':       'linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#1e3a8a 100%)',
+                'gradient_purple':     'linear-gradient(135deg,#581c87 0%,#7e22ce 50%,#581c87 100%)',
+                'gradient_orange':     'linear-gradient(135deg,#ea580c 0%,#fb923c 50%,#ea580c 100%)',
+                'gradient_green':      'linear-gradient(135deg,#166534 0%,#22c55e 50%,#166534 100%)',
+                'gradient_black':      'linear-gradient(135deg,#000000 0%,#111111 50%,#000000 100%)',
+                'sunset_blur':         'linear-gradient(135deg,#ff5f6d 0%,#ff9966 45%,#ffd6a5 100%)',
+                'neon_pulse':          'linear-gradient(-45deg,#7c3aed 0%,#00f5a0 50%,#ff6b6b 100%)',
+                'stellar_night':       'radial-gradient(ellipse at bottom,#0b1020 0%,#0f1724 60%,#071024 100%)',
+                'animated_gradient':   'linear-gradient(-45deg,#ee7752,#e73c7e,#23a6d5,#23d5ab)',
+                'particles':           'linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 100%)',
+                'waves':               'linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%)',
+                'video':               'linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)',
             };
             el.style.background = map[styleVal] || 'var(--primary-gradient)';
         }
@@ -2353,7 +2357,9 @@
         }
 
         // Wire inputs to preview updates
-        [bannerTitle, bannerContent, bannerAnnouncement, bannerBgSelect].forEach(el => el && el.addEventListener('input', updateBannerPreview));
+        [bannerTitle, bannerContent, bannerAnnouncement].forEach(el => el && el.addEventListener('input', updateBannerPreview));
+        // Select elements fire 'change', not 'input', so wire both to be safe
+        if (bannerBgSelect) { bannerBgSelect.addEventListener('change', updateBannerPreview); bannerBgSelect.addEventListener('input', updateBannerPreview); }
         [aboutTitle, aboutContent].forEach(el => el && el.addEventListener('input', updateAboutPreview));
         [contactPhone, contactEmail, contactSocial].forEach(el => el && el.addEventListener('input', updateContactPreview));
 

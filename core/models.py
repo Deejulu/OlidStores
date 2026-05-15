@@ -146,6 +146,7 @@ class SiteContent(models.Model):
 		("gradient_purple", "Purple Gradient"),
 		("gradient_orange", "Orange Sunset Gradient"),
 		("gradient_green", "Green Gradient"),
+		("gradient_black", "Pure Black"),
 		("animated_gradient", "Animated Rainbow Gradient"),
 		("particles", "Particle Animation"),
 		("waves", "Animated Waves"),

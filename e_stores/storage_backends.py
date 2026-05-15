@@ -48,6 +48,8 @@ class SupabaseStorage(Storage):
 
     def _clean_name(self, name):
         """Clean and normalize the file path."""
+        # Convert Windows backslashes to forward slashes (Supabase requires /)
+        name = name.replace('\\', '/')
         # Remove leading slashes
         return name.lstrip('/')
 

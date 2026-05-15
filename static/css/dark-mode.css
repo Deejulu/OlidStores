@@ -1115,6 +1115,7 @@
         --gray-900: #171717 !important;
         --white: #FFFFFF !important;
     }
+}
 
 /* ======================================================
    DARK MODE — Comprehensive template-specific overrides
@@ -1616,4 +1617,120 @@
     [data-theme="dark"] .action-item { width: 34px !important; height: 34px !important; }
     [data-theme="dark"] .floating-cart { width: 46px !important; height: 46px !important; }
     [data-theme="dark"] .back-to-top   { width: 36px !important; height: 36px !important; }
+}
+
+/* ================================================================
+   VISIBILITY FIXES — Ensures all text is readable in both modes
+   Fixes: logo, nav hover, announcement bar, search btn, hero title
+   ================================================================ */
+
+/* ── Logo: always bright in dark mode regardless of selected theme ──
+   Without this, themes like gradient_black (#333→#111) make the "Olid"
+   wordmark invisible against the dark header background.               */
+[data-theme="dark"] .logo-olid {
+    background: linear-gradient(135deg, var(--theme-accent-light, #f4d06f) 20%, var(--theme-accent, #D4AF37) 80%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+[data-theme="dark"] .logo-tagline {
+    color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* ── Desktop nav links — hover & active must beat base.html !important ──
+   base.html @media(min-width:992px) sets hover color to var(--accent-dark)
+   which for dark themes (gradient_black = #111111) is invisible on dark bg.  */
+@media (min-width: 992px) {
+    [data-theme="dark"] .nav-link {
+        color: rgba(240, 240, 240, 0.9) !important;
+    }
+    [data-theme="dark"] .nav-link:hover,
+    [data-theme="dark"] .nav-link.active {
+        color: var(--theme-accent, #D4AF37) !important;
+    }
+    [data-theme="dark"] .nav-link:hover::after,
+    [data-theme="dark"] .nav-link.active::after {
+        background: var(--theme-accent, #D4AF37) !important;
+    }
+}
+
+/* ── Announcement bar — fix inverted colors in dark mode ──
+   var(--gradient-dark) uses --gray-900 & --black which dark-mode.css
+   inverts to near-white (#f8f8f8 → #fff), making the bar look like
+   a white strip with dark text (reversed). Fix to proper dark style. */
+[data-theme="dark"] .announcement-bar {
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%) !important;
+    color: #d8d8d8 !important;
+}
+[data-theme="dark"] .announcement-item {
+    color: #b8b8b8 !important;
+}
+[data-theme="dark"] .announcement-item i {
+    color: var(--theme-accent, #D4AF37) !important;
+}
+
+/* ── Search button — bright icon/bg in dark mode ──
+   base.html .search-button uses var(--accent-color) background and
+   var(--white) for icon color. Both become dark in dark+dark-theme → invisible. */
+[data-theme="dark"] .search-button {
+    background: linear-gradient(135deg, var(--theme-accent, #D4AF37) 0%, var(--theme-accent-light, #f4d06f) 100%) !important;
+    color: #0a0a0a !important;
+    box-shadow: 0 2px 8px rgba(var(--theme-accent-rgb, 212, 175, 55), 0.4) !important;
+}
+[data-theme="dark"] .search-button i {
+    color: #0a0a0a !important;
+}
+
+/* ── Hero title — fix gradient starting with var(--white) = #0d0d0d in dark mode ──
+   The .hero-title uses background-clip:text with var(--white) start colour.
+   Dark mode overrides --white to #0d0d0d (near-black), making the gradient
+   start near-invisible against a dark hero background. */
+[data-theme="dark"] .hero-title {
+    background: linear-gradient(135deg, #ffffff 0%, var(--theme-accent-light, #f4d06f) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+[data-theme="dark"] .hero-subtitle {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+/* ── Headings on explicitly dark section backgrounds ──
+   Some sections set a dark background via inline style or class while
+   not applying a light text colour, causing dark-on-dark renders.    */
+[data-theme="dark"] .hero-badge,
+[data-theme="dark"] .hero-badge span {
+    color: var(--theme-accent, #D4AF37) !important;
+}
+[data-theme="dark"] .hero-features .feature-item span {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+/* ── Light mode: hero & section titles always visible on dark home-page backgrounds ──
+   Themes like gradient_black set --accent-light = #333333, making gradient-text fade
+   to dark grey on a black hero/section background. Force pure white gradient which is
+   always readable on any dark canvas.                                                 */
+html:not([data-theme="dark"]) .hero-title,
+html:not([data-theme="dark"]) .section-title {
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ── Dark mode: section titles — override gradient-text with solid white ──
+   home.html .section-title uses background-clip:text with var(--white) which
+   in dark mode = #0d0d0d → near-invisible on dark section backgrounds.        */
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .page-title {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+}
+[data-theme="dark"] .section-subtitle,
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .lead {
+    color: #c0c0c0 !important;
 }

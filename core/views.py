@@ -281,13 +281,12 @@ class GalleryView(TemplateView):
     def get_context_data(self, **kwargs):
         from products.models import Product, ProductImage
         context = super().get_context_data(**kwargs)
-        # Get all product images, or fallback to products if none exist
         product_images = ProductImage.objects.select_related('product').all()
         if product_images.exists():
             context['gallery_images'] = list(product_images)
         else:
-            # fallback: show all products (even if no image)
-            context['gallery_products'] = Product.objects.all()
+            # Fallback: only products that actually have an image
+            context['gallery_products'] = Product.objects.exclude(image='').exclude(image__isnull=True)
         return context
 
 

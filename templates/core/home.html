@@ -153,6 +153,10 @@
             background-size: 400% 400%;
             animation: neonShift 10s ease infinite;
         }
+    {% elif banner_background_style == 'gradient_black' %}
+        .hero-background {
+            background: linear-gradient(135deg, #000000 0%, #111111 50%, #000000 100%);
+        }
     {% elif banner_background_style == 'stellar_night' %}
         .hero-background {
             background: radial-gradient(ellipse at bottom, #0b1020 0%, #0f1724 60%, #071024 100%);
@@ -173,6 +177,10 @@
     {% elif banner_background_style == 'waves' %}
         .hero-background {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+    {% elif banner_background_style == 'video' %}
+        .hero-background {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         }
     {% else %}
         .hero-background {
@@ -207,17 +215,22 @@
         inset: 0;
         background-image:
             radial-gradient(white 1px, transparent 1px),
-            radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px);
+            radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
         background-size: 6px 6px, 120px 120px;
         background-position: 0 0, 40px 60px;
-        opacity: .06;
-        animation: starTwinkle 6s linear infinite;
+        opacity: .35;
+        animation: starTwinkle 6s ease-in-out infinite;
         pointer-events: none;
     }
     @keyframes starTwinkle {
-        0%,100% { opacity: .03; transform: translateY(0); }
-        50% { opacity: .12; transform: translateY(-2px); }
+        0%,100% { opacity: .25; transform: translateY(0); }
+        50% { opacity: .55; transform: translateY(-2px); }
     }
+    {% endif %}
+
+    {% if banner_background_style == 'gradient_black' %}
+    /* Hide the coloured floating orbs so the background stays pure black */
+    .hero-shapes { display: none; }
     {% endif %}
     
     {% if banner_background_style == 'particles' %}
