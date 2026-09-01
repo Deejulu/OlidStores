@@ -107,23 +107,10 @@ def process_paystack_webhook(payload):
             if order.status == 'Pending':
                 order.status = 'Processing'
                 order.save()
-                
-                # Send confirmation email/notification if needed
-                try:
-                    from django.core.mail import send_mail
-                    from django.conf import settings
-                    
-                    if order.email:
-                        send_mail(
-                            f'Payment Confirmed - Order #{order.id}',
-                            f'Your payment has been confirmed. Your order is now being processed.',
-                            settings.DEFAULT_FROM_EMAIL,
-                            [order.email],
-                            fail_silently=True,
-                        )
-                except Exception:
-                    pass  # Don't fail webhook if email fails
-                
+
+                # Send branded confirmation email
+                _send_order_confirmation_email(order)
+
                 return (True, f'payment confirmed, order #{order.id} updated to Processing')
             else:
                 return (True, f'payment confirmed, order #{order.id} already {order.status}')
@@ -211,4 +198,83 @@ def reverse_order_stock(order):
 			'message': f'Error reversing stock: {str(e)}',
 			'reversed_items': []
 		}
+
+
+def _send_order_confirmation_email(order):
+	"""Send branded HTML order confirmation email."""
+	try:
+		from django.core.mail import EmailMultiAlternatives
+		from django.conf import settings
+		from django.template.loader import render_to_string
+		from django.http import HttpRequest
+
+		if not order.email:
+			return
+
+		# Build a fake request for template context
+		request = HttpRequest()
+		request.META['HTTP_HOST'] = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
+
+		context = {
+			'order': order,
+			'subject': f'Payment Confirmed - Order #{order.id}',
+			'site_name': getattr(settings, 'SITE_NAME', 'Olid Stores'),
+			'footer_text': '',
+			'request': request,
+		}
+
+		html_content = render_to_string('emails/payment_confirmed.html', context)
+		text_content = f"Your payment for Order #{order.id} has been confirmed. Your order is now being processed."
+
+		msg = EmailMultiAlternatives(
+			subject=f'Payment Confirmed - Order #{order.id}',
+			body=text_content,
+			from_email=settings.DEFAULT_FROM_EMAIL,
+			to=[order.email],
+		)
+		msg.attach_alternative(html_content, "text/html")
+		msg.send(fail_silently=True)
+	except Exception:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.exception(f"Failed to send order confirmation email for order {order.id}")
+
+
+def send_order_shipped_email(order):
+	"""Send branded HTML order shipped notification."""
+	try:
+		from django.core.mail import EmailMultiAlternatives
+		from django.conf import settings
+		from django.template.loader import render_to_string
+		from django.http import HttpRequest
+
+		if not order.email:
+			return
+
+		request = HttpRequest()
+		request.META['HTTP_HOST'] = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
+
+		context = {
+			'order': order,
+			'subject': f'Order Shipped - Order #{order.id}',
+			'site_name': getattr(settings, 'SITE_NAME', 'Olid Stores'),
+			'footer_text': '',
+			'request': request,
+		}
+
+		html_content = render_to_string('emails/order_shipped.html', context)
+		text_content = f"Your order #{order.id} has been shipped and is on its way!"
+
+		msg = EmailMultiAlternatives(
+			subject=f'Order Shipped - Order #{order.id}',
+			body=text_content,
+			from_email=settings.DEFAULT_FROM_EMAIL,
+			to=[order.email],
+		)
+		msg.attach_alternative(html_content, "text/html")
+		msg.send(fail_silently=True)
+	except Exception:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.exception(f"Failed to send order shipped email for order {order.id}")
 

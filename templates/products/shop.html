@@ -758,6 +758,11 @@
             opacity: 0;
             transform: translateX(24px);
         }
+
+        .product-card:hover .product-actions {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
     .action-btn {
@@ -1683,6 +1688,54 @@
         opacity: 1;
     }
 
+    .quick-view-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .quick-view-main-img {
+        width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: var(--border-radius);
+        background: var(--surface-2);
+    }
+
+    .quick-view-thumbs {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    .quick-view-thumb {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: var(--border-radius-sm);
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        flex-shrink: 0;
+    }
+
+    .quick-view-thumb:hover,
+    .quick-view-thumb:focus {
+        border-color: var(--primary);
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 480px) {
+        .quick-view-main-img {
+            max-height: 260px;
+        }
+        .quick-view-thumb {
+            width: 48px;
+            height: 48px;
+        }
+    }
+
     /* Utility Classes */
     .container {
         width: 100%;
@@ -2135,9 +2188,9 @@
                                         data-wishlisted="{% if product in user_wishlist %}true{% else %}false{% endif %}">
                                     <i class="bi {% if product in user_wishlist %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
                                 </button>
-                                <a href="{% url 'products:product_detail' slug=product.slug %}" class="action-btn">
+                                <button type="button" class="action-btn" onclick="quickView('{{ product.id }}')" title="Quick View">
                                     <i class="bi bi-eye"></i>
-                                </a>
+                                </button>
                             </div>
                         </div>
                         

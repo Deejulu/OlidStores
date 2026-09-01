@@ -13,7 +13,7 @@
     <text x="40" y="160" font-size="140" font-weight="700">Olid</text>
   </g>
   <g font-family="Poppins, Arial, sans-serif" fill="#2a2a2a">
-    <text x="470" y="160" font-size="52" font-weight="700">STORES</text>
+    <text x="470" y="160" font-size="52" font-weight="700">Stores</text>
   </g>
   <g>
     <rect x="0" y="0" width="180" height="180" rx="22" fill="url(#gold)" />

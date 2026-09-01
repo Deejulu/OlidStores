@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PDF to Word Converter | {{ site_name|default:"Olid Stores" }}{% endblock %}
+{% block meta_description %}Convert your PDF files to editable Word documents online for free. Preserves images and formatting.{% endblock %}
+
+{% block extra_css %}
+<style>
+    .converter-page {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .converter-page::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+        border-radius: 50%;
+        opacity: 0.06;
+        z-index: 0;
+    }
+
+    .converter-page::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 600px;
+        height: 600px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        border-radius: 50%;
+        opacity: 0.04;
+        z-index: 0;
+    }
+
+    .converter-page .converter-container {
+        position: relative;
+        z-index: 1;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .converter-page .converter-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .converter-page .converter-card h1 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        color: #0d0d0d;
+        margin-bottom: 0.5rem;
+    }
+
+    .converter-page .converter-card .subtitle {
+        color: #6b7280;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .converter-page .upload-area {
+        border: 2px dashed #d4d4d4;
+        border-radius: 12px;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        transition: all 0.25s ease;
+        background: #fafafa;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .converter-page .upload-area:hover,
+    .converter-page .upload-area.dragover {
+        border-color: var(--primary-color);
+        background: rgba(139, 115, 85, 0.03);
+    }
+
+    .converter-page .upload-area input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .converter-page .upload-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .converter-page .upload-text {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+
+    .converter-page .upload-hint {
+        font-size: 0.85rem;
+        color: #9ca3af;
+    }
+
+    .converter-page .btn-convert {
+        background: var(--gradient-primary);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.85rem 2.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+        margin-top: 1.5rem;
+    }
+
+    .converter-page .btn-convert:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        color: #fff;
+    }
+
+    .converter-page .btn-convert:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .converter-page .progress-wrapper {
+        margin-top: 1.5rem;
+        display: none;
+    }
+
+    .converter-page .progress-wrapper.active {
+        display: block;
+    }
+
+    .converter-page .progress-bar-container {
+        background: #e5e7eb;
+        border-radius: 999px;
+        height: 10px;
+        overflow: hidden;
+    }
+
+    .converter-page .progress-bar-fill {
+        height: 100%;
+        background: var(--gradient-primary);
+        border-radius: 999px;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .converter-page .progress-text {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    .converter-page .result-card {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: none;
+    }
+
+    .converter-page .result-card.success {
+        display: block;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+    }
+
+    .converter-page .result-card.error {
+        display: block;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+    }
+
+    .converter-page .result-card h3 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+    }
+
+    .converter-page .result-card.success h3 { color: #065f46; }
+    .converter-page .result-card.error h3 { color: #991b1b; }
+
+    .converter-page .btn-download {
+        display: inline-block;
+        background: #065f46;
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.75rem 2rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .converter-page .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(6, 95, 70, 0.25);
+        color: #fff;
+    }
+
+    .converter-page .file-name-display {
+        margin-top: 1rem;
+        font-weight: 600;
+        color: #374151;
+        word-break: break-all;
+    }
+
+    .converter-page .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 0.5rem;
+        vertical-align: middle;
+    }
+
+    .converter-page .btn-edit {
+        display: inline-block;
+        background: #4f46e5;
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.75rem 2rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+        margin-top: 1rem;
+        margin-right: 0.5rem;
+    }
+
+    .converter-page .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+        color: #fff;
+    }
+
+    .converter-page .editor-textarea {
+        width: 100%;
+        min-height: 400px;
+        border-radius: 12px;
+        border: 1px solid #d4d4d4;
+        padding: 1rem;
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        line-height: 1.7;
+        resize: vertical;
+        margin-top: 1rem;
+    }
+
+    .converter-page .editor-toolbar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+
+    .converter-page .editor-toolbar button {
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: 1px solid #d4d4d4;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .converter-page .editor-toolbar button:hover {
+        background: #f5f5f5;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Dark mode overrides for converter page */
+    [data-theme="dark"] .converter-page {
+        background: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
+    }
+
+    [data-theme="dark"] .converter-page .converter-card {
+        background: #1e1e1e;
+        border-color: rgba(255,255,255,0.07);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    [data-theme="dark"] .converter-page .converter-card h1 {
+        color: #f0f0f0;
+    }
+
+    [data-theme="dark"] .converter-page .converter-card .subtitle {
+        color: #b8b8b8;
+    }
+
+    [data-theme="dark"] .converter-page .upload-area {
+        border-color: rgba(255,255,255,0.12);
+        background: #161616;
+    }
+
+    [data-theme="dark"] .converter-page .upload-area:hover,
+    [data-theme="dark"] .converter-page .upload-area.dragover {
+        border-color: var(--theme-accent);
+        background: rgba(var(--theme-accent-rgb,255,215,0), 0.06);
+    }
+
+    [data-theme="dark"] .converter-page .upload-icon {
+        color: var(--theme-accent);
+    }
+
+    [data-theme="dark"] .converter-page .upload-text {
+        color: #e8e8e8;
+    }
+
+    [data-theme="dark"] .converter-page .upload-hint {
+        color: #8a8a8a;
+    }
+
+    [data-theme="dark"] .converter-page .progress-bar-container {
+        background: #2a2a2a;
+    }
+
+    [data-theme="dark"] .converter-page .progress-text {
+        color: #b8b8b8;
+    }
+
+    [data-theme="dark"] .converter-page .file-name-display {
+        color: #d8d8d8;
+    }
+
+    [data-theme="dark"] .converter-page .editor-textarea {
+        background: #161616;
+        border-color: rgba(255,255,255,0.1);
+        color: #f0f0f0;
+    }
+
+    [data-theme="dark"] .converter-page .editor-toolbar button {
+        background: #262626;
+        border-color: rgba(255,255,255,0.1);
+        color: #d8d8d8;
+    }
+
+    [data-theme="dark"] .converter-page .editor-toolbar button:hover {
+        background: #333333;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="converter-page">
+    <div class="converter-container">
+        <div class="converter-card">
+            <h1><i class="bi bi-file-earmark-word me-2"></i>Document Converter</h1>
+            <p class="subtitle">Convert your PDF or Word (.docx) files. Images and layout are preserved. You can also edit a Word document directly in your browser.</p>
+
+            <form id="convertForm" method="post" enctype="multipart/form-data" action="{% url 'doc_converter:upload' %}">
+                {% csrf_token %}
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" name="file" id="fileInput" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+                    <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                    <div class="upload-text">Drag & drop your PDF or Word file here, or click to browse</div>
+                    <div class="upload-hint">Maximum file size: 20MB</div>
+                </div>
+
+                <div class="file-name-display" id="fileNameDisplay"></div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-convert" id="convertBtn" disabled>
+                        <span id="convertBtnText">Convert</span>
+                    </button>
+                    <button type="button" class="btn btn-edit" id="editBtn" style="display:none;">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Document
+                    </button>
+                </div>
+
+                <div class="progress-wrapper" id="progressWrapper">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Converting... Please wait.</div>
+                </div>
+
+                <div class="result-card" id="resultCard">
+                    <h3 id="resultTitle"></h3>
+                    <p id="resultMessage"></p>
+                    <a href="#" class="btn-download" id="downloadBtn" style="display:none;">
+                        <i class="bi bi-download me-1"></i> <span id="downloadBtnText">Download</span>
+                    </a>
+                </div>
+            </form>
+
+            <div id="editorSection" style="display:none; margin-top: 2rem;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 style="margin:0; font-family: var(--font-heading); font-weight:700; color:#0d0d0d;">
+                        <i class="bi bi-pencil-square me-2"></i>Edit Document
+                    </h3>
+                    <div>
+                        <button type="button" class="btn btn-convert" id="saveEditBtn" style="margin-top:0;">
+                            <i class="bi bi-download me-1"></i> Save & Download
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="cancelEditBtn" style="margin-top:0; border-radius:999px; padding:0.85rem 1.5rem; font-weight:700;">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <p style="color:#6b7280; font-size:0.9rem; margin-bottom:0.5rem;">
+                    Edit the text below. Use <strong>[H1]</strong> to <strong>[H3]</strong> for headings, and <strong>**text**</strong> for bold.
+                </p>
+                <textarea id="editorTextarea" class="editor-textarea" placeholder="Document text will appear here..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const form = document.getElementById('convertForm');
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const convertBtn = document.getElementById('convertBtn');
+    const convertBtnText = document.getElementById('convertBtnText');
+    const editBtn = document.getElementById('editBtn');
+    const progressWrapper = document.getElementById('progressWrapper');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const resultCard = document.getElementById('resultCard');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultMessage = document.getElementById('resultMessage');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadBtnText = document.getElementById('downloadBtnText');
+    const editorSection = document.getElementById('editorSection');
+    const editorTextarea = document.getElementById('editorTextarea');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+    let currentTaskId = null;
+    let currentFileType = null;
+
+    function updateFileName() {
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            fileNameDisplay.textContent = 'Selected: ' + file.name;
+            convertBtn.disabled = false;
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (ext === 'docx') {
+                convertBtnText.textContent = 'Convert to PDF';
+                editBtn.style.display = 'inline-block';
+            } else if (ext === 'pdf') {
+                convertBtnText.textContent = 'Convert to Word';
+                editBtn.style.display = 'none';
+            } else {
+                convertBtnText.textContent = 'Convert';
+                editBtn.style.display = 'none';
+            }
+        } else {
+            fileNameDisplay.textContent = '';
+            convertBtn.disabled = true;
+            convertBtnText.textContent = 'Convert';
+            editBtn.style.display = 'none';
+        }
+    }
+
+    fileInput.addEventListener('change', updateFileName);
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, function() {
+            uploadArea.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, function() {
+            uploadArea.classList.remove('dragover');
+        });
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            updateFileName();
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!fileInput.files || !fileInput.files[0]) {
+            return;
+        }
+
+        const formData = new FormData(form);
+        convertBtn.disabled = true;
+        editBtn.style.display = 'none';
+        convertBtnText.innerHTML = '<span class="spinner"></span> Converting...';
+        progressWrapper.classList.add('active');
+        progressBar.style.width = '10%';
+        progressText.textContent = 'Uploading and converting... This may take a moment for larger files.';
+        resultCard.className = 'result-card';
+        resultCard.style.display = 'none';
+        editorSection.style.display = 'none';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', form.action, true);
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 30);
+                progressBar.style.width = pct + '%';
+            }
+        };
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                progressBar.style.width = '100%';
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            currentTaskId = data.task_id;
+                            currentFileType = data.file_type;
+                            progressText.textContent = 'Conversion complete!';
+                            resultTitle.textContent = 'Success!';
+                            if (data.file_type === 'pdf') {
+                                resultMessage.textContent = 'Your Word document has been converted to PDF. Click below to download.';
+                                downloadBtnText.textContent = 'Download PDF';
+                            } else {
+                                resultMessage.textContent = 'Your PDF has been converted to Word. Click below to download.';
+                                downloadBtnText.textContent = 'Download Word (.docx)';
+                            }
+                            downloadBtn.href = data.download_url;
+                            downloadBtn.style.display = 'inline-block';
+                            resultCard.className = 'result-card success';
+                            resultCard.style.display = 'block';
+                            if (data.file_type === 'docx') {
+                                editBtn.style.display = 'inline-block';
+                                editBtn.textContent = 'Edit Document';
+                            }
+                        } else {
+                            progressText.textContent = 'Conversion failed.';
+                            resultTitle.textContent = 'Error';
+                            resultMessage.textContent = data.error || 'Something went wrong. Please try again.';
+                            resultCard.className = 'result-card error';
+                            resultCard.style.display = 'block';
+                            downloadBtn.style.display = 'none';
+                            editBtn.style.display = 'none';
+                        }
+                    } catch (err) {
+                        progressText.textContent = 'Unexpected response.';
+                        resultTitle.textContent = 'Error';
+                        resultMessage.textContent = 'Please try again later.';
+                        resultCard.className = 'result-card error';
+                        resultCard.style.display = 'block';
+                        downloadBtn.style.display = 'none';
+                        editBtn.style.display = 'none';
+                    }
+                } else {
+                    progressText.textContent = 'Conversion failed.';
+                    resultTitle.textContent = 'Error';
+                    resultMessage.textContent = 'Please try again later.';
+                    resultCard.className = 'result-card error';
+                    resultCard.style.display = 'block';
+                    downloadBtn.style.display = 'none';
+                    editBtn.style.display = 'none';
+                }
+                convertBtn.disabled = false;
+                convertBtnText.textContent = 'Convert';
+            }
+        };
+
+        xhr.send(formData);
+    });
+
+    editBtn.addEventListener('click', function() {
+        if (!currentTaskId) {
+            return;
+        }
+        editBtn.disabled = true;
+        editBtn.innerHTML = '<span class="spinner"></span> Loading...';
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/tools/pdf-to-word/edit/' + currentTaskId + '/', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                editBtn.disabled = false;
+                editBtn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Edit Document';
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            editorTextarea.value = data.text || '';
+                            editorSection.style.display = 'block';
+                            editorTextarea.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        } else {
+                            alert(data.error || 'Failed to load document for editing.');
+                        }
+                    } catch (err) {
+                        alert('Unexpected response. Please try again.');
+                    }
+                } else {
+                    alert('Failed to load document for editing.');
+                }
+            }
+        };
+        xhr.send();
+    });
+
+    saveEditBtn.addEventListener('click', function() {
+        if (!currentTaskId) {
+            return;
+        }
+        saveEditBtn.disabled = true;
+        saveEditBtn.innerHTML = '<span class="spinner"></span> Saving...';
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/tools/pdf-to-word/save-edited/', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                saveEditBtn.disabled = false;
+                saveEditBtn.innerHTML = '<i class="bi bi-download me-1"></i> Save & Download';
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            window.location.href = data.download_url;
+                        } else {
+                            alert(data.error || 'Failed to save edited document.');
+                        }
+                    } catch (err) {
+                        alert('Unexpected response. Please try again.');
+                    }
+                } else {
+                    alert('Failed to save edited document.');
+                }
+            }
+        };
+        xhr.send(JSON.stringify({task_id: currentTaskId, text: editorTextarea.value}));
+    });
+
+    cancelEditBtn.addEventListener('click', function() {
+        editorSection.style.display = 'none';
+    });
+})();
+</script>
+{% endblock %}

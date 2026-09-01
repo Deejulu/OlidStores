@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,9 +22,39 @@ if ENV_PATH.exists():
             if key and not os.getenv(key):
                 os.environ[key] = value
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-please-change-this-key')
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
+# SECURITY WARNING: keep the secret key used in production secret!
+# Fail loudly at startup if SECRET_KEY is not set via environment variable
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        'DJANGO_SECRET_KEY environment variable is required. '
+        'Set it in your .env file or environment before starting the server.'
+    )
+
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG defaults to False — only enable via explicit env var in local development
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('1', 'true', 'yes')
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',') if host.strip()]
+
+# CSRF Trusted Origins — required for HTTPS proxies (Render) and local dev
+# In production on Render, set RENDER_EXTERNAL_URL or CSRF_TRUSTED_ORIGINS env var
+CSRF_TRUSTED_ORIGINS = [
+    'https://olidstores.onrender.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+# Allow env var to override/add additional origins
+env_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if env_origins:
+    for origin in env_origins.split(','):
+        origin = origin.strip()
+        if origin and origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
+
+# Auto-detect Render's external URL if not explicitly configured
+RENDER_EXTERNAL_URL = os.getenv('RENDER_EXTERNAL_URL', '')
+if RENDER_EXTERNAL_URL and RENDER_EXTERNAL_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(RENDER_EXTERNAL_URL)
 
 INSTALLED_APPS = [
 	'django.contrib.admin',
@@ -37,6 +68,7 @@ INSTALLED_APPS = [
 	'orders.apps.OrdersConfig',
 	'users',
 	'admin_dashboard',
+	'doc_converter',
 	'crispy_forms',
 	'crispy_bootstrap5',
 	'axes',  # Login rate limiting and brute force protection
@@ -238,10 +270,16 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Paystack keys (IMPORTANT: Set via environment variables in production)
-# Default test keys are provided for local development only
-PAYSTACK_PUBLIC = os.getenv('PAYSTACK_PUBLIC_KEY', 'pk_test_ab035140620358b854be0559e4aad67b3a85877a')
-PAYSTACK_SECRET = os.getenv('PAYSTACK_SECRET_KEY', 'sk_test_4791378c14596cb054f5eb4ce11e78fa55b55a23')
+# Paystack keys — MUST be set via environment variables, no hardcoded defaults
+PAYSTACK_PUBLIC = os.getenv('PAYSTACK_PUBLIC_KEY', '')
+PAYSTACK_SECRET = os.getenv('PAYSTACK_SECRET_KEY', '')
+
+if not PAYSTACK_PUBLIC or not PAYSTACK_SECRET:
+    import warnings
+    warnings.warn(
+        'Paystack keys are not configured. Set PAYSTACK_PUBLIC_KEY and '
+        'PAYSTACK_SECRET_KEY environment variables to enable payments.'
+    )
 
 # Contact page settings
 CONTACT_NOTIFY_EMAIL = os.getenv('CONTACT_NOTIFY_EMAIL', '')
@@ -266,13 +304,13 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() in ('1', 'true', 'ye
 
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY', '')
 SENDGRID_SENDER_EMAIL = os.getenv('SENDGRID_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
-SENDGRID_SENDER_NAME = os.getenv('SENDGRID_SENDER_NAME', 'E-Stores')
+SENDGRID_SENDER_NAME = os.getenv('SENDGRID_SENDER_NAME', 'Olid Stores')
 BREVO_API_KEY = os.getenv('BREVO_API_KEY', '')
 BREVO_SENDER_EMAIL = os.getenv('BREVO_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
-BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'E-Stores')
+BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'Olid Stores')
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 RESEND_SENDER_EMAIL = os.getenv('RESEND_SENDER_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
-RESEND_SENDER_NAME = os.getenv('RESEND_SENDER_NAME', 'E-Stores')
+RESEND_SENDER_NAME = os.getenv('RESEND_SENDER_NAME', 'Olid Stores')
 EMAIL_SEND_TIMEOUT = int(os.getenv('EMAIL_SEND_TIMEOUT', '10'))
 
 # Default from email
@@ -280,7 +318,7 @@ DEFAULT_FROM_EMAIL = os.getenv(
     'DEFAULT_FROM_EMAIL',
     SENDGRID_SENDER_EMAIL or BREVO_SENDER_EMAIL or RESEND_SENDER_EMAIL or EMAIL_HOST_USER or 'webmaster@localhost'
 )
-EMAIL_SUBJECT_PREFIX = os.getenv('EMAIL_SUBJECT_PREFIX', '[E-Stores] ')
+EMAIL_SUBJECT_PREFIX = os.getenv('EMAIL_SUBJECT_PREFIX', '[Olid Stores] ')
 
 # Twilio SMS Configuration
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
@@ -293,28 +331,40 @@ OTP_MAX_ATTEMPTS = 5
 # Set to True to print OTP codes instead of sending real emails
 OTP_DEBUG_MODE = os.getenv('OTP_DEBUG_MODE', 'False').lower() in ('1', 'true', 'yes')
 
-# Production Security Settings (only enabled when DEBUG=False)
+# =============================================================================
+# PRODUCTION SECURITY SETTINGS (HTTPS-only)
+# =============================================================================
+# These settings are ONLY active when DEBUG=False (production on Render).
+# When DEBUG=True (local development), they are all skipped so the dev server
+# works over plain HTTP at http://127.0.0.1:8000 without CSRF/SSL issues.
+#
+# IMPORTANT: Do NOT hardcode these to True — it breaks local development.
+# If you previously ran with DEBUG=False locally, your browser may have HSTS
+# cached for 127.0.0.1. To fix ERR_SSL_PROTOCOL_ERROR:
+#   - Chrome: chrome://net-internals/#hsts → "Delete domain" 127.0.0.1
+#   - Firefox: Clear history → Active Logins / Site settings
+#   - Edge: edge://net-internals/#hsts → "Delete domain" 127.0.0.1
+# =============================================================================
 if not DEBUG:
-	# Force HTTPS
 	SECURE_SSL_REDIRECT = True
 	SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-	
-	# HSTS (HTTP Strict Transport Security)
+
+	# HSTS (HTTP Strict Transport Security) — tells browsers to always use HTTPS
 	SECURE_HSTS_SECONDS = 31536000  # 1 year
 	SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 	SECURE_HSTS_PRELOAD = True
-	
-	# Secure Cookies
+
+	# Secure Cookies — only sent over HTTPS
 	SESSION_COOKIE_SECURE = True
 	CSRF_COOKIE_SECURE = True
 	SESSION_COOKIE_HTTPONLY = True
 	CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read the CSRF token for AJAX requests (cart, wishlist, etc.)
-	
+
 	# Browser Security Headers
 	SECURE_BROWSER_XSS_FILTER = True
 	SECURE_CONTENT_TYPE_NOSNIFF = True
 	X_FRAME_OPTIONS = 'DENY'
-	
+
 	# Referrer Policy
 	SECURE_REFERRER_POLICY = 'same-origin'
 

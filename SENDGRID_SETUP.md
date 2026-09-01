@@ -33,11 +33,11 @@ Visit: https://app.sendgrid.com/settings/sender_auth/senders
 ### Step 2: Create a Single Sender
 1. Click **"Create New Sender"** button
 2. Fill in the form:
-   - **From Name**: E-Stores
+   - **From Name**: Olid Stores
    - **From Email Address**: daveed0011@gmail.com ← This is critical!
    - **Reply To**: daveed0011@gmail.com
    - **Company Address**: Your business address
-   - **Nickname**: E-Stores Main (for your reference)
+   - **Nickname**: Olid Stores Main (for your reference)
 
 ### Step 3: Verify Your Email
 1. SendGrid will send a verification email to **daveed0011@gmail.com**

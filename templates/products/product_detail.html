@@ -136,6 +136,41 @@
 {% block content %}
 {% csrf_token %}
 
+<!-- Product Structured Data (JSON-LD) -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": "{{ product.name|escapejs }}",
+    "image": {% if product.image %}"{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}"{% else %}null{% endif %},
+    "description": "{{ product.description|truncatewords:30|escapejs }}",
+    "sku": "{{ product.id }}",
+    "brand": {
+        "@type": "Brand",
+        "name": "{{ site_name|default:'Olid Stores'|escapejs }}"
+    },
+    "offers": {
+        "@type": "Offer",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ request.path }}",
+        "priceCurrency": "NGN",
+        "price": "{{ product.price }}",
+        "availability": "https://schema.org/{% if product.stock > 1 %}InStock{% elif product.stock == 1 %}LimitedAvailability{% else %}OutOfStock{% endif %}",
+        "seller": {
+            "@type": "Organization",
+            "name": "{{ site_name|default:'Olid Stores'|escapejs }}"
+        }
+    }
+    {% if product.average_rating > 0 %}
+    ,
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ product.average_rating|floatformat:1 }}",
+        "reviewCount": "{{ product.review_count }}"
+    }
+    {% endif %}
+}
+</script>
+
 <!-- Breadcrumb bar -->
 <div class="pd-breadcrumb">
   <div class="container">

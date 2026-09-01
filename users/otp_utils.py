@@ -21,9 +21,10 @@ def send_email_otp(email, otp_code, purpose='verification'):
     Returns:
         bool: True if sent successfully, False otherwise
     """
-    subject = f'Your E-Stores Verification Code: {otp_code}'
+    subject = f'Your Olid Stores Verification Code: {otp_code}'
     
     message = f"""
+
 Hello,
 
 Your verification code is: {otp_code}
@@ -33,9 +34,8 @@ This code will expire in {settings.OTP_EXPIRY_MINUTES} minutes.
 If you did not request this code, please ignore this email.
 
 Best regards,
-E-Stores Team
+Olid Stores Team
 """
-    
     html_message = f"""
 <!DOCTYPE html>
 <html>
@@ -52,7 +52,7 @@ E-Stores Team
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="margin: 0;">E-Stores</h1>
+            <h1 style="margin: 0;">Olid Stores</h1>
             <p style="margin: 5px 0 0;">Email Verification</p>
         </div>
         <div class="content">
@@ -63,7 +63,7 @@ E-Stores Team
             <p>If you did not request this code, please ignore this email.</p>
         </div>
         <div class="footer">
-            <p>&copy; E-Stores. All rights reserved.</p>
+            <p>&copy; Olid Stores. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -127,7 +127,7 @@ def send_sms_otp(phone, otp_code):
         client = Client(account_sid, auth_token)
         
         message = client.messages.create(
-            body=f"Your E-Stores verification code is: {otp_code}. Valid for {settings.OTP_EXPIRY_MINUTES} minutes.",
+            body=f"Your Olid Stores verification code is: {otp_code}. Valid for {settings.OTP_EXPIRY_MINUTES} minutes.",
             from_=from_number,
             to=phone
         )

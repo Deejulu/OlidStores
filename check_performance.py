@@ -1,5 +1,5 @@
 """
-Performance Check Script for E-Stores
+Performance Check Script for Olid Stores
 Run this to verify performance optimizations are working correctly.
 """
 import os
@@ -17,7 +17,7 @@ from users.models import CustomUser
 import time
 
 print("\n" + "="*70)
-print("E-STORES PERFORMANCE CHECK")
+print("Olid Stores PERFORMANCE CHECK")
 print("="*70 + "\n")
 
 # 1. Check Cache Configuration

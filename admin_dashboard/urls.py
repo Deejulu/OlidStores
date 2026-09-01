@@ -6,13 +6,13 @@ from .views import (
     product_list, product_create, product_edit, product_delete, product_toggle, product_populate_sample, product_remove_sample, product_bulk_create,
     category_list, category_create, category_edit, category_delete, category_toggle, category_populate_sample, category_remove_sample,
     order_list, order_detail,
-    customer_list, customer_detail, add_customer, verify_customer_otp,
+    customer_list, customer_detail, add_customer, verify_customer_otp, admin_credentials, admin_credentials_download,
     analytics_dashboard, generate_sample_data, send_analytics_report, compute_daily_metrics_view,
     content_manage,
-    feedback_list, notification_list, contact_message_list, mark_all_notifications_read,
+    feedback_list, notification_list, mark_all_notifications_read,
     pending_orders_view, payments_dashboard_view, payment_detail_view, payment_print_slip,
     chat_conversation_list, chat_conversation_detail, chat_admin_poll,
-    auto_reply_manage,
+    auto_reply_manage, populate_sample_data_full, delete_sample_data_full,
 )
 
 
@@ -22,6 +22,10 @@ urlpatterns = [
     path('test/', test_admin_dashboard, name='admin_dashboard_test'),
     path('', dashboard_home, name='dashboard_home'),
     path('profile/', admin_profile, name='admin_profile'),
+    # Unified Sample Data
+    path('sample-data/populate/', populate_sample_data_full, name='populate_sample_data_full'),
+    path('sample-data/delete/', delete_sample_data_full, name='delete_sample_data_full'),
+    # Products
     path('products/', product_list, name='product_list'),
     path('products/add/', product_create, name='product_create'),
     path('products/bulk-add/', product_bulk_create, name='product_bulk_create'),
@@ -49,6 +53,8 @@ urlpatterns = [
     # Customers
     path('customers/', customer_list, name='customer_list'),
     path('customers/add/', add_customer, name='add_customer'),
+    path('customers/credentials/', admin_credentials, name='admin_credentials'),
+    path('customers/credentials/download/', admin_credentials_download, name='admin_credentials_download'),
     path('customers/verify-otp/', verify_customer_otp, name='verify_customer_otp'),
     path('customers/<int:pk>/', customer_detail, name='customer_detail'),
     # Analytics
@@ -60,7 +66,6 @@ urlpatterns = [
     path('content/', content_manage, name='content_manage'),
     path('feedback/', feedback_list, name='feedback_list'),
     path('notifications-admin/', notification_list, name='notification_list'),
-    path('contact-messages/', contact_message_list, name='contact_message_list'),
     path('notifications/clear-all/', mark_all_notifications_read, name='mark_all_notifications_read'),
     # Live Chat
     path('chat/', chat_conversation_list, name='chat_list'),

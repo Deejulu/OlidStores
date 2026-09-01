@@ -94,6 +94,42 @@ class AddCustomerForm(forms.ModelForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm Password'}),
         label='Confirm Password'
     )
+    security_question_1 = forms.ChoiceField(
+        choices=[],
+        required=True,
+        label='Security Question 1',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    security_answer_1 = forms.CharField(
+        max_length=255,
+        required=True,
+        label='Answer 1',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your answer'})
+    )
+    security_question_2 = forms.ChoiceField(
+        choices=[],
+        required=True,
+        label='Security Question 2',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    security_answer_2 = forms.CharField(
+        max_length=255,
+        required=True,
+        label='Answer 2',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your answer'})
+    )
+    security_question_3 = forms.ChoiceField(
+        choices=[],
+        required=True,
+        label='Security Question 3',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    security_answer_3 = forms.CharField(
+        max_length=255,
+        required=True,
+        label='Answer 3',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your answer'})
+    )
     
     class Meta:
         model = User
@@ -108,6 +144,12 @@ class AddCustomerForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from users.models import SecurityQuestion
+        questions = SecurityQuestion.objects.all().order_by('question_key')
+        choices = [('', '--- Select a question ---')] + [(q.id, q.question_text) for q in questions]
+        self.fields['security_question_1'].choices = choices
+        self.fields['security_question_2'].choices = choices
+        self.fields['security_question_3'].choices = choices
         # Make first_name and last_name required
         self.fields['first_name'].required = True
         self.fields['last_name'].required = True
@@ -161,19 +203,49 @@ class AddCustomerForm(forms.ModelForm):
         
         return email
     
+    def clean(self):
+        cleaned_data = super().clean()
+        q1 = cleaned_data.get('security_question_1')
+        q2 = cleaned_data.get('security_question_2')
+        q3 = cleaned_data.get('security_question_3')
+        if q1 and q2 and q3:
+            if len({q1, q2, q3}) != 3:
+                raise forms.ValidationError('Please select 3 different security questions.')
+        return cleaned_data
+    
     def save(self, commit=True):
+        from django.contrib.auth.hashers import make_password
+        from users.models import SecurityQuestion, SecurityAnswer
+        from users.username_utils import generate_unique_username_with_id
         user = super().save(commit=False)
         
-        # Auto-generate username from first_name + last_name
-        from users.views_verification import generate_username
-        user.username = generate_username(
+        # Auto-generate username from first_name + last_name using shared utility
+        username, account_id = generate_unique_username_with_id(
             self.cleaned_data['first_name'],
             self.cleaned_data['last_name']
         )
+        user.username = username
+        user.account_id = account_id
         
         # Set password
         user.set_password(self.cleaned_data['password'])
         
         if commit:
             user.save()
+            
+            # Save security questions
+            for i in range(1, 4):
+                q_id = self.cleaned_data.get(f'security_question_{i}')
+                answer = self.cleaned_data.get(f'security_answer_{i}')
+                if q_id and answer:
+                    try:
+                        question = SecurityQuestion.objects.get(id=q_id)
+                        SecurityAnswer.objects.create(
+                            user=user,
+                            question=question,
+                            answer_hash=make_password(answer.strip().lower())
+                        )
+                    except SecurityQuestion.DoesNotExist:
+                        pass
+        
         return user

@@ -1,4 +1,4 @@
-# Customer Flow Analysis - E-Stores
+# Customer Flow Analysis - Olid Stores
 
 ## ✅ FEATURES THAT WORK WELL
 

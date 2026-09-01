@@ -175,7 +175,7 @@
                         <div class="card-body p-4">
                             <div class="row g-3">
                                 {% if enable_paystack %}
-                                <div class="col-md-6">
+                                <div class="col-12">
                                     <label
                                         class="payment-option h-100 p-3 border rounded-3 cursor-pointer d-flex flex-column align-items-center justify-content-center text-center hover-shadow transition-all"
                                         for="paystack_method">
@@ -192,73 +192,6 @@
                                     </label>
                                 </div>
                                 {% endif %}
-                                {% if enable_manual %}
-                                <div class="col-md-6">
-                                    <label
-                                        class="payment-option h-100 p-3 border rounded-3 cursor-pointer d-flex flex-column align-items-center justify-content-center text-center hover-shadow transition-all"
-                                        for="manual_method">
-                                        <input type="radio" class="btn-check" id="manual_method" name="payment_method"
-                                            value="manual" {% if not enable_paystack and enable_manual %}checked{% endif %}
-                                            autocomplete="off">
-                                        <div class="check-indicator mb-2"><i
-                                                class="bi bi-check-circle-fill fs-4 text-success"></i></div>
-                                        <div class="payment-logo mb-1">
-                                            <div class="ck-pay-icon ck-pay-icon--bank mb-2"><i class="bi bi-bank2"></i></div>
-                                            <span class="fw-bold text-dark">Bank Transfer</span>
-                                        </div>
-                                        <small class="text-muted">Manual bank-to-bank transfer</small>
-                                    </label>
-                                </div>
-                                {% endif %}
-                                {% if enable_pay_on_delivery %}
-                                <div class="col-md-6">
-                                    <label
-                                        class="payment-option h-100 p-3 border rounded-3 cursor-pointer d-flex flex-column align-items-center justify-content-center text-center hover-shadow transition-all"
-                                        for="pod_method">
-                                        <input type="radio" class="btn-check" id="pod_method" name="payment_method"
-                                            value="pay_on_delivery" {% if not enable_paystack and not enable_manual and enable_pay_on_delivery %}checked{% endif %}
-                                            autocomplete="off">
-                                        <div class="check-indicator mb-2"><i
-                                                class="bi bi-check-circle-fill fs-4 text-success"></i></div>
-                                        <div class="payment-logo mb-1">
-                                            <div class="ck-pay-icon ck-pay-icon--cash mb-2"><i class="bi bi-cash-stack"></i></div>
-                                            <span class="fw-bold text-dark">Pay on Delivery</span>
-                                        </div>
-                                        <small class="text-muted">Pay after delivery for eligible orders</small>
-                                    </label>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Manual Payment Details Section -->
-                            <div id="manual-payment-section" class="mt-4 p-4 bg-light rounded-3 border"
-                                style="display:none;">
-                                <h6 class="fw-bold mb-3">Bank Transfer Details</h6>
-                                <div class="d-flex flex-column gap-2 mb-4">
-                                    <div class="d-flex justify-content-between border-bottom pb-2">
-                                        <span class="text-muted">Bank Name:</span>
-                                        <span class="fw-bold">{{ bank_name }}</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between border-bottom pb-2">
-                                        <span class="text-muted">Account Name:</span>
-                                        <span class="fw-bold">{{ account_name }}</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between border-bottom pb-2">
-                                        <span class="text-muted">Account Number:</span>
-                                        <span class="fw-bold font-monospace fs-5">{{ account_number }}</span>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="receipt" class="form-label">Upload Payment Receipt</label>
-                                    <input type="file" class="form-control" id="receipt" name="receipt"
-                                        accept="image/*,application/pdf">
-                                    <div class="form-text" style="font-size: 0.75rem; color: #888; margin-top: 0.35rem;">JPG, PNG or PDF · Max 5 MB</div>
-                                </div>
-                                <div class="alert alert-warning d-flex align-items-center mb-0">
-                                    <i class="bi bi-info-circle-fill me-2"></i>
-                                    <div>Your order will be processed after payment confirmation (usually within 24h).
-                                    </div>
-                                </div>
                             </div>
 
                             <!-- Quick Checkout CTA immediately after Payment Method (hidden on mobile/tablet, only visible on desktop) -->
@@ -345,14 +278,6 @@
                                 </div>
                                 {% endif %}
                                 {% endif %}
-
-                                <button type="submit" id="manual-btn"
-                                    class="ck-cta-btn w-100" {% if PAYSTACK_PUBLIC %}style="display:none;" {% endif %}>
-                                    <span class="ck-cta-inner">
-                                        <i class="bi bi-wallet2"></i>
-                                        <span>Confirm Order</span>
-                                    </span>
-                                </button>
                             </div>
 
                             <!-- Inline checkout CTA for mobile/tablet (inside Order Summary) - hidden, only sticky bar is visible on mobile -->
@@ -381,7 +306,7 @@
             <i class="bi bi-cart-x display-1 text-muted"></i>
         </div>
         <h2 class="h4 mb-3">Your cart is empty</h2>
-        <p class="text-muted mb-4">You probably haven't ordered a pizza yet.<br>To order a pizza, go to the main page.</p>
+        <p class="text-muted mb-4">Looks like your cart is empty.<br>Browse our shop to find something you love.</p>
         <a href="{% url 'products:shop' %}" class="btn btn-primary btn-lg rounded-pill px-5">Go to Shop</a>
     </div>
     {% endif %}
@@ -486,6 +411,7 @@
         margin: 0;
         transform: translateY(-4px);
         background: transparent;
+        pointer-events: none;
     }
 
     .btn-check:checked + .check-indicator {
@@ -544,28 +470,8 @@
         font-size: 1.05rem;
         font-weight: 700;
         color: var(--gold-dark, #B8860B);
+        pointer-events: none;
     }
-
-    /* Manual Payment Details — card style */
-    #manual-payment-section {
-        background: linear-gradient(180deg, #ffffff, #fbfbfb);
-        border-radius: 0.75rem;
-        border: 1px solid rgba(0,0,0,0.04);
-        padding: 1rem;
-        box-shadow: 0 8px 30px rgba(2,6,23,0.04);
-    }
-
-    #manual-payment-section .bank-row {
-        display: flex;
-        justify-content: space-between;
-        gap: .75rem;
-        align-items: center;
-        padding: .5rem 0;
-        border-bottom: 1px dashed rgba(0,0,0,0.04);
-        color: var(--gray-700, #495057);
-    }
-
-    #manual-payment-section .bank-row:last-child { border-bottom: none; }
 
     .payment-method-note { font-size: .9rem; color: #6b6b6b; margin-top: .5rem; }
 
@@ -735,7 +641,7 @@
         .card-body { padding: 1.5rem; }
         .checkout-item-title { font-size: 0.98rem; }
         .position-lg-sticky { box-shadow: var(--shadow-soft); border-radius: var(--card-radius); }
-        #paystack-btn, #manual-btn { font-size: 1.05rem; }
+        #paystack-btn { font-size: 1.05rem; }
         .checkout-items { max-height: 420px; }
     }
 
@@ -872,7 +778,7 @@
     }
 
     /* Desktop CTA enhancements (Pay Now / Confirm Order) */
-    #paystack-btn, #manual-btn {
+    #paystack-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -884,18 +790,18 @@
     }
 
     @media (hover: hover) and (pointer: fine) {
-        #paystack-btn:hover, #manual-btn:hover {
+        #paystack-btn:hover {
             transform: translateY(-5px) scale(1.01);
             box-shadow: 0 18px 48px rgba(2,6,23,0.14);
         }
     }
 
-    #paystack-btn:active, #manual-btn:active {
+    #paystack-btn:active {
         transform: translateY(0) scale(.997);
         box-shadow: 0 8px 20px rgba(2,6,23,0.08);
     }
 
-    #paystack-btn:focus-visible, #manual-btn:focus-visible {
+    #paystack-btn:focus-visible {
         outline: 3px solid rgba(13,110,253,0.16);
         outline-offset: 3px;
     }
@@ -1608,34 +1514,6 @@
         margin-top: 0.3rem;
     }
 
-    /* ── Bank transfer details ────────────────────────────── */
-    #manual-payment-section {
-        background: linear-gradient(180deg, #fdfcfb, #f9f7f4) !important;
-        border: 1px solid rgba(0,0,0,0.06) !important;
-        border-radius: 1rem !important;
-        padding: 1.25rem !important;
-    }
-    #manual-payment-section h6 {
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--gray-500);
-        margin-bottom: 1rem;
-    }
-    #manual-payment-section .d-flex.justify-content-between {
-        padding: 0.7rem 0;
-        border-bottom: 1px dashed rgba(0,0,0,0.08) !important;
-    }
-    #manual-payment-section .d-flex.justify-content-between:last-of-type {
-        border-bottom: none !important;
-    }
-    #manual-payment-section .font-monospace {
-        font-size: 1.15rem !important;
-        letter-spacing: 0.08em;
-        color: var(--gray-900);
-    }
-
     /* ── Alert styling ────────────────────────────────────── */
     .checkout-page .alert-warning {
         background: linear-gradient(135deg, #fef3c7, #fefce8) !important;
@@ -1850,12 +1728,6 @@
     }
     [data-theme="dark"] #mobile-checkout-bar .text-muted { color: #888 !important; }
     [data-theme="dark"] #mobile-checkout-bar .text-primary { color: var(--theme-accent) !important; }
-    [data-theme="dark"] #manual-payment-section {
-        background: #151413 !important;
-        border-color: rgba(255,255,255,0.07) !important;
-    }
-    [data-theme="dark"] #manual-payment-section .text-muted { color: #888 !important; }
-    [data-theme="dark"] #manual-payment-section .fw-bold { color: #f0f0f0 !important; }
     [data-theme="dark"] .ck-total-row { border-bottom-color: rgba(255,255,255,0.06); }
     [data-theme="dark"] .ck-total-row span { color: #a0a0a0 !important; }
     [data-theme="dark"] .ck-total-row span:last-child { color: #f0f0f0 !important; }
@@ -1946,10 +1818,7 @@
 
             // Payment method elements
             const paystackRadio = document.getElementById('paystack_method');
-            const manualRadio = document.getElementById('manual_method');
             const paystackBtn = document.getElementById('paystack-btn');
-            const manualBtn = document.getElementById('manual-btn');
-            const manualSection = document.getElementById('manual-payment-section');
 
             // Update total based on delivery option
             function updateTotal() {
@@ -1982,18 +1851,11 @@
 
 // Toggle payment method UI + update mobile CTA labels
     function togglePaymentUI() {
-        if (!paystackRadio || !manualRadio || !manualSection) return;
+        if (!paystackRadio) return;
 
         if (paystackRadio.checked) {
             if (paystackBtn) paystackBtn.style.display = '';
-            if (manualBtn) manualBtn.style.display = 'none';
-            manualSection.style.display = 'none';
             setMobileCTALabel('Pay Now');
-        } else if (manualRadio.checked) {
-            if (paystackBtn) paystackBtn.style.display = 'none';
-            if (manualBtn) manualBtn.style.display = '';
-            manualSection.style.display = 'block';
-            setMobileCTALabel('Confirm Order');
         }
     }
 
@@ -2010,7 +1872,6 @@
         try {
             const amtDesktop = `<span class="btn-amount d-none d-lg-inline"> • ${totalText}</span>`;
             if (paystackBtn) paystackBtn.innerHTML = `<i class="bi bi-lock-fill me-2"></i><span class="btn-label">${label}</span>${amtDesktop}`;
-            if (manualBtn) manualBtn.innerHTML = `<i class="bi bi-wallet2 me-2"></i><span class="btn-label">${label}</span>${amtDesktop}`;
         } catch (e) {
             // defensive: ignore if DOM not ready
         }
@@ -2027,7 +1888,7 @@
             let isProcessing = false;
             function setProcessingButtons(val, activeButton) {
                 isProcessing = !!val;
-                const selectors = ['#paystack-btn','#manual-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop'];
+                const selectors = ['#paystack-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop'];
                 selectors.forEach(sel => {
                     document.querySelectorAll(sel).forEach(btn => {
                         if (!btn) return;
@@ -2075,10 +1936,6 @@
                     if (paystackBtn) paystackBtn.click();
                     return;
                 }
-
-                // Manual flow — set processing immediately and delegate to manual button
-                setProcessingButtons(true, mobileCheckoutBtn || document.querySelector('.mobile-checkout-trigger'));
-                if (manualBtn) manualBtn.click();
             }
 
             // Keep the bar always visible — reposition it above the keyboard instead of hiding it.
@@ -2099,9 +1956,8 @@
                 updateTotal(); // Initialize
             }
 
-            if (paystackRadio && manualRadio) {
+            if (paystackRadio) {
                 paystackRadio.addEventListener('change', togglePaymentUI);
-                manualRadio.addEventListener('change', togglePaymentUI);
                 togglePaymentUI(); // Initialize
             }
 
@@ -2119,18 +1975,6 @@
 
             if (floatingTop) {
                 floatingTop.addEventListener('click', handleMobileCheckout);
-            }
-
-            // Disable manual submit button on click to prevent double-submit
-            if (manualBtn) {
-                manualBtn.addEventListener('click', function (e) {
-                    if (isProcessing) {
-                        e.preventDefault();
-                        return;
-                    }
-                    if (!form.checkValidity()) return; // don't disable when invalid
-                    setProcessingButtons(true, this);
-                });
             }
 
             // Also prevent duplicate clicks on inline/mobile triggers
@@ -2276,8 +2120,7 @@
                             if (window.__checkout_setProcessingButtons) {
                                 window.__checkout_setProcessingButtons(false);
                             } else {
-                                ['#paystack-btn','#manual-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop']
-                                    .forEach(s => document.querySelectorAll(s).forEach(b => b && (b.disabled = false)));
+                                ['#paystack-btn','#mobile-checkout-btn','#summary-mobile-checkout-btn','#payment-inline-cta','.mobile-checkout-trigger','#floatingPlaceOrderTop'].forEach(s => document.querySelectorAll(s).forEach(b => b && (b.disabled = false)));
                             }
 
                             // If the popup closed WITHOUT a successful callback, it means the

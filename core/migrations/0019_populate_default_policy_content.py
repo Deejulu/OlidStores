@@ -23,7 +23,7 @@ What is your return policy?
 You can return items within 14 days of delivery. Items must be unused, in original packaging with tags attached. Refunds are processed within 7-14 business days after return approval. Please note that return shipping costs are the customer's responsibility unless the product is defective.
 
 How do I contact support?
-You can reach our customer support team through multiple channels: Use our Contact Page for inquiries, email us at support@e-stores.com, or call our hotline during business hours. We typically respond within 24 hours.
+You can reach our customer support team through multiple channels: Use our Contact Page for inquiries, email us at support@olidstores.com, or call our hotline during business hours. We typically respond within 24 hours.
 
 Is Pay on Delivery available?
 Yes! Pay on Delivery is available for orders under ₦100,000 within Lagos. You can inspect your items before making payment. Please note that additional delivery fees may apply for POD orders, and repeated order rejections may result in service restrictions.
@@ -34,7 +34,7 @@ Absolutely! We use industry-standard SSL encryption to protect all transactions.
 
 # Default Privacy Policy content (plain text)
 DEFAULT_PRIVACY_CONTENT = '''Our Commitment to Your Privacy
-At E-Stores, your privacy is of paramount importance to us. We are committed to protecting your personal information and ensuring transparency about how we collect, use, and safeguard your data. We collect only the information necessary to process your orders and improve your shopping experience. We never share your data with third parties without your explicit consent.
+At Olid Stores, your privacy is of paramount importance to us. We are committed to protecting your personal information and ensuring transparency about how we collect, use, and safeguard your data. We collect only the information necessary to process your orders and improve your shopping experience. We never share your data with third parties without your explicit consent.
 
 Information We Collect
 We collect the following types of information:
@@ -64,12 +64,12 @@ You have the right to:
 - Lodge a complaint with supervisory authorities
 
 Contact Us
-If you have any questions about this Privacy Policy, please contact us through our Contact Page or email us at privacy@e-stores.com.
+If you have any questions about this Privacy Policy, please contact us through our Contact Page or email us at privacy@olidstores.com.
 '''
 
 # Default Terms & Conditions content (plain text)
 DEFAULT_TERMS_CONTENT = '''Agreement to Terms
-By accessing and using E-Stores, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services. Please read these terms carefully before making any purchase. Your order constitutes acceptance of these terms.
+By accessing and using Olid Stores, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services. Please read these terms carefully before making any purchase. Your order constitutes acceptance of these terms.
 
 Product Information
 We strive to provide accurate product descriptions, images, and pricing. However:
@@ -114,7 +114,7 @@ Users agree not to:
 - Violate any applicable laws or regulations
 
 Limitation of Liability
-E-Stores shall not be liable for indirect, incidental, or consequential damages arising from:
+Olid Stores shall not be liable for indirect, incidental, or consequential damages arising from:
 - Product use or inability to use products
 - Delivery delays due to unforeseen circumstances
 - Third-party service failures (payment gateways, courier services)
@@ -124,7 +124,7 @@ We reserve the right to modify these Terms and Conditions at any time. Changes w
 
 Contact Information
 For questions about these Terms and Conditions, please contact us:
-Email: support@e-stores.com
+Email: support@olidstores.com
 Phone: +234-XXX-XXX-XXXX
 '''
 

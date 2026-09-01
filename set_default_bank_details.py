@@ -13,7 +13,7 @@ checkout, created = SiteContent.objects.get_or_create(key='checkout')
 if not checkout.bank_name:
     checkout.bank_name = 'GTBank'
 if not checkout.account_name:
-    checkout.account_name = 'E-Stores Ltd'
+    checkout.account_name = 'Olid Stores Ltd'
 if not checkout.account_number:
     checkout.account_number = '0123456789'
 

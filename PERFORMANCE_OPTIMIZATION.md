@@ -1,4 +1,4 @@
-# E-Stores Performance Optimization Guide
+# Olid Stores Performance Optimization Guide
 
 This document outlines all performance optimizations implemented for faster website speed on both local and hosted servers.
 
@@ -277,4 +277,4 @@ VACUUM ANALYZE;
 ---
 
 **Last Updated**: May 2026
-**Maintained by**: E-Stores Development Team
+**Maintained by**: Olid Stores Development Team

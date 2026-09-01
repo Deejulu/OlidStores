@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Complete Registration - E-Stores{% endblock %}
+{% block title %}Complete Registration - Olid Stores{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -318,17 +318,70 @@
                         <span id="strength-text"></span>
                     </div>
                     
-                    <div class="form-floating">
-                        {{ form.password2 }}
-                        <label for="{{ form.password2.id_for_label }}">
-                            <i class="bi bi-lock-fill me-2"></i>Confirm Password
-                        </label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-submit">
-                        <i class="bi bi-check2-circle me-2"></i>Create My Account
-                    </button>
-                </form>
+                     <div class="form-floating">
+                         {{ form.password2 }}
+                         <label for="{{ form.password2.id_for_label }}">
+                             <i class="bi bi-lock-fill me-2"></i>Confirm Password
+                         </label>
+                     </div>
+                     
+                     <h4 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700; color: #374151;">
+                         <i class="bi bi-shield-lock-fill me-1"></i>
+                         Security Questions
+                     </h4>
+                     <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1.5rem;">
+                         Select 3 questions and provide answers. These will be used to recover your account if you forget your password.
+                     </p>
+                     
+                     <div class="question-box">
+                         <div class="form-floating">
+                             {{ form.security_question_1 }}
+                             <label for="{{ form.security_question_1.id_for_label }}">
+                                 <i class="bi bi-shield-question-fill me-2"></i>Question 1
+                             </label>
+                         </div>
+                         <div class="form-floating" style="margin-top: 1rem;">
+                             {{ form.security_answer_1 }}
+                             <label for="{{ form.security_answer_1.id_for_label }}">
+                                 <i class="bi bi-pencil-fill me-2"></i>Answer 1
+                             </label>
+                         </div>
+                     </div>
+                     
+                     <div class="question-box">
+                         <div class="form-floating">
+                             {{ form.security_question_2 }}
+                             <label for="{{ form.security_question_2.id_for_label }}">
+                                 <i class="bi bi-shield-question-fill me-2"></i>Question 2
+                             </label>
+                         </div>
+                         <div class="form-floating" style="margin-top: 1rem;">
+                             {{ form.security_answer_2 }}
+                             <label for="{{ form.security_answer_2.id_for_label }}">
+                                 <i class="bi bi-pencil-fill me-2"></i>Answer 2
+                             </label>
+                         </div>
+                     </div>
+                     
+                     <div class="question-box">
+                         <div class="form-floating">
+                             {{ form.security_question_3 }}
+                             <label for="{{ form.security_question_3.id_for_label }}">
+                                 <i class="bi bi-shield-question-fill me-2"></i>Question 3
+                             </label>
+                         </div>
+                         <div class="form-floating" style="margin-top: 1rem;">
+                             {{ form.security_answer_3 }}
+                             <label for="{{ form.security_answer_3.id_for_label }}">
+                                 <i class="bi bi-pencil-fill me-2"></i>Answer 3
+                             </label>
+                         </div>
+                     </div>
+                     
+                     <button type="submit" class="btn btn-submit">
+                         <i class="bi bi-check2-circle me-2"></i>Create My Account
+                     </button>
+                 </form>
             </div>
         </div>
     </div>

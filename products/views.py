@@ -23,7 +23,10 @@ class ShopListView(ListView):
 		stock = self.request.GET.get('stock')
 		sort = self.request.GET.get('sort')
 		search = self.request.GET.get('search')
-		
+		min_price = self.request.GET.get('min_price')
+		max_price = self.request.GET.get('max_price')
+		min_rating = self.request.GET.get('min_rating')
+
 		if search:
 			from django.db.models import Q
 			queryset = queryset.filter(
@@ -31,7 +34,7 @@ class ShopListView(ListView):
 				Q(description__icontains=search) |
 				Q(category__name__icontains=search)
 			)
-		
+
 		if category_slug:
 			category = get_object_or_404(Category, slug=category_slug)
 			queryset = queryset.filter(category=category)
@@ -39,6 +42,26 @@ class ShopListView(ListView):
 			queryset = queryset.filter(stock__gt=0)
 		elif stock in ('out', 'out_of_stock'):
 			queryset = queryset.filter(stock__lte=0)
+
+		# Price range filter
+		if min_price:
+			try:
+				queryset = queryset.filter(price__gte=float(min_price))
+			except (ValueError, TypeError):
+				pass
+		if max_price:
+			try:
+				queryset = queryset.filter(price__lte=float(max_price))
+			except (ValueError, TypeError):
+				pass
+
+		# Rating filter
+		if min_rating:
+			try:
+				queryset = queryset.filter(avg_rating__gte=float(min_rating))
+			except (ValueError, TypeError):
+				pass
+
 		if sort in ('asc', 'price_asc'):
 			queryset = queryset.order_by('price')
 		elif sort in ('desc', 'price_desc'):
@@ -47,6 +70,8 @@ class ShopListView(ListView):
 			queryset = queryset.order_by('-created_at')
 		elif sort == 'popular':
 			queryset = queryset.annotate(order_count=Count('orderitem')).order_by('-order_count', '-created_at')
+		elif sort == 'rating':
+			queryset = queryset.order_by('-avg_rating', '-review_count')
 		else:
 			queryset = queryset.order_by('-created_at')
 		return queryset
@@ -78,9 +103,14 @@ class ShopListView(ListView):
 			suggested = list(Product.objects.select_related('category').prefetch_related('variants', 'images').order_by('-created_at')[:6])
 			cache.set('shop_suggested_products', suggested, 600)
 		context['suggested_products'] = suggested
-		context['page_title'] = "Shop All Products - E-Stores"
+		context['page_title'] = "Shop All Products - Olid Stores"
 		context['search_query'] = self.request.GET.get('search', '')
-		
+
+		# Add filter values to context for form persistence
+		context['min_price'] = self.request.GET.get('min_price', '')
+		context['max_price'] = self.request.GET.get('max_price', '')
+		context['min_rating'] = self.request.GET.get('min_rating', '')
+
 		# Add total product count — always use the paginator count (already computed)
 		if hasattr(context.get('products'), 'paginator'):
 			context['total_products'] = context['products'].paginator.count

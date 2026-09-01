@@ -1382,97 +1382,30 @@
 <!-- Main Content -->
 <div class="container contact-container">
     <div class="row g-4">
-        <!-- Contact Form -->
+                <!-- Live Chat CTA -->
         <div class="col-lg-6">
             <div class="contact-form-card">
                 <h3>
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>Send Us a Message</span>
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span>Chat With Us</span>
                 </h3>
-                
-                {% if messages %}
-                    {% for msg in messages %}
-                        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
-                            <i class="bi bi-{% if msg.tags == 'success' %}check-circle-fill{% elif msg.tags == 'error' or msg.tags == 'danger' %}exclamation-circle-fill{% else %}info-circle-fill{% endif %}"></i>
-                            <span>{{ msg }}</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <form method="post" action="" novalidate class="contact-form">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-person-fill"></i>
-                            <span>Your Name</span>
-                        </label>
-                        {{ contact_form.name }}
-                        {% if contact_form.name.errors %}
-                            <div class="field-error">
-                                {% for error in contact_form.name.errors %}
-                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-envelope-fill"></i>
-                            <span>Email Address</span>
-                        </label>
-                        {{ contact_form.email }}
-                        {% if contact_form.email.errors %}
-                            <div class="field-error">
-                                {% for error in contact_form.email.errors %}
-                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="bi bi-tag-fill"></i>
-                            <span>Subject</span>
-                            <small style="color: #9ca3af; font-weight: 400; margin-left: auto;">(Optional)</small>
-                        </label>
-                        {{ contact_form.subject }}
-                        {% if contact_form.subject.errors %}
-                            <div class="field-error">
-                                {% for error in contact_form.subject.errors %}
-                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label" for="id_message">
-                            <i class="bi bi-chat-left-text-fill"></i>
-                            <span>Your Message</span>
-                        </label>
-                        {{ contact_form.message }}
-                        <div class="char-counter" id="msgCounter">0 / 2000 characters</div>
-                        {% if contact_form.message.errors %}
-                            <div class="field-error">
-                                {% for error in contact_form.message.errors %}
-                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    {{ contact_form.honeypot }}
-                    <button type="submit" class="btn-submit" id="contactSubmitBtn">
-                        <i class="bi bi-send-fill"></i>
-                        <span>Send Message</span>
-                    </button>
-                    <p class="text-center mt-3 mb-0" style="font-size:.82rem;color:#9ca3af;">
-                        <i class="bi bi-lock-fill me-1"></i>Your information is kept private and secure.
-                    </p>
-                </form>
+                <p style="color:#4a5568;line-height:1.7;margin-bottom:1.75rem;">
+                    Have a question about an order, a product, or anything else?
+                    Start a live chat and our support team will help you right away &mdash;
+                    it is the fastest way to reach us.
+                </p>
+                <button type="button" class="btn-submit" id="startChatBtn"
+                        onclick="document.getElementById('fcFabIcon').click()"
+                        style="width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;background:var(--gradient-primary);border:none;padding:1.125rem 2.5rem;font-weight:700;font-size:1.1rem;border-radius:12px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.08);">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span>Start Chat</span>
+                </button>
+                <p class="text-center mt-3 mb-0" style="font-size:.82rem;color:#9ca3af;">
+                    <i class="bi bi-clock-fill me-1"></i>We typically reply within 24 hours
+                </p>
             </div>
         </div>
-
-        <!-- Contact Information -->
+<!-- Contact Information -->
         <div class="col-lg-6">
             <div class="contact-info-card">
                 <h3>

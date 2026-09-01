@@ -394,7 +394,7 @@
     </div>
 
     <!-- Alerts -->
-    {% if pending_orders or out_of_stock or low_stock or unread_messages or unread_feedback or unread_chats %}
+    {% if pending_orders or out_of_stock or low_stock or unread_chats or unread_feedback %}
     <div class="ap-section-title mt-2">
         <div class="ap-section-title-icon"><i class="bi bi-bell-fill"></i></div>
         Attention Required
@@ -421,11 +421,11 @@
             <a href="{% if first_low_stock_product %}{% url 'admin_dashboard:product_edit' first_low_stock_product.pk %}{% else %}/admin-dashboard/products/{% endif %}">Check Stock →</a></span>
         </div>
         {% endif %}
-        {% if unread_messages %}
+        {% if unread_chats %}
         <div class="ap-alert ap-alert-blue">
-            <i class="bi bi-envelope-fill"></i>
-            <span><strong>{{ unread_messages }} unread contact message{{ unread_messages|pluralize }}</strong>.
-            <a href="/admin-dashboard/contact-messages/">Read Messages →</a></span>
+            <i class="bi bi-chat-dots-fill"></i>
+            <span><strong>{{ unread_chats }} unread chat message{{ unread_chats|pluralize }}</strong>.
+            <a href="/admin-dashboard/chat/">Open Chat Inbox →</a></span>
         </div>
         {% endif %}
         {% if unread_feedback %}
@@ -631,19 +631,11 @@
                         </div>
                         <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
                     </a>
-                    <a href="/admin-dashboard/contact-messages/" class="ap-quick-link">
-                        <div class="ap-quick-link-icon" style="background:#fff5f5;color:#ef4444;"><i class="bi bi-envelope-fill"></i></div>
-                        <div class="ap-quick-link-text">
-                            <strong>Messages</strong>
-                            <small>{{ unread_messages }} unread</small>
-                        </div>
-                        <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
-                    </a>
                     <a href="/admin-dashboard/chat/" class="ap-quick-link">
                         <div class="ap-quick-link-icon" style="background:#f0fdf4;color:#10b981;"><i class="bi bi-chat-dots-fill"></i></div>
                         <div class="ap-quick-link-text">
-                            <strong>Live Chat</strong>
-                            <small>{% if unread_chats %}{{ unread_chats }} unread message{{ unread_chats|pluralize }}{% else %}Customer conversations{% endif %}</small>
+                            <strong>Chat Inbox</strong>
+                            <small>{{ unread_chats }} unread</small>
                         </div>
                         <i class="bi bi-arrow-right-short fs-5 text-muted"></i>
                     </a>

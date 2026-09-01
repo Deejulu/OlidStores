@@ -5,9 +5,16 @@
     <span class="product-category">{{ category.name }}</span>
   </div>
   <div class="quick-view-body">
-    <div class="quick-view-image">
+    <div class="quick-view-gallery">
       {% if primary_image %}
-        <img src="{{ primary_image.url }}" alt="{{ product.name }}" style="max-width:100%;height:auto;" />
+        <img src="{{ primary_image.url }}" alt="{{ product.name }}" class="quick-view-main-img" />
+      {% endif %}
+      {% if images %}
+        <div class="quick-view-thumbs">
+          {% for img in images %}
+            <img src="{{ img.image.url }}" alt="{{ product.name }} - {{ forloop.counter }}" class="quick-view-thumb" />
+          {% endfor %}
+        </div>
       {% endif %}
     </div>
     <div class="quick-view-details">

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Tight text-only layout — maximises text size inside circular loader -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 90" role="img" aria-label="Olid Stores">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 90" role="img" aria-label="Olid Stores">
   <defs>
-    <linearGradient id="gl" x1="15" y1="0" x2="125" y2="0" gradientUnits="userSpaceOnUse">
+    <linearGradient id="gl" x1="15" y1="0" x2="185" y2="0" gradientUnits="userSpaceOnUse">
       <stop offset="0"   stop-color="#D4AF37" stop-opacity="0"/>
       <stop offset="0.5" stop-color="#D4AF37" stop-opacity="1"/>
-      <stop offset="1"   stop-color="#D4AF37" stop-opacity="0"/>
+      <stop offset="1.0" stop-color="#D4AF37" stop-opacity="0"/>
     </linearGradient>
     <style>
       .t1 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 900; fill: #C9952A }
       .t2 { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight: 900; fill: #111827; letter-spacing: 4px }
     </style>
   </defs>
-  <text x="70" y="60" text-anchor="middle" class="t1" font-size="70">Olid</text>
-  <line x1="15" y1="68" x2="125" y2="68" stroke="url(#gl)" stroke-width="1.5"/>
-  <text x="70" y="85" text-anchor="middle" class="t2" font-size="22">Stores</text>
+  <text x="100" y="60" text-anchor="middle" class="t1" font-size="50">Olid</text>
+  <line x1="15" y1="68" x2="185" y2="68" stroke="url(#gl)" stroke-width="1.5"/>
+  <text x="100" y="85" text-anchor="middle" class="t2" font-size="18">Stores</text>
 </svg>

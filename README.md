@@ -1,4 +1,4 @@
-# E-Stores
+# Olid Stores
 
 This is a Django e-commerce project prepared for deployment on Render using PostgreSQL.
 

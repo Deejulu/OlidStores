@@ -16,7 +16,7 @@ class SendGridEmailBackend(BaseEmailBackend):
         super().__init__(**kwargs)
         self.api_key = getattr(settings, 'SENDGRID_API_KEY', '')
         self.sender_email = getattr(settings, 'SENDGRID_SENDER_EMAIL', '')
-        self.sender_name = getattr(settings, 'SENDGRID_SENDER_NAME', 'E-Stores')
+        self.sender_name = getattr(settings, 'SENDGRID_SENDER_NAME', 'Olid Stores')
         self.timeout = getattr(settings, 'EMAIL_SEND_TIMEOUT', 10)
 
     def send_messages(self, email_messages):
@@ -98,7 +98,7 @@ class ResendEmailBackend(BaseEmailBackend):
         super().__init__(**kwargs)
         self.api_key = getattr(settings, 'RESEND_API_KEY', '')
         self.sender_email = getattr(settings, 'RESEND_SENDER_EMAIL', '')
-        self.sender_name = getattr(settings, 'RESEND_SENDER_NAME', 'E-Stores')
+        self.sender_name = getattr(settings, 'RESEND_SENDER_NAME', 'Olid Stores')
         self.timeout = getattr(settings, 'EMAIL_SEND_TIMEOUT', 10)
 
     def send_messages(self, email_messages):

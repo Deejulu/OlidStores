@@ -1,5 +1,5 @@
 import pathlib
-p = pathlib.Path(r'c:/Users/user/Documents/web proj/E-Stores/templates/admin_dashboard/orders/order_list.html')
+p = pathlib.Path(r'c:/Users/user/Documents/web proj/Olid Stores/templates/admin_dashboard/orders/order_list.html')
 lines = p.read_text().splitlines()
 new = lines[:590] + ['{% endblock %}']
 p.write_text("\n".join(new))

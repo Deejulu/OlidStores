@@ -5,7 +5,7 @@ from django.db.models.signals import post_save, pre_save, pre_delete, post_delet
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import models
+from django.db import models, transaction
 from .models import Order, OrderAuditLog, CartItem
 from users.models_notification import Notification
 
@@ -59,6 +59,7 @@ def notify_order_events(sender, instance, created, **kwargs):
     1. New order placed - notify customer and admin
     2. Order status changes - notify customer
     3. Order cancelled - reverse stock
+    4. Payment confirmed / Shipped - reduce stock
     """
     if created:
         # New order created
@@ -72,6 +73,89 @@ def notify_order_events(sender, instance, created, **kwargs):
             # Reverse stock if order is being cancelled
             if instance.status == 'Cancelled' and old_status != 'Cancelled':
                 reverse_stock_for_cancelled_order(instance)
+            
+            # Reduce stock when payment is confirmed or order is shipped
+            reduce_stock_on_payment_confirmation(instance, old_status, new_status=instance.status)
+
+
+def reduce_stock_on_payment_confirmation(order, old_status, new_status):
+    """
+    Reduce product stock when payment is confirmed or order is shipped.
+    
+    Rules:
+    - Manual payment: Reduce stock when status changes to 'Processing' (payment confirmed by admin)
+    - Pay on Delivery: Reduce stock when status changes to 'Shipped' (order shipped)
+    - Paystack: Stock is already reduced at order creation (payment verified before order creation)
+    
+    Stock is only reduced ONCE per order. Subsequent status changes do not reduce stock again.
+    """
+    # Determine if stock should be reduced based on payment method and new status
+    should_reduce = False
+    
+    if order.payment_method == 'manual' and new_status == 'Processing' and old_status != 'Processing':
+        # Manual payment: admin confirmed payment, order moved to Processing
+        should_reduce = True
+    elif order.payment_method == 'pay_on_delivery' and new_status == 'Shipped' and old_status != 'Shipped':
+        # Pay on delivery: order is being shipped
+        should_reduce = True
+    # Paystack: Stock already reduced at order creation (no action needed)
+    
+    if not should_reduce:
+        return
+    
+    # Check if stock was already reduced for this order (prevent double reduction)
+    # by looking for an existing stock_reduction audit log entry
+    if OrderAuditLog.objects.filter(order=order, action='stock_reduction').exists():
+        return
+    
+    # Reduce stock atomically
+    try:
+        with transaction.atomic():
+            from products.models import Product, ProductVariant
+            
+            for item in order.items.all():
+                if item.variant:
+                    variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
+                    if variant.stock < item.quantity:
+                        # Log insufficient stock but continue with other items
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.warning(
+                            f"Insufficient stock for variant {variant.name} on order #{order.id}. "
+                            f"Required: {item.quantity}, Available: {variant.stock}"
+                        )
+                        continue
+                    variant.stock -= item.quantity
+                    variant.save(update_fields=['stock', 'updated_at'])
+                else:
+                    product = Product.objects.select_for_update().get(id=item.product.id)
+                    if product.stock < item.quantity:
+                        # Log insufficient stock but continue with other items
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.warning(
+                            f"Insufficient stock for product {product.name} on order #{order.id}. "
+                            f"Required: {item.quantity}, Available: {product.stock}"
+                        )
+                        continue
+                    product.stock -= item.quantity
+                    product.save(update_fields=['stock', 'updated_at'])
+            
+            # Log the stock reduction (also serves as marker to prevent double reduction)
+            OrderAuditLog.objects.create(
+                order=order,
+                action='stock_reduction',
+                changes={
+                    'reduced': True,
+                    'payment_method': order.payment_method,
+                    'triggering_status': new_status,
+                    'previous_status': old_status,
+                }
+            )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error reducing stock for order #{order.id}: {e}")
 
 
 def notify_new_order(order):

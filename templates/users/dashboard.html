@@ -28,6 +28,7 @@
         min-height: 100vh;
         padding: 3rem 0 5rem;
         position: relative;
+        overflow-x: hidden;
     }
     
     /* Animated Background */
@@ -704,7 +705,7 @@
         <!-- Dashboard Cards Grid -->
         <div class="row g-2 g-sm-3 g-md-4 dashboard-grid">
             <!-- My Orders Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-primary">
@@ -721,7 +722,7 @@
             </div>
             
             <!-- Payments & Receipts Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-success">
@@ -738,7 +739,7 @@
             </div>
             
             <!-- Saved Items Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-danger">
@@ -755,7 +756,7 @@
             </div>
             
             <!-- Addresses Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-success">
@@ -772,7 +773,7 @@
             </div>
             
             <!-- Recent Activity Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-info">
@@ -789,7 +790,7 @@
             </div>
             
             <!-- Feedback Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-warning">
@@ -806,7 +807,7 @@
             </div>
             
             <!-- Notifications Card -->
-            <div class="col-6 col-md-6 col-lg-6">
+            <div class="col-12 col-md-6">
                 <div class="dashboard-card">
                     <div class="dashboard-card-body">
                         <div class="card-icon icon-purple">
@@ -823,75 +824,7 @@
             </div>
         </div>
 
-        <!-- Recent Payments Section -->
-        <div class="row g-3 mt-4">
-            <div class="col-12">
-                <div class="dashboard-card">
-                    <div class="dashboard-card-body">
-                        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
-                            <div>
-                                <div class="section-title">Recent Payments</div>
-                                <div class="section-sub">Quick access to your latest payment records and receipts.</div>
-                            </div>
-                            <a href="{% url 'orders:order_history' %}" class="dashboard-btn btn-primary flex-shrink-0" style="padding:.7rem 1.3rem;font-size:.83rem;">
-                                <i class="bi bi-receipt-cutoff"></i>
-                                <span>Full history</span>
-                            </a>
-                        </div>
-                        <div class="row g-3">
-                            {% for order in recent_payments %}
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="payment-item">
-                                    <!-- Header row -->
-                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                                        <span class="payment-order-title">Order #{{ order.id }}</span>
-                                        <span class="payment-method-pill">
-                                            {% if order.payment_method == 'paystack' %}Paystack
-                                            {% elif order.payment_method == 'manual' %}Transfer
-                                            {% elif order.payment_method == 'pay_on_delivery' %}Pay on Delivery
-                                            {% else %}{{ order.payment_method|default:'Unknown'|capfirst }}{% endif %}
-                                        </span>
-                                    </div>
-                                    <!-- Date -->
-                                    <div class="payment-date">{{ order.created_at|date:'M d, Y' }}</div>
-                                    <!-- Amount -->
-                                    <div class="payment-amount">&#8358;{{ order.grand_total|floatformat:2 }}</div>
-                                    <!-- Details -->
-                                    <div class="payment-detail-row">
-                                        <div><strong>Status:</strong> {{ order.status|capfirst }}</div>
-                                        {% with payment=order.paymenttransaction_set.first %}
-                                        {% if payment %}
-                                        <div><strong>Payment:</strong> {{ payment.status|capfirst }}</div>
-                                        <div><strong>Ref:</strong> <span class="payment-ref">{{ payment.reference }}</span></div>
-                                        {% endif %}
-                                        {% endwith %}
-                                    </div>
-                                    <!-- Actions -->
-                                    <div class="mt-3 d-flex flex-wrap gap-2">
-                                        <a href="{% url 'orders:order_detail' order.id %}" class="dashboard-btn btn-info" style="padding:.5rem .9rem;font-size:.78rem;min-height:36px;">
-                                            <i class="bi bi-eye-fill"></i><span>View</span>
-                                        </a>
-                                        {% if order.receipt %}
-                                        <a href="{{ order.receipt.url }}" target="_blank" class="dashboard-btn btn-success" style="padding:.5rem .9rem;font-size:.78rem;min-height:36px;">
-                                            <i class="bi bi-download"></i><span>Receipt</span>
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% empty %}
-                            <div class="col-12">
-                                <div class="payment-item text-center py-4">
-                                    <i class="bi bi-receipt" style="font-size:2.5rem;color:#9ca3af;display:block;margin-bottom:.75rem;"></i>
-                                    <p class="mb-0 section-sub">No recent payments yet. Your records will appear here once you place an order.</p>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+
 {% endblock %}

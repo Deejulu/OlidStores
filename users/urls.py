@@ -3,10 +3,8 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from .views import test_users, UserLoginView, UserLogoutView, signup, profile, customer_dashboard, order_history, wishlist_view, wishlist_add_view, wishlist_remove_view, activity_view, notifications_view, mark_notification_read, mark_all_notifications_read, feedback_view, CustomPasswordChangeView, addresses_view, address_edit_view, address_delete_view
 from .views_verification import (
-    signup_step1, signup_verify_email, signup_verify_phone, signup_complete,
-    resend_email_otp, resend_phone_otp,
-    verify_existing_user, send_existing_user_email_otp, send_existing_user_phone_otp,
-    verify_existing_email, verify_existing_phone
+    signup, credentials_download, credentials_download_file,
+    account_recovery, recovery_success
 )
 from django.shortcuts import render
 
@@ -20,20 +18,12 @@ urlpatterns = [
 	path('login/', UserLoginView.as_view(), name='login'),
 	path('logout/', UserLogoutView.as_view(), name='logout'),
 	
-	# New multi-step signup with OTP verification
-	path('signup/', signup_step1, name='signup'),
-	path('signup/verify-email/', signup_verify_email, name='signup_verify_email'),
-	path('signup/verify-phone/', signup_verify_phone, name='signup_verify_phone'),
-	path('signup/complete/', signup_complete, name='signup_complete'),
-	path('signup/resend-email/', resend_email_otp, name='resend_email_otp'),
-	path('signup/resend-phone/', resend_phone_otp, name='resend_phone_otp'),
+	# Single-step signup (no email/OTP)
+	path('signup/', signup, name='signup'),
 	
-	# Existing user verification (for users who registered before OTP was required)
-	path('verify/', verify_existing_user, name='verify_existing_user'),
-	path('verify/send-email-otp/', send_existing_user_email_otp, name='send_existing_user_email_otp'),
-	path('verify/send-phone-otp/', send_existing_user_phone_otp, name='send_existing_user_phone_otp'),
-	path('verify/email/', verify_existing_email, name='verify_existing_email'),
-	path('verify/phone/', verify_existing_phone, name='verify_existing_phone'),
+	# Credentials download
+	path('signup/credentials/', credentials_download, name='credentials_download'),
+	path('signup/credentials/download/', credentials_download_file, name='credentials_download_file'),
 	
 	path('profile/', profile, name='profile'),
 	path('dashboard/', customer_dashboard, name='dashboard'),
@@ -70,4 +60,8 @@ urlpatterns = [
 	path('password-reset-complete/', 
 	     auth_views.PasswordResetCompleteView.as_view(template_name='users/password_reset_complete.html'),
 	     name='password_reset_complete'),
+	
+	# Account Recovery with Security Questions
+	path('recovery/', account_recovery, name='account_recovery'),
+	path('recovery/success/', recovery_success, name='recovery_success'),
 ]

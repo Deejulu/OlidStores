@@ -17,5 +17,5 @@
 
   <!-- Wordmark -->
   <text x="240" y="120" font-family="Playfair Display, Georgia, serif" font-size="72" font-weight="700" fill="#222">Olid</text>
-  <text x="420" y="120" font-family="Poppins, Arial, sans-serif" font-size="28" font-weight="900" fill="#222">STORES</text>
+  <text x="420" y="120" font-family="Poppins, Arial, sans-serif" font-size="28" font-weight="900" fill="#222">Stores</text>
 </svg>

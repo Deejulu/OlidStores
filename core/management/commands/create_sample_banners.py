@@ -18,7 +18,7 @@ class Command(BaseCommand):
             if not os.path.exists(path):
                 img = Image.new('RGB', (1200, 400), color)
                 d = ImageDraw.Draw(img)
-                text = f'Promo {i} - E-Stores'
+                text = f'Promo {i} - Olid Stores'
                 try:
                     fnt = ImageFont.truetype('arial.ttf', 60)
                 except Exception:

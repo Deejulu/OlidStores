@@ -250,6 +250,147 @@
     transform: translateY(-2px);
 }
 
+/* ── Notification Cards — dark mode ── */
+[data-theme="dark"] .notification-card {
+    background: linear-gradient(145deg, #1e1e1e 0%, #181818 100%);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .notification-card:hover {
+    background: linear-gradient(145deg, #262626 0%, #1e1e1e 100%);
+    border-color: rgba(var(--theme-accent-rgb, 255,215,0), 0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(var(--theme-accent-rgb,255,215,0), 0.15),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .notification-card.unread {
+    border-left: 4px solid var(--theme-accent);
+    background: linear-gradient(90deg, rgba(var(--theme-accent-rgb, 255,215,0), 0.08), #1e1e1e);
+}
+
+[data-theme="dark"] .notification-card.unread:hover {
+    background: linear-gradient(90deg, rgba(var(--theme-accent-rgb, 255,215,0), 0.12), #262626);
+}
+
+[data-theme="dark"] .notification-card.important {
+    border-color: rgba(var(--theme-accent-rgb, 255,215,0), 0.3);
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), #1e1e1e);
+}
+
+[data-theme="dark"] .notification-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .unread .notification-title {
+    color: var(--theme-accent);
+}
+
+[data-theme="dark"] .notification-message {
+    color: #b8b8b8;
+}
+
+[data-theme="dark"] .notification-time {
+    color: #8a8a8a;
+}
+
+[data-theme="dark"] .notification-filters {
+    background: #161616;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .filter-tabs {
+    background: #1e1e1e;
+}
+
+[data-theme="dark"] .filter-tab {
+    color: #b8b8b8;
+}
+
+[data-theme="dark"] .filter-tab:hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .filter-tab.active {
+    background: #262626;
+    color: var(--theme-accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .btn-mark-all,
+[data-theme="dark"] .btn-mark-all-sm {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .btn-view {
+    background: #1e1e1e;
+    color: #d8d8d8;
+}
+
+[data-theme="dark"] .btn-view:hover {
+    background: #2a2a2a;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-read {
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+}
+
+[data-theme="dark"] .btn-read:hover {
+    background: #34d399;
+    color: #0a0a0a;
+}
+
+[data-theme="dark"] .page-link-custom {
+    background: #1e1e1e;
+    border: 1px solid rgba(255,255,255,0.07);
+    color: #d8d8d8;
+}
+
+[data-theme="dark"] .page-link-custom:hover {
+    background: #262626;
+    border-color: rgba(255,255,255,0.12);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .page-item-custom.active .page-link-custom {
+    background: var(--theme-accent);
+    border-color: var(--theme-accent);
+    color: #0a0a0a;
+}
+
+[data-theme="dark"] .notification-pagination {
+    border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .empty-icon {
+    background: #1e1e1e;
+    color: #545454;
+}
+
+[data-theme="dark"] .empty-title {
+    color: #d8d8d8;
+}
+
+[data-theme="dark"] .empty-text {
+    color: #8a8a8a;
+}
+
+[data-theme="dark"] .notification-type-badge.badge-order { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+[data-theme="dark"] .notification-type-badge.badge-chat { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+[data-theme="dark"] .notification-type-badge.badge-product { background: rgba(var(--theme-accent-rgb, 255,215,0), 0.15); color: var(--theme-accent); }
+[data-theme="dark"] .notification-type-badge.badge-promotion { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+[data-theme="dark"] .notification-type-badge.badge-general { background: #1e1e1e; color: #8a8a8a; }
+
+[data-theme="dark"] .icon-order { background: rgba(96, 165, 250, 0.15); }
+[data-theme="dark"] .icon-chat { background: rgba(52, 211, 153, 0.15); }
+[data-theme="dark"] .icon-product { background: rgba(var(--theme-accent-rgb, 255,215,0), 0.15); }
+[data-theme="dark"] .icon-promotion { background: rgba(251, 191, 36, 0.15); }
+[data-theme="dark"] .icon-general { background: #1e1e1e; }
+
 /* ── Premium Buttons — glows + depth ── */
 [data-theme="dark"] .btn-primary {
     background: linear-gradient(135deg, var(--theme-accent) 0%, var(--theme-accent-light) 100%);

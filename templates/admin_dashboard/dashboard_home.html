@@ -763,14 +763,60 @@
                     <div class="stat-icon icon-warning">
                         <i class="fas fa-envelope"></i>
                     </div>
-                    <h5>Contact Messages</h5>
-                    <p>View and respond to contact form submissions</p>
-                    <a href="/admin-dashboard/contact-messages/" class="admin-btn">
-                        <span><i class="fas fa-inbox"></i> View Messages</span>
+                    <h5>Chat Inbox</h5>
+                    <p>View and respond to customer chat conversations</p>
+                    <a href="/admin-dashboard/chat/" class="admin-btn">
+                        <span><i class="fas fa-comments"></i> Open Chat Inbox</span>
                     </a>
                 </div>
             </div>
         </div>
+
+        {% if debug %}
+        <!-- Sample Data Section -->
+        <div class="sample-data-section" style="margin-top: 2rem; padding: 1.5rem; background: rgba(102, 126, 234, 0.08); border-radius: 16px; border: 1px solid rgba(102, 126, 234, 0.2);">
+            <h4 style="color: var(--accent-color, #667eea); margin-bottom: 1rem;">
+                <i class="fas fa-database"></i> Sample Data
+            </h4>
+            <p style="color: #666; margin-bottom: 1rem; font-size: 0.9rem;">
+                Populate the entire site with realistic sample data (categories, products, customers, orders, payments) for preview purposes, or remove it cleanly afterward.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <form method="post" action="{% url 'admin_dashboard:populate_sample_data_full' %}" onsubmit="return confirmPopulateFull(event)" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" id="populate-btn-full" class="admin-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <span><i class="fas fa-magic"></i> Populate Sample Data</span>
+                    </button>
+                </form>
+                <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" onsubmit="return confirm('Remove all sample data (categories, products, customers, orders, payments)? Real data will not be affected. This cannot be undone.');" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="admin-btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                        <span><i class="fas fa-trash-alt"></i> Delete Sample Data</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading overlay for populate -->
+        <div id="populate-loading-overlay-full" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+            <div class="spinner-border text-light" style="width:3rem;height:3rem;" role="status"></div>
+            <p style="color:#fff;font-size:1.1rem;font-weight:600;margin:0;">Populating sample data… please wait</p>
+            <p style="color:#ccc;font-size:.85rem;margin:0;">This may take up to 30 seconds.</p>
+        </div>
+
+        <script>
+        function confirmPopulateFull(e) {
+            if (!confirm('This will fill the site with sample data across products, categories, customers, orders, and payments. Continue?')) {
+                return false;
+            }
+            var overlay = document.getElementById('populate-loading-overlay-full');
+            if (overlay) overlay.style.display = 'flex';
+            var btn = document.getElementById('populate-btn-full');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…'; }
+            return true;
+        }
+        </script>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

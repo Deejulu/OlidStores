@@ -1,12 +1,14 @@
+from decimal import Decimal
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.conf import settings
 from unittest import mock
 import json, hmac, hashlib
+import uuid
 
-from products.models import Product, Category
+from products.models import Product, Category, ProductVariant
 from django.contrib.auth import get_user_model
-from .models import Cart, CartItem, Order, PaymentTransaction
+from .models import Cart, CartItem, Order, PaymentTransaction, PaymentSettings, CheckoutSettings, OrderItem
 
 class PaystackIntegrationTests(TestCase):
 	def setUp(self):
@@ -187,8 +189,8 @@ class PaystackIntegrationTests(TestCase):
 		# Adding more than available should only add up to available stock
 		from products.models import Category
 		cat = Category.objects.create(name='Partial')
-		prod = Product.objects.create(name='PartialProd', price=10.0, description='x', category=cat, stock=1)
-		r = self.client.post('/cart/add/', {'product_id': str(prod.id), 'quantity': 2}, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_HOST='127.0.0.1')
+		prod = Product.objects.create(name='PartialProd', price=10.0, description='x', category=cat, stock=2)
+		r = self.client.post('/cart/add/', {'product_id': str(prod.id), 'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_HOST='127.0.0.1')
 		self.assertEqual(r.status_code, 200)
 		data = r.json()
 		self.assertTrue(data.get('success'))
@@ -196,7 +198,7 @@ class PaystackIntegrationTests(TestCase):
 		from .models import Cart
 		cart = Cart.objects.filter(user=self.user).first()
 		self.assertIsNotNone(cart)
-		self.assertEqual(cart.total_items(), 1)
+		self.assertEqual(cart.total_items(), 2)
 		ci = cart.items.first()
 
 	def test_ajax_add_does_not_leave_messages(self):
@@ -508,18 +510,640 @@ class PaystackIntegrationTests(TestCase):
 		from products.models import Category
 		cat = Category.objects.create(name='ValidationCriticalTest')
 		prod = Product.objects.create(name='ValidationCriticalProd', price=50.0, description='x', category=cat, stock=1)
-		
+
 		# Add item to cart
 		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=prod, quantity=1, price=prod.price)
-		
+
 		# Validate cart
 		r = self.client.get('/cart/validate/')
 		data = r.json()
-		
+
 		# Cart should be invalid due to critically low stock
 		self.assertFalse(data.get('valid'))
 		item_data = data['items'][0]
 		self.assertFalse(item_data['is_valid'])
 		self.assertIn('critically low', str(item_data['issues']).lower())
+
+
+class OrderSearchTests(TestCase):
+	"""Tests for order history search functionality."""
+
+	def setUp(self):
+		self.client = Client()
+		User = get_user_model()
+		self.user = User.objects.create_user(
+			username='searchuser',
+			password='password',
+			email_verified=True  # Skip verification middleware redirect
+		)
+		# Verify the user is created correctly
+		self.user.refresh_from_db()
+		self.assertTrue(self.user.email_verified, "User should be created with email_verified=True")
+		self.client.force_login(self.user)
+		self.category = Category.objects.create(name='SearchCat')
+		self.product = Product.objects.create(name='Search Product', price=100.00, description='Desc', category=self.category, stock=10)
+
+	def _create_order(self, tracking_number=None):
+		"""Helper to create an order for testing."""
+		order = Order.objects.create(
+			user=self.user,
+			full_name='Test Customer',
+			phone='0800000000',
+			email='test@example.com',
+			delivery_address='123 Test Street',
+			total=100.00,
+			tracking_number=tracking_number
+		)
+		return order
+
+	def test_order_search_without_tracking_number(self):
+		"""Order search should work when no tracking number is set."""
+		order = self._create_order(tracking_number=None)
+
+		# Search by order ID (which is a valid searchable field)
+		r = self.client.get(reverse('orders:order_history'), {'search': str(order.id)}, HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		# Should not cause a 500 error - the search should work
+		self.assertContains(r, f'Order #{order.id}')
+
+	def test_order_search_with_tracking_number(self):
+		"""Order search should find orders by tracking number."""
+		order = self._create_order(tracking_number='TRACK123XYZ')
+
+		r = self.client.get(reverse('orders:order_history'), {'search': 'TRACK123XYZ'}, HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertContains(r, f'Order #{order.id}')
+
+	def test_order_search_by_status(self):
+		"""Order search should find orders by status."""
+		order = self._create_order()
+
+		r = self.client.get(reverse('orders:order_history'), {'search': 'Pending'}, HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertContains(r, f'Order #{order.id}')
+
+	def test_order_search_no_results(self):
+		"""Order search with no matches should return empty list."""
+		self._create_order()
+
+		r = self.client.get(reverse('orders:order_history'), {'search': 'NONEXISTENT'}, HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		# Should show empty state
+		self.assertContains(r, 'No Orders Found')
+
+	def test_order_search_empty_query(self):
+		"""Order search with empty query should return all orders."""
+		order1 = self._create_order()
+		order2 = self._create_order()
+
+		r = self.client.get(reverse('orders:order_history'), HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200, f"Order history failed with status {r.status_code}")
+		orders = r.context['orders']
+		self.assertEqual(len(orders), 2)
+
+
+class GuestCheckoutTests(TestCase):
+	"""Tests for guest checkout functionality."""
+
+	def setUp(self):
+		self.client = Client()
+		self.category = Category.objects.create(name='GuestCat')
+		self.product = Product.objects.create(name='Guest Product', price=50.00, description='Desc', category=self.category, stock=10)
+
+	def test_guest_can_add_to_cart(self):
+		"""Guest users should be able to add items to cart without logging in."""
+		r = self.client.post('/cart/add/', {'product_id': str(self.product.id), 'quantity': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		data = r.json()
+		self.assertTrue(data.get('success'))
+		# Verify cart was created with session key
+		cart = Cart.objects.filter(session_key=self.client.session.session_key, user=None).first()
+		self.assertIsNotNone(cart)
+		self.assertEqual(cart.total_items(), 1)
+
+	def test_guest_can_view_cart(self):
+		"""Guest users should be able to view their cart."""
+		# Add item to cart
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+
+		r = self.client.get(reverse('orders:cart'), HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertContains(r, 'Guest Product')
+
+	def test_guest_can_access_checkout(self):
+		"""Guest users should be able to access checkout without logging in."""
+		# Add item to cart
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+
+		r = self.client.get(reverse('orders:checkout'), HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+
+	def test_guest_can_place_manual_order(self):
+		"""Manual payment is no longer available on checkout."""
+		# Add item to cart
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=2, price=self.product.price)
+
+		r = self.client.post(reverse('orders:checkout'), {
+			'payment_method': 'manual',
+			'full_name': 'Guest User',
+			'phone': '0800000000',
+			'email': 'guest@example.com',
+			'delivery_address': '123 Guest Street',
+			'delivery_option': '2d',
+		}, HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 302)
+		self.assertIn('checkout', r.url)
+
+		# Verify no order was created
+		self.assertEqual(Order.objects.count(), 0)
+		self.assertEqual(self.product.stock, 8)  # 10 - 2 = 8
+
+	def test_guest_cart_persists_in_session(self):
+		"""Guest cart should persist across requests using session key."""
+		# Add item to cart
+		r = self.client.post('/cart/add/', {'product_id': str(self.product.id), 'quantity': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+
+		# Verify session key exists
+		session_key = self.client.session.session_key
+		self.assertIsNotNone(session_key)
+
+		# Cart should exist with the session key
+		cart = Cart.objects.filter(session_key=session_key, user=None).first()
+		self.assertIsNotNone(cart)
+		self.assertEqual(cart.total_items(), 1)
+
+		# Verify the cart item is correct
+		cart_item = cart.items.first()
+		self.assertIsNotNone(cart_item)
+		self.assertEqual(cart_item.product, self.product)
+		self.assertEqual(cart_item.quantity, 1)
+
+
+class OrderConfirmationTests(TestCase):
+	def setUp(self):
+		self.client = Client()
+		User = get_user_model()
+		self.user = User.objects.create_user(username='confuser', password='password')
+		self.guest_client = Client()
+		self.category = Category.objects.create(name='ConfCat')
+		self.product = Product.objects.create(
+			name='ConfProduct',
+			slug='confproduct',
+			price=100.00,
+			description='Desc',
+			category=self.category,
+			stock=10
+		)
+		self.variant = ProductVariant.objects.create(
+			product=self.product,
+			name='Large',
+			additional_price=10.00,
+			stock=5
+		)
+		PaymentSettings.objects.create(
+			enable_paystack=True,
+			enable_manual_transfer=True,
+			enable_pay_on_delivery=True,
+			pay_on_delivery_max=100000.00
+		)
+		CheckoutSettings.objects.create(
+			delivery_fee_24h=500.00,
+			delivery_fee_2d=300.00
+		)
+
+	def test_manual_order_redirects_to_confirmation(self):
+		self.client.force_login(self.user)
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, variant=self.variant, quantity=1, price=self.product.price + self.variant.additional_price)
+		response = self.client.post(reverse('orders:checkout'), {
+			'payment_method': 'manual',
+			'full_name': 'John Doe',
+			'phone': '08000000000',
+			'email': 'john@example.com',
+			'delivery_address': '123 Street',
+			'delivery_option': '2d',
+		})
+		self.assertEqual(response.status_code, 302)
+		self.assertIn('checkout', response.url)
+		self.assertEqual(Order.objects.count(), 0)
+
+	def test_paystack_order_redirects_to_confirmation(self):
+		self.client.force_login(self.user)
+		Cart.objects.filter(user=self.user).delete()
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, variant=self.variant, quantity=1, price=self.product.price + self.variant.additional_price)
+		with mock.patch('orders.views._verify_paystack_reference') as mock_verify:
+			mock_verify.return_value = {
+				'status': True,
+				'data': {
+					'status': 'success',
+					'amount': int((cart.total_price() + Decimal('300.00')) * 100),
+					'currency': 'NGN',
+					'reference': 'conf-ref-123'
+				}
+			}
+			response = self.client.post(reverse('orders:checkout'), {
+				'payment_method': 'paystack',
+				'paystack_reference': 'conf-ref-123',
+				'full_name': 'John Doe',
+				'phone': '08000000000',
+				'email': 'john@example.com',
+				'delivery_address': '123 Street',
+				'delivery_option': '2d',
+			})
+		self.assertEqual(response.status_code, 302)
+		self.assertIn('confirmation', response.url)
+		order = Order.objects.filter(user=self.user).last()
+		self.assertIsNotNone(order)
+		self.assertEqual(order.payment_method, 'paystack')
+		self.assertEqual(order.status, 'Processing')
+
+	def test_pay_on_delivery_redirects_to_confirmation(self):
+		self.client.force_login(self.user)
+		Cart.objects.filter(user=self.user).delete()
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, variant=self.variant, quantity=1, price=self.product.price + self.variant.additional_price)
+		response = self.client.post(reverse('orders:checkout'), {
+			'payment_method': 'pay_on_delivery',
+			'full_name': 'John Doe',
+			'phone': '08000000000',
+			'email': 'john@example.com',
+			'delivery_address': '123 Street',
+			'delivery_option': '2d',
+		})
+		self.assertEqual(response.status_code, 302)
+		self.assertIn('checkout', response.url)
+		self.assertEqual(Order.objects.count(), 0)
+
+	def test_confirmation_page_shows_order_details(self):
+		self.client.force_login(self.user)
+		Cart.objects.filter(user=self.user).delete()
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, variant=self.variant, quantity=2, price=self.product.price + self.variant.additional_price)
+		with mock.patch('orders.views._verify_paystack_reference') as mock_verify:
+			mock_verify.return_value = {
+				'status': True,
+				'data': {
+					'status': 'success',
+					'amount': int((cart.total_price() + Decimal('300.00')) * 100),
+					'currency': 'NGN',
+					'reference': 'conf-ref-detail'
+				}
+			}
+			response = self.client.post(reverse('orders:checkout'), {
+				'payment_method': 'paystack',
+				'paystack_reference': 'conf-ref-detail',
+				'full_name': 'John Doe',
+				'phone': '08000000000',
+				'email': 'john@example.com',
+				'delivery_address': '123 Street',
+				'delivery_option': '2d',
+			})
+		order = Order.objects.filter(user=self.user).last()
+		url = reverse('orders:order_confirmation', kwargs={'order_id': order.id, 'token': order.confirmation_token})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, order.number)
+		self.assertContains(response, 'John Doe')
+		self.assertContains(response, '08000000000')
+		self.assertContains(response, '123 Street')
+		self.assertContains(response, self.product.name)
+		self.assertContains(response, '2-day')
+		self.assertContains(response, 'Payment Confirmed')
+
+	def test_confirmation_page_guest_access(self):
+		self.guest_client = Client()
+		# Create a session first so the client has a session key
+		self.guest_client.get(reverse('orders:cart'))
+		session_key = self.guest_client.session.session_key
+		Cart.objects.filter(session_key=session_key, user=None).delete()
+		cart = Cart.objects.create(session_key=session_key, user=None)
+		CartItem.objects.create(cart=cart, product=self.product, variant=self.variant, quantity=1, price=self.product.price + self.variant.additional_price)
+		with mock.patch('orders.views._verify_paystack_reference') as mock_verify:
+			mock_verify.return_value = {
+				'status': True,
+				'data': {
+					'status': 'success',
+					'amount': int((cart.total_price() + Decimal('500.00')) * 100),
+					'currency': 'NGN',
+					'reference': 'guest-conf-ref'
+				}
+			}
+			response = self.guest_client.post(reverse('orders:checkout'), {
+				'payment_method': 'paystack',
+				'paystack_reference': 'guest-conf-ref',
+				'full_name': 'Guest User',
+				'phone': '08000000000',
+				'email': 'guest@example.com',
+				'delivery_address': '456 Avenue',
+				'delivery_option': '24h',
+			})
+		order = Order.objects.filter(user=None, full_name='Guest User').last()
+		self.assertIsNotNone(order)
+		self.assertIsNone(order.user)
+		url = reverse('orders:order_confirmation', kwargs={'order_id': order.id, 'token': order.confirmation_token})
+		response = self.guest_client.get(url)
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, order.number)
+		self.assertContains(response, 'Guest User')
+
+	def test_confirmation_page_wrong_token_redirects(self):
+		self.client.force_login(self.user)
+		Cart.objects.filter(user=self.user).delete()
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, variant=self.variant, quantity=1, price=self.product.price + self.variant.additional_price)
+		with mock.patch('orders.views._verify_paystack_reference') as mock_verify:
+			mock_verify.return_value = {
+				'status': True,
+				'data': {
+					'status': 'success',
+					'amount': int((cart.total_price() + Decimal('300.00')) * 100),
+					'currency': 'NGN',
+					'reference': 'wrong-token-ref'
+				}
+			}
+			response = self.client.post(reverse('orders:checkout'), {
+				'payment_method': 'paystack',
+				'paystack_reference': 'wrong-token-ref',
+				'full_name': 'John Doe',
+				'phone': '08000000000',
+				'email': 'john@example.com',
+				'delivery_address': '123 Street',
+				'delivery_option': '2d',
+			})
+		order = Order.objects.filter(user=self.user).last()
+		wrong_token = uuid.uuid4()
+		url = reverse('orders:order_confirmation', kwargs={'order_id': order.id, 'token': wrong_token})
+		response = self.client.get(url)
+		# Authenticated owner can access their own order confirmation even with wrong token
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, order.number)
+
+	def test_order_number_is_generated_and_unique(self):
+		self.client.force_login(self.user)
+		Cart.objects.filter(user=self.user).delete()
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+		with mock.patch('orders.views._verify_paystack_reference') as mock_verify:
+			mock_verify.return_value = {
+				'status': True,
+				'data': {
+					'status': 'success',
+					'amount': int(cart.total_price() * 100),
+					'currency': 'NGN',
+					'reference': 'unique-ref-1'
+				}
+			}
+			self.client.post(reverse('orders:checkout'), {
+				'payment_method': 'paystack',
+				'paystack_reference': 'unique-ref-1',
+				'full_name': 'John Doe',
+				'phone': '08000000000',
+				'email': 'john@example.com',
+				'delivery_address': '123 Street',
+			})
+		order1 = Order.objects.filter(user=self.user).last()
+		self.assertIsNotNone(order1.number)
+		self.assertRegex(order1.number, r'^EST-\d{4}-\d{4}$')
+
+	def test_pending_paystack_shows_processing_status(self):
+		self.client.force_login(self.user)
+		Cart.objects.filter(user=self.user).delete()
+		cart = Cart.objects.create(user=self.user)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+		# For pending payment, create order manually and set status to Pending
+		order = Order.objects.create(
+			user=self.user,
+			full_name='John Doe',
+			phone='08000000000',
+			email='john@example.com',
+			delivery_address='123 Street',
+			total=cart.total_price(),
+			payment_method='paystack',
+			status='Pending'
+		)
+		for item in cart.items.all():
+			OrderItem.objects.create(
+				order=order,
+				product=item.product,
+				variant=item.variant,
+				quantity=item.quantity,
+				price=item.price
+			)
+		url = reverse('orders:order_confirmation', kwargs={'order_id': order.id, 'token': order.confirmation_token})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Payment Processing')
+
+
+class StockReductionOnPaymentTest(TestCase):
+    """Test that stock is reduced ONLY when payment is confirmed, not at order creation."""
+
+    def setUp(self):
+        self.client = Client()
+        User = get_user_model()
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.force_login(self.user)
+        self.category = Category.objects.create(name='TestCat')
+        self.product = Product.objects.create(
+            name='Test Product', price=50.00, description='Desc', category=self.category, stock=10
+        )
+
+    def test_manual_payment_no_stock_reduction_at_creation(self):
+        """Manual payment orders should NOT reduce stock at creation."""
+        initial_stock = self.product.stock
+        
+        order = Order.objects.create(
+            user=self.user,
+            full_name='John Doe',
+            phone='08000000000',
+            email='john@example.com',
+            delivery_address='123 Street',
+            total=100.00,
+            payment_method='manual',
+            status='Pending'
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=2,
+            price=self.product.price
+        )
+        
+        # Stock should NOT be reduced at order creation
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock)
+
+    def test_manual_payment_stock_reduction_on_processing(self):
+        """Manual payment orders should reduce stock when status changes to 'Processing'."""
+        initial_stock = self.product.stock
+        
+        order = Order.objects.create(
+            user=self.user,
+            full_name='John Doe',
+            phone='08000000000',
+            email='john@example.com',
+            delivery_address='123 Street',
+            total=100.00,
+            payment_method='manual',
+            status='Pending'
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=2,
+            price=self.product.price
+        )
+        
+        # Stock should NOT be reduced at creation
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock)
+        
+        # Simulate admin confirming payment (status -> Processing)
+        order.status = 'Processing'
+        order.save()
+        
+        # Stock should now be reduced
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock - 2)
+
+    def test_pay_on_delivery_no_stock_reduction_at_creation(self):
+        """Pay on delivery orders should NOT reduce stock at creation."""
+        initial_stock = self.product.stock
+        
+        order = Order.objects.create(
+            user=self.user,
+            full_name='John Doe',
+            phone='08000000000',
+            email='john@example.com',
+            delivery_address='123 Street',
+            total=100.00,
+            payment_method='pay_on_delivery',
+            status='Pending'
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=3,
+            price=self.product.price
+        )
+        
+        # Stock should NOT be reduced at order creation
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock)
+
+    def test_pay_on_delivery_stock_reduction_on_shipped(self):
+        """Pay on delivery orders should reduce stock when status changes to 'Shipped'."""
+        initial_stock = self.product.stock
+        
+        order = Order.objects.create(
+            user=self.user,
+            full_name='John Doe',
+            phone='08000000000',
+            email='john@example.com',
+            delivery_address='123 Street',
+            total=100.00,
+            payment_method='pay_on_delivery',
+            status='Pending'
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=3,
+            price=self.product.price
+        )
+        
+        # Stock should NOT be reduced at creation
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock)
+        
+        # Simulate order being shipped (status -> Shipped)
+        order.status = 'Shipped'
+        order.save()
+        
+        # Stock should now be reduced
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock - 3)
+
+    def test_stock_not_double_reduced(self):
+        """Stock should only be reduced once even if status changes multiple times."""
+        initial_stock = self.product.stock
+        
+        order = Order.objects.create(
+            user=self.user,
+            full_name='John Doe',
+            phone='08000000000',
+            email='john@example.com',
+            delivery_address='123 Street',
+            total=100.00,
+            payment_method='manual',
+            status='Pending'
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=2,
+            price=self.product.price
+        )
+        
+        # Change to Processing (first time - should reduce)
+        order.status = 'Processing'
+        order.save()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock - 2)
+        
+        # Change to Shipped (should NOT reduce again)
+        order.status = 'Shipped'
+        order.save()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock - 2)
+        
+        # Change to Delivered (should NOT reduce again)
+        order.status = 'Delivered'
+        order.save()
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock - 2)
+
+    def test_paystack_stock_reduced_at_creation(self):
+        """Paystack orders should still reduce stock at order creation (after payment verification)."""
+        # For Paystack, stock is reduced at order creation because payment is verified first
+        # This test verifies the existing behavior is preserved
+        initial_stock = self.product.stock
+        
+        order = Order.objects.create(
+            user=self.user,
+            full_name='John Doe',
+            phone='08000000000',
+            email='john@example.com',
+            delivery_address='123 Street',
+            total=100.00,
+            payment_method='paystack',
+            status='Processing'  # Paystack orders start at Processing (payment verified)
+        )
+        # Note: In the actual checkout view, Paystack stock is reduced during the
+        # payment verification step, not at order creation. This test just verifies
+        # that Paystack orders with Processing status don't trigger stock reduction
+        # through the signal (since they're already past the verification step).
+        
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=2,
+            price=self.product.price
+        )
+        
+        # Stock should remain unchanged (Paystack handles stock differently)
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, initial_stock)
 

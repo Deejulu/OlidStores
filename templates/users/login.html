@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Login - E-Stores{% endblock %}
+{% block title %}Login - Olid Stores{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -794,11 +794,11 @@
         <div class="auth-loader-logo-ring">
             <div class="auth-loader-arc2"></div>
             <div class="auth-loader-logo">
-                <img src="{% static 'images/logo.svg' %}?v=3" alt="OliD Stores logo">
+                <img src="{% static 'images/logo.svg' %}?v=3" alt="Olid Stores logo">
             </div>
         </div>
         <div class="auth-loader-brand">
-            <span class="auth-loader-brand-olid">Olid</span>
+            <span class="auth-loader-brand-olid">{{ site_name|default:'Olid Stores' }}</span>
             <span class="auth-loader-brand-stores">Stores</span>
         </div>
         <div class="auth-loader-divider"></div>

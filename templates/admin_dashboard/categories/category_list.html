@@ -534,6 +534,7 @@
                         <i class="bi bi-plus-circle"></i>
                         Add New Category
                     </a>
+                    {% if DEBUG %}
                     <form method="post" action="{% url 'admin_dashboard:category_populate_sample' %}" style="display:inline" id="populate-form-cat" onsubmit="return confirmPopulateCat(event)">
                         {% csrf_token %}
                         <button type="submit" class="btn-add-category btn-secondary" id="populate-btn-cat">
@@ -541,13 +542,14 @@
                             Populate Sample Categories
                         </button>
                     </form>
-                    <form method="post" action="{% url 'admin_dashboard:category_remove_sample' %}" style="display:inline" onsubmit="return confirm('Remove all categories? This will also delete all products. This cannot be undone.')">
+                    <form method="post" action="{% url 'admin_dashboard:category_remove_sample' %}" style="display:inline" onsubmit="return confirm('Remove all sample categories? This cannot be undone.')">
                         {% csrf_token %}
                         <button type="submit" class="btn-add-category btn-danger">
                             <i class="bi bi-trash3"></i>
-                            Remove All Categories
+                            Remove Sample Categories
                         </button>
                     </form>
+                    {% endif %}
                 </div>
             </div>
         </div>

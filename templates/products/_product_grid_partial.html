@@ -39,9 +39,9 @@
                         <i class="bi {% if product.id in wishlist_product_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
                     </button>
                     {% endif %}
-                    <a href="{% url 'products:product_detail' slug=product.slug %}" class="action-btn">
+                    <button type="button" class="action-btn" onclick="quickView('{{ product.id }}')" title="Quick View">
                         <i class="bi bi-eye"></i>
-                    </a>
+                    </button>
                 </div>
             </div>
 

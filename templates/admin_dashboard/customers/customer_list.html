@@ -8,6 +8,7 @@
         padding: 2rem 0 4rem;
         position: relative;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
     }
 
     .customer-list-page .container {
@@ -447,6 +448,10 @@
         color: #1f2937 !important;
         font-size: 0.9rem;
         line-height: 1.3;
+        max-width: 160px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .fullname-cell {
@@ -463,6 +468,11 @@
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
+        word-break: break-word;
+    }
+
+    .col-email {
+        max-width: 260px;
     }
 
     .email-link:hover {
@@ -615,6 +625,12 @@
         .page-header {
             padding: 2rem 2rem;
         }
+        
+        /* Hide less important columns on smaller desktops */
+        .modern-table .col-joined,
+        .modern-table .col-status {
+            /* keep visible at 1200px */
+        }
     }
     
     @media (max-width: 991px) {
@@ -631,6 +647,20 @@
         .table-card-header .header-left {
             flex: 1;
             min-width: 150px;
+        }
+
+        /* Tablet & small laptops: use the card layout so the page never
+           requires left/right scrolling */
+        .modern-table {
+            display: none;
+        }
+
+        .mobile-cards {
+            display: block !important;
+        }
+
+        .table-responsive {
+            border-radius: 0 0 16px 16px;
         }
     }
 
@@ -760,6 +790,12 @@
             background: white;
             border-radius: 8px;
             margin-top: 0.5rem;
+        }
+        
+        /* Ensure table-responsive doesn't show unnecessary scroll */
+        .table-responsive {
+            border: none !important;
+            overflow-x: hidden !important;
         }
     }
 
@@ -1276,27 +1312,27 @@
                 </div>
 
             <!-- Desktop Table -->
-            <div style="overflow-x: auto;">
+            <div class="table-responsive">
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th style="width: 40px;"><i class="bi bi-check-square"></i></th>
-                            <th><i class="bi bi-person"></i> User</th>
-                            <th><i class="bi bi-person-badge"></i> Full Name</th>
-                            <th><i class="bi bi-envelope"></i> Email</th>
-                            <th><i class="bi bi-calendar3"></i> Joined</th>
-                            <th><i class="bi bi-circle-fill"></i> Status</th>
-                            <th><i class="bi bi-shield"></i> Role</th>
-                            <th><i class="bi bi-three-dots"></i> Actions</th>
+                            <th class="col-checkbox"><i class="bi bi-check-square"></i></th>
+                            <th class="col-user"><i class="bi bi-person"></i> User</th>
+                            <th class="col-fullname d-none d-xl-table-cell"><i class="bi bi-person-badge"></i> Full Name</th>
+                            <th class="col-email"><i class="bi bi-envelope"></i> Email</th>
+                            <th class="col-joined d-none d-xl-table-cell"><i class="bi bi-calendar3"></i> Joined</th>
+                            <th class="col-status d-none d-lg-table-cell"><i class="bi bi-circle-fill"></i> Status</th>
+                            <th class="col-role d-none d-xl-table-cell"><i class="bi bi-shield"></i> Role</th>
+                            <th class="col-actions"><i class="bi bi-three-dots"></i> Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for u in users %}
                         <tr>
-                            <td>
+                            <td class="col-checkbox">
                                 <input type="checkbox" class="user-checkbox" name="user_ids" value="{{ u.id }}" style="width: 18px; height: 18px; cursor: pointer;">
                             </td>
-                            <td>
+                            <td class="col-user">
                                 <div class="user-cell">
                                     <div class="user-avatar avatar-{{ forloop.counter|divisibleby:8|yesno:'rose,dummy' }}{% if forloop.counter|divisibleby:7 %}rose{% elif forloop.counter|divisibleby:6 %}amber{% elif forloop.counter|divisibleby:5 %}emerald{% elif forloop.counter|divisibleby:4 %}teal{% elif forloop.counter|divisibleby:3 %}cyan{% elif forloop.counter|divisibleby:2 %}violet{% else %}indigo{% endif %}">
                                         {{ u.username|make_list|first }}
@@ -1304,14 +1340,14 @@
                                     <span class="user-name">{{ u.username }}</span>
                                 </div>
                             </td>
-                            <td>
+                            <td class="col-fullname d-none d-xl-table-cell">
                                 {% if u.first_name or u.last_name %}
                                     <span class="fullname-cell">{{ u.first_name }} {{ u.last_name }}</span>
                                 {% else %}
                                     <span class="not-provided">&mdash;</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="col-email">
                                 {% if u.email %}
                                 <a href="mailto:{{ u.email }}" class="email-link">
                                     {{ u.email }}
@@ -1320,10 +1356,10 @@
                                 <span class="not-provided">&mdash;</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="col-joined d-none d-xl-table-cell">
                                 <span class="date-cell">{{ u.date_joined|date:"M d, Y" }}</span>
                             </td>
-                            <td>
+                            <td class="col-status d-none d-lg-table-cell">
                                 {% if u.is_active %}
                                     <span class="status-badge badge-active">
                                         <i class="bi bi-check-circle-fill"></i> Active
@@ -1334,7 +1370,7 @@
                                     </span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="col-role d-none d-xl-table-cell">
                                 {% if u.role == 'admin' %}
                                     <span class="status-badge badge-admin">
                                         <i class="bi bi-shield-fill-check"></i> Admin
@@ -1345,9 +1381,9 @@
                                     </span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="col-actions">
                                 <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                                    <a href="{% url 'admin_dashboard:customer_detail' u.id %}" class="btn-view" title="View Details">
+                                    <a href="{% url 'admin_dashboard:customer_detail' u.id %}" class="btn-view" title="View Details" style="min-height: 44px; touch-action: manipulation;">
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                 </div>
@@ -1355,7 +1391,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <div class="empty-state">
                                     <div class="empty-icon"><i class="bi bi-people"></i></div>
                                     <p>

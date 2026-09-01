@@ -99,3 +99,55 @@ class SearchViewTests(TestCase):
         # and in-stock variant appears as an option
         self.assertIn(b'>Large -', r.content)
 
+
+class ProductFilterTests(TestCase):
+	"""Tests for advanced product filtering."""
+
+	def setUp(self):
+		self.client = Client(HTTP_HOST='127.0.0.1')
+		self.cat = Category.objects.create(name='FilterCat', slug='filtercat')
+		self.p1 = Product.objects.create(name='Cheap Shoe', slug='cheap', price=500, category=self.cat, stock=5)
+		self.p2 = Product.objects.create(name='Expensive Shoe', slug='expensive', price=5000, category=self.cat, stock=3)
+		self.p3 = Product.objects.create(name='Mid Range', slug='mid', price=2000, category=self.cat, stock=0)
+
+	def test_price_range_filter_min(self):
+		"""Filter products with minimum price."""
+		r = self.client.get('/shop/?min_price=1000', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertIn(b'Expensive Shoe', r.content)
+		self.assertIn(b'Mid Range', r.content)
+		self.assertNotIn(b'Cheap Shoe', r.content)
+
+	def test_price_range_filter_max(self):
+		"""Filter products with maximum price."""
+		r = self.client.get('/shop/?max_price=2000', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertIn(b'Cheap Shoe', r.content)
+		self.assertIn(b'Mid Range', r.content)
+		self.assertNotIn(b'Expensive Shoe', r.content)
+
+	def test_price_range_filter_both(self):
+		"""Filter products within price range."""
+		r = self.client.get('/shop/?min_price=1000&max_price=3000', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertIn(b'Mid Range', r.content)
+		self.assertNotIn(b'Cheap Shoe', r.content)
+		self.assertNotIn(b'Expensive Shoe', r.content)
+
+	def test_price_range_filter_no_results(self):
+		"""Price range with no matching products."""
+		r = self.client.get('/shop/?min_price=10000', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		self.assertNotIn(b'Cheap Shoe', r.content)
+		self.assertNotIn(b'Expensive Shoe', r.content)
+		self.assertNotIn(b'Mid Range', r.content)
+
+	def test_invalid_price_filter_ignored(self):
+		"""Invalid price values should be ignored."""
+		r = self.client.get('/shop/?min_price=invalid&max_price=also_invalid', HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		# All products should still be shown
+		self.assertIn(b'Cheap Shoe', r.content)
+		self.assertIn(b'Expensive Shoe', r.content)
+		self.assertIn(b'Mid Range', r.content)
+

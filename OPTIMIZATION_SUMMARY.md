@@ -2,7 +2,7 @@
 
 ## ✅ All Optimizations Successfully Applied!
 
-Your E-Stores website has been comprehensively optimized for maximum performance on both local and hosted servers.
+Your Olid Stores website has been comprehensively optimized for maximum performance on both local and hosted servers.
 
 ---
 

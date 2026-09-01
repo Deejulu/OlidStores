@@ -182,7 +182,7 @@ def site_contact(request):
 
     # Get site settings for global use across all templates
     site_settings = _cached_sitecontent('site_settings')
-    site_name = site_settings.site_name if site_settings and site_settings.site_name else 'E-Stores'
+    site_name = site_settings.site_name if site_settings and site_settings.site_name else 'Olid Stores'
     site_tagline = site_settings.site_tagline if site_settings and site_settings.site_tagline else ''
     site_logo = site_settings.site_logo if site_settings and site_settings.site_logo else None
     favicon = site_settings.favicon if site_settings and site_settings.favicon else None
@@ -191,6 +191,8 @@ def site_contact(request):
     business_hours = site_settings.business_hours if site_settings and site_settings.business_hours else ''
     free_shipping_threshold = site_settings.free_shipping_threshold if site_settings else 0
     return_policy_days = site_settings.return_policy_days if site_settings else 7
+    site_meta_description = site_settings.meta_description if site_settings and site_settings.meta_description else ''
+    site_meta_keywords = site_settings.meta_keywords if site_settings and site_settings.meta_keywords else ''
     
     # Get contact phone from contact SiteContent
     contact_phone = contact.phone if contact and contact.phone else ''
@@ -233,32 +235,39 @@ def site_contact(request):
         'free_shipping_threshold': free_shipping_threshold,
         'return_policy_days': return_policy_days,
         'all_social_links': all_social,
+        # SEO fields
+        'site_meta_description': site_meta_description,
+        'site_meta_keywords': site_meta_keywords,
     }
 
 
 def customer_notifications(request):
-    """
-    Context processor to provide notification counts for customer users.
-    Shows unread notification count in the header/navigation.
-    """
-    if not request.user.is_authenticated:
-        return {'customer_unread_notifications': 0}
-    
-    # Only for customers (not admin users)
-    is_customer = getattr(request.user, 'role', None) == 'customer'
-    if not is_customer:
-        return {'customer_unread_notifications': 0}
-    
-    try:
-        from users.models_notification import Notification
-        from django.db.models import Q
-        
-        # Count unread notifications for this user
-        unread_count = Notification.objects.filter(
-            Q(user=request.user) | Q(user__isnull=True),
-            is_read=False
-        ).count()
-        
-        return {'customer_unread_notifications': unread_count}
-    except Exception:
-        return {'customer_unread_notifications': 0}
+	"""
+	Context processor to provide notification counts for customer users.
+	Shows unread notification count in the header/navigation.
+	"""
+	if not request.user.is_authenticated:
+		return {'customer_unread_notifications': 0}
+
+	# Only for customers (not admin users)
+	is_customer = getattr(request.user, 'role', None) == 'customer'
+	if not is_customer:
+		return {'customer_unread_notifications': 0}
+
+	try:
+		from users.models_notification import Notification
+		from django.db.models import Q
+
+		# Cache the unread count per user for 60 seconds
+		cache_key = f'customer_unread_notifications_{request.user.id}'
+		unread_count = cache.get(cache_key)
+		if unread_count is None:
+			unread_count = Notification.objects.filter(
+				Q(user=request.user) | Q(user__isnull=True),
+				is_read=False
+			).count()
+			cache.set(cache_key, unread_count, 60)
+
+		return {'customer_unread_notifications': unread_count}
+	except Exception:
+		return {'customer_unread_notifications': 0}

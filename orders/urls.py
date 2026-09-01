@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import test_orders, cart_view, add_to_cart, checkout_view, cart_update_view, paystack_webhook, bulk_add_to_cart, order_history_view, order_detail_view, validate_cart_items
+from .views import test_orders, cart_view, add_to_cart, checkout_view, cart_update_view, paystack_webhook, bulk_add_to_cart, order_history_view, order_detail_view, validate_cart_items, order_confirmation_view, download_order_pdf
 
 urlpatterns = [
 	# Primary cart/checkout endpoints (include is mounted at /cart/ in project urls)
@@ -14,4 +14,6 @@ urlpatterns = [
 	path('paystack/webhook/', paystack_webhook, name='paystack_webhook'),
     path('history/', order_history_view, name='order_history'),
     path('order/<int:order_id>/', order_detail_view, name='order_detail'),
+    path('confirmation/<int:order_id>/<uuid:token>/', order_confirmation_view, name='order_confirmation'),
+    path('confirmation/<int:order_id>/<uuid:token>/pdf/', download_order_pdf, name='order_confirmation_pdf'),
 ]

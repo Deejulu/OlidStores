@@ -22,3 +22,9 @@ boto3==1.28.0
 # Redis caching for production performance (optional but recommended)
 django-redis==5.4.0
 redis==5.0.1
+# AI chat fallback
+anthropic==0.69.0
+# PDF to Word converter
+pdf2docx==0.5.13
+# DOCX to PDF conversion (uses MS Word on Windows, LibreOffice on Linux)
+docx2pdf==0.1.8

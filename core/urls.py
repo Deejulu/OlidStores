@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, AboutView, ContactView, GalleryView, FAQView, PrivacyPolicyView, TermsConditionsView, ShippingPolicyView, ReturnsPolicyView
+from .views import HomeView, AboutView, ContactPageView, GalleryView, FAQView, PrivacyPolicyView, TermsConditionsView, ShippingPolicyView, ReturnsPolicyView
 from . import views as core_views
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import render_to_string
@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 urlpatterns = [
 	path('', HomeView.as_view(), name='home'),
 	path('about/', AboutView.as_view(), name='about'),
-	path('contact/', ContactView.as_view(), name='contact'),
+	path('contact/', ContactPageView.as_view(), name='contact'),
 	path('gallery/', GalleryView.as_view(), name='gallery'),
 	path('test-base/', lambda request: HttpResponse(render_to_string('base.html'))),
 	path('faq/', FAQView.as_view(), name='faq'),

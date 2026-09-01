@@ -152,22 +152,27 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Ensure all categories exist
         cat_names = list(self.CATALOG.keys())
-        
-        # Create categories that don't exist
+
+        # Create categories that don't exist (marked as sample)
         existing_cats = set(Category.objects.filter(name__in=cat_names).values_list('name', flat=True))
-        new_cats = [Category(name=n, slug=slugify(n)) for n in cat_names if n not in existing_cats]
+        new_cats = [Category(name=n, slug=slugify(n), is_sample=True) for n in cat_names if n not in existing_cats]
         if new_cats:
             Category.objects.bulk_create(new_cats)
-        
-        # Get all category objects
-        cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}
-        self.stdout.write(self.style.SUCCESS(f'Ensured {len(cat_objects)} categories exist.'))
 
-        # Delete ALL products
-        # For SQLite compatibility, use Django ORM delete instead of TRUNCATE
-        deleted_count = Product.objects.all().count()
-        Product.objects.all().delete()
-        self.stdout.write(self.style.WARNING(f'Cleared {deleted_count} existing products.'))
+        # Get all category objects and mark existing catalog categories as sample
+        cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}
+        # Mark existing categories that weren't just created as sample too
+        Category.objects.filter(name__in=cat_names, is_sample=False).update(is_sample=True)
+        self.stdout.write(self.style.SUCCESS(f'Ensured {len(cat_objects)} categories exist (all marked as sample).'))
+
+        # SAFETY FIX: Only delete existing sample products, never real products
+        # Previously this was Product.objects.all().delete() which wiped real data
+        sample_count = Product.objects.filter(is_sample=True).count()
+        if sample_count:
+            Product.objects.filter(is_sample=True).delete()
+            self.stdout.write(self.style.WARNING(f'Cleared {sample_count} existing sample products (real products preserved).'))
+        else:
+            self.stdout.write('No existing sample products to clear.')
 
         # Build all Product objects in memory, resolving slug conflicts without DB queries per product
         to_create = []

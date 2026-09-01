@@ -895,12 +895,12 @@
                         </div>
                     </div>
                     {% else %}
-                    {% if admin_unread_messages > 0 %}
-                    <a href="/admin-dashboard/contact-messages/" class="dropdown-notification-item">
-                        <i class="bi bi-envelope text-primary notification-icon"></i>
+                    {% if admin_unread_chats > 0 %}
+                    <a href="/admin-dashboard/chat/" class="dropdown-notification-item">
+                        <i class="bi bi-chat-dots-fill text-success notification-icon"></i>
                         <div class="notification-content">
-                            <div class="notification-title">{{ admin_unread_messages }} Unread Message{{ admin_unread_messages|pluralize }}</div>
-                            <div class="notification-desc">Requires immediate attention</div>
+                            <div class="notification-title">{{ admin_unread_chats }} Unread Chat Message{{ admin_unread_chats|pluralize }}</div>
+                            <div class="notification-desc">Customer waiting for a reply</div>
                         </div>
                         <div class="notification-time">Just now</div>
                     </a>

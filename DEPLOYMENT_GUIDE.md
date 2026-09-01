@@ -1,6 +1,6 @@
-# Production Deployment Guide for E-Stores
+# Production Deployment Guide for Olid Stores
 
-This guide covers deploying E-Stores to production with maximum performance.
+This guide covers deploying Olid Stores to production with maximum performance.
 
 ## Pre-Deployment Checklist
 

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and account pages
+Disallow: /admin/
+Disallow: /admin-dashboard/
+Disallow: /accounts/
+Disallow: /cart/
+Disallow: /checkout/
+
+# Sitemap location
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

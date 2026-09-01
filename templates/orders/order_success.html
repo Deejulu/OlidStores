@@ -1,6 +1,667 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<h2>Order Successful!</h2>
-<p>Thank you for your order. Your order number is <strong>{{ order.number }}</strong>.</p>
-<a href="/">Continue Shopping</a>
+<style>
+/* ===== ORDER CONFIRMATION PAGE ===== */
+.conf-page {
+  background: linear-gradient(180deg, #faf9f6 0%, #f5f3ef 100%);
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
+/* Hero Section */
+.conf-hero {
+  background: linear-gradient(135deg, #1a3c2a 0%, #0f2a1d 50%, #0a1f15 100%);
+  padding: 3rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.conf-hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -8%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.conf-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  left: -5%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.conf-hero h1 {
+  color: white;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+  position: relative;
+}
+.conf-hero p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.1rem;
+  font-weight: 400;
+  position: relative;
+}
+.conf-hero .conf-order-number {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--gold-light);
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  position: relative;
+  letter-spacing: 0.02em;
+}
+
+/* Cards */
+.conf-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+.conf-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.conf-card-header {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  padding: 1rem 1.5rem;
+  position: relative;
+}
+.conf-card-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+.conf-card-header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.conf-card-header h2 i {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+.conf-card-body {
+  padding: 1.5rem;
+}
+
+/* Order Items */
+.conf-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 1rem;
+}
+.conf-item:last-child {
+  border-bottom: none;
+}
+.conf-item-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.conf-item-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+.conf-item-price {
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+.conf-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  padding: 1rem 0 0;
+  border-top: 2px solid #e5e7eb;
+  margin-top: 0.5rem;
+  color: #111827;
+}
+
+/* Status Badge */
+.conf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+.conf-badge--success {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+.conf-badge--warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.conf-badge--info {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+/* Info Rows */
+.conf-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+.conf-info-row:last-child {
+  border-bottom: none;
+}
+.conf-info-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+.conf-info-value {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+/* Next Steps */
+.conf-next {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-left: 4px solid var(--gold);
+  padding: 1.25rem 1.5rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+  margin-top: 1.5rem;
+}
+.conf-next h3 {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.conf-next p {
+  margin: 0;
+  color: #78350f;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Action Buttons */
+.conf-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+.conf-actions .btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.conf-actions .btn-primary {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 14px rgba(139, 115, 85, 0.3);
+}
+.conf-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 115, 85, 0.4);
+  color: white;
+}
+.conf-actions .btn-outline-secondary {
+  border: 2px solid #d1d5db;
+  color: #6b7280;
+  background: white;
+}
+.conf-actions .btn-outline-secondary:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: #faf9f6;
+  transform: translateY(-2px);
+}
+.conf-actions .btn-print {
+  background: white;
+  border: 2px solid #d1d5db;
+  color: #6b7280;
+}
+.conf-actions .btn-print:hover {
+  border-color: var(--gold);
+  color: var(--gold-dark);
+  background: #fffbeb;
+  transform: translateY(-2px);
+}
+
+/* Section Dividers */
+.conf-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+  margin: 1.5rem 0;
+}
+
+/* Responsive */
+@media (max-width: 1199.98px) {
+  .conf-hero h1 {
+    font-size: 2rem;
+  }
+  .conf-card-body {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .conf-hero {
+    padding: 2rem 0 2.5rem;
+  }
+  .conf-hero h1 {
+    font-size: 1.75rem;
+  }
+  .conf-hero p {
+    font-size: 1rem;
+  }
+  .conf-card {
+    margin-bottom: 1rem;
+  }
+  .conf-card-body {
+    padding: 1rem;
+  }
+  .conf-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .conf-item-price {
+    text-align: left;
+    margin-left: 0;
+  }
+  .conf-actions {
+    flex-direction: column;
+  }
+  .conf-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .conf-hero {
+    padding: 1.5rem 0 2rem;
+  }
+  .conf-hero h1 {
+    font-size: 1.5rem;
+  }
+  .conf-card-header {
+    padding: 0.875rem 1rem;
+  }
+  .conf-card-header h2 {
+    font-size: 1rem;
+  }
+  .conf-card-body {
+    padding: 0.875rem;
+  }
+  .conf-total {
+    font-size: 1.1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .conf-page {
+    background: white !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+  
+  .conf-hero {
+    background: #1a3c2a !important;
+    padding: 1.5rem 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .conf-hero::before,
+  .conf-hero::after {
+    display: none !important;
+  }
+  
+  .conf-hero h1,
+  .conf-hero p,
+  .conf-hero .conf-order-number {
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .conf-card {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+    break-inside: avoid;
+    margin-bottom: 1rem !important;
+  }
+  
+  .conf-card-header {
+    background: var(--gold) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .conf-card-header h2 {
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .conf-badge {
+    border: 1px solid currentColor !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+  }
+  
+  .conf-item {
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  
+  .conf-total {
+    border-top: 2px solid #000 !important;
+  }
+  
+  .conf-next {
+    background: #fffbeb !important;
+    border-left: 4px solid var(--gold) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  .row {
+    margin: 0 !important;
+  }
+  
+  .conf-actions {
+    display: none !important;
+  }
+}
+</style>
+
+<div class="conf-page">
+  <!-- Hero Section -->
+  <div class="conf-hero no-print">
+    <div class="container">
+      <h1>Order Confirmed!</h1>
+      <p>Thank you, {{ order.full_name }}. Your order has been received and is being processed.</p>
+      <div class="conf-order-number">
+        <i class="bi bi-receipt"></i>
+        Order #{{ order.number }}
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-4">
+    <div class="row g-4">
+      <!-- Left Column: Order Details -->
+      <div class="col-lg-8">
+        <!-- Order Summary Card -->
+        <div class="conf-card">
+          <div class="conf-card-header">
+            <h2><i class="bi bi-bag-check"></i>Order Summary</h2>
+          </div>
+          <div class="conf-card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span class="text-muted small">Order Number</span>
+                <div class="fs-5 fw-bold" style="color: #111827;">{{ order.number }}</div>
+              </div>
+              <div class="text-end">
+                <span class="text-muted small">Date</span>
+                <div class="fw-semibold">{{ order.created_at|date:"F j, Y" }}</div>
+              </div>
+            </div>
+            <hr class="conf-divider">
+            
+            {% for item in items %}
+            <div class="conf-item">
+              <div style="flex: 1; min-width: 0;">
+                <div class="conf-item-name">{{ item.product.name }}</div>
+                <div class="conf-item-meta">
+                  Qty: {{ item.quantity }}
+                  {% if item.variant %} · Variant: {{ item.variant.name }}{% endif %}
+                </div>
+              </div>
+              <div class="conf-item-price">₦{{ item.subtotal|floatformat:2 }}</div>
+            </div>
+            {% endfor %}
+            
+            <div class="conf-total">
+              <span>Total</span>
+              <span>₦{{ order.total|floatformat:2 }}</span>
+            </div>
+            
+            {% if order.delivery_fee %}
+            <div class="conf-item" style="border-top: 1px dashed #e5e7eb; padding-top: 1rem; margin-top: 0.5rem;">
+              <div class="conf-item-name">Delivery Fee ({{ order.get_delivery_option_display }})</div>
+              <div class="conf-item-price">₦{{ order.delivery_fee|floatformat:2 }}</div>
+            </div>
+            <div class="conf-total">
+              <span>Grand Total</span>
+              <span>₦{{ order.grand_total|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Delivery Details Card -->
+        <div class="conf-card">
+          <div class="conf-card-header">
+            <h2><i class="bi bi-truck"></i>Delivery Details</h2>
+          </div>
+          <div class="conf-card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Full Name</div>
+                <div class="fw-semibold">{{ order.full_name }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Phone</div>
+                <div class="fw-semibold">{{ order.phone }}</div>
+              </div>
+              <div class="col-12">
+                <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Delivery Address</div>
+                <div class="fw-semibold">{{ order.delivery_address|linebreaksbr }}</div>
+              </div>
+              <div class="col-md-6">
+                <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Delivery Option</div>
+                <div class="fw-semibold">{{ order.get_delivery_option_display }}</div>
+              </div>
+              {% if order.notes %}
+              <div class="col-12">
+                <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem;">Delivery Notes</div>
+                <div class="fw-semibold">{{ order.notes|linebreaksbr }}</div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Card -->
+        {% if payment_method == 'paystack' or order.payment_method == 'paystack' %}
+        <div class="conf-card">
+          <div class="conf-card-header">
+            <h2><i class="bi bi-credit-card"></i>Payment</h2>
+          </div>
+          <div class="conf-card-body">
+            {% if payment_status == 'success' or order.status != 'Pending' %}
+              <span class="conf-badge conf-badge--success">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+                Payment Confirmed
+              </span>
+            {% else %}
+              <span class="conf-badge conf-badge--warning">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+                Payment Processing
+              </span>
+            {% endif %}
+            <p class="mt-3 mb-0" style="color: #6b7280; line-height: 1.7;">
+              {% if payment_status == 'success' or order.status != 'Pending' %}
+                We have received your payment. Your order is now being processed and will be prepared for dispatch.
+              {% else %}
+                We are waiting for payment confirmation. You will receive an email once your payment is verified.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- What Happens Next -->
+        <div class="conf-next">
+          <h3><i class="bi bi-info-circle"></i>What happens next?</h3>
+          <p>
+            We will prepare your order for dispatch. Delivery typically takes 24 hours for express delivery or 2 days for standard delivery.
+            If you have any questions, contact us at {{ site_email|default:"support@olidstores.com" }} or call {{ site_phone|default:"+234 800 000 0000" }}.
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="conf-actions no-print">
+          <a href="{% url 'products:shop' %}" class="btn btn-primary">
+            <i class="bi bi-bag"></i>
+            Continue Shopping
+          </a>
+          <button class="btn btn-print" onclick="window.print()">
+            <i class="bi bi-printer"></i>
+            Print Receipt
+          </button>
+          <a href="{% url 'orders:order_confirmation_pdf' order.id token %}" class="btn btn-primary" target="_blank" rel="noopener">
+            <i class="bi bi-file-earmark-arrow-down"></i>
+            Download PDF
+          </a>
+          {% if request.user.is_authenticated %}
+          <a href="{% url 'users:order_history' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-list-ul"></i>
+            View My Orders
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right Column: Order Info Sidebar -->
+      <div class="col-lg-4">
+        <div class="conf-card">
+          <div class="conf-card-header">
+            <h2><i class="bi bi-info-circle"></i>Order Info</h2>
+          </div>
+          <div class="conf-card-body">
+            <div class="conf-info-row">
+              <span class="conf-info-label">Order Number</span>
+              <span class="conf-info-value">{{ order.number }}</span>
+            </div>
+            <div class="conf-info-row">
+              <span class="conf-info-label">Status</span>
+              <span class="conf-info-value">
+                {% if order.status == 'Processing' %}
+                  <span class="conf-badge conf-badge--warning" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">{{ order.status }}</span>
+                {% elif order.status == 'Shipped' %}
+                  <span class="conf-badge conf-badge--info" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">{{ order.status }}</span>
+                {% elif order.status == 'Delivered' or order.status == 'Completed' %}
+                  <span class="conf-badge conf-badge--success" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">{{ order.status }}</span>
+                {% else %}
+                  <span class="conf-badge conf-badge--warning" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">{{ order.status }}</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="conf-info-row">
+              <span class="conf-info-label">Payment Method</span>
+              <span class="conf-info-value text-capitalize">{{ order.payment_method|default:"pending"|title }}</span>
+            </div>
+            <div class="conf-info-row">
+              <span class="conf-info-label">Total</span>
+              <span class="conf-info-value" style="font-size: 1.1rem; color: var(--gold-dark);">₦{{ order.grand_total|floatformat:2 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Card -->
+        <div class="conf-card">
+          <div class="conf-card-header">
+            <h2><i class="bi bi-headset"></i>Need Help?</h2>
+          </div>
+          <div class="conf-card-body">
+            <p style="color: #6b7280; margin-bottom: 1rem; line-height: 1.7;">
+              If you have any questions about your order, our support team is here to help.
+            </p>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-envelope" style="color: var(--gold);"></i>
+              <span class="fw-semibold">{{ site_email|default:"support@olidstores.com" }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-telephone" style="color: var(--gold);"></i>
+              <span class="fw-semibold">{{ site_phone|default:"+234 800 000 0000" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

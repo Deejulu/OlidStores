@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject|default:"Olid Stores Notification" }}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f6f9; }
+        .email-wrapper { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .email-header { background: linear-gradient(135deg, #1a56db 0%, #0e3a9b 100%); padding: 30px 20px; text-align: center; }
+        .email-header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; }
+        .email-header p { color: #93c5fd; margin: 5px 0 0; font-size: 14px; }
+        .email-body { padding: 30px 20px; }
+        .order-summary { background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .order-summary h3 { margin: 0 0 15px; color: #1f2937; font-size: 16px; }
+        .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+        .order-item:last-child { border-bottom: none; }
+        .order-total { font-weight: 700; font-size: 18px; color: #1a56db; text-align: right; margin-top: 15px; padding-top: 15px; border-top: 2px solid #1a56db; }
+        .btn { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #1a56db 0%, #0e3a9b 100%); color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0; }
+        .email-footer { background-color: #1f2937; color: #9ca3af; padding: 20px; text-align: center; font-size: 12px; }
+        .email-footer a { color: #93c5fd; text-decoration: none; }
+        @media only screen and (max-width: 600px) {
+            .email-body { padding: 20px 15px; }
+            .order-summary { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-header">
+            <h1>{{ site_name|default:"Olid Stores" }}</h1>
+            <p>Your trusted online shopping destination</p>
+        </div>
+        <div class="email-body">
+            {% block email_content %}{% endblock %}
+        </div>
+        <div class="email-footer">
+            <p>{{ footer_text|default:"" }}</p>
+            <p>&copy; {% now "Y" %} {{ site_name|default:"Olid Stores" }}. All rights reserved.</p>
+            <p>
+                <a href="{{ request.scheme }}://{{ request.get_host }}/">Visit Store</a> |
+                <a href="{{ request.scheme }}://{{ request.get_host }}/contact/">Contact Us</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

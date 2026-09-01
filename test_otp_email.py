@@ -29,7 +29,7 @@ print("\n" + "="*60)
 if success:
     print("✅ SUCCESS! Email sent successfully!")
     print("\nCheck your inbox at: daveed0011@gmail.com")
-    print("Subject: Your E-Stores Verification Code: 123456")
+    print("Subject: Your Olid Stores Verification Code: 123456")
     print("\nIf you don't see it:")
     print("  1. Check your spam/junk folder")
     print("  2. Wait 1-2 minutes (SendGrid can be slow)")
