@@ -2,12 +2,15 @@ import hmac
 import hashlib
 import json
 import requests
+import logging
 from decimal import Decimal
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+
+logger = logging.getLogger(__name__)
 from .models import Order, OrderItem, PaymentTransaction, CheckoutSettings, PaymentSettings
 
 from .utils import verify_paystack_reference as _verify_paystack_reference
@@ -16,26 +19,29 @@ from .utils import verify_paystack_reference as _verify_paystack_reference
 
 from django.contrib.auth.decorators import login_required
 
-@login_required(login_url='/accounts/login/')
 def checkout_view(request):
 	# ...existing code...
 	cart = None
 	items = []
 	total = 0
-	# load admin-configured fees (fallback to settings or CheckoutSettings)
-	cs = CheckoutSettings.objects.first()
-	print('DEBUG CheckoutSettings cs', cs)
-	if cs:
-		print('DEBUG cs.fees', cs.delivery_fee_24h, cs.delivery_fee_2d)
+	# load admin-configured fees (fallback to settings or CheckoutSettings) - cached for 5 minutes
+	from django.core.cache import cache
+	cs = cache.get('checkout_settings')
+	if cs is None:
+		cs = CheckoutSettings.objects.first()
+		cache.set('checkout_settings', cs, 300)
 	delivery_fee_24h = cs.delivery_fee_24h if cs else getattr(settings, 'DELIVERY_FEE_24H', 0)
 	delivery_fee_2d = cs.delivery_fee_2d if cs else getattr(settings, 'DELIVERY_FEE_2D', 0)
 
-	# load admin-managed payment options
-	payment_settings = PaymentSettings.objects.first()
+	# load admin-managed payment options - cached for 5 minutes
+	payment_settings = cache.get('payment_settings')
+	if payment_settings is None:
+		payment_settings = PaymentSettings.objects.first()
+		cache.set('payment_settings', payment_settings, 300)
 	enable_paystack = bool(settings.PAYSTACK_PUBLIC) and (payment_settings.enable_paystack if payment_settings else True)
-	enable_manual = payment_settings.enable_manual_transfer if payment_settings else True
-	enable_pay_on_delivery = payment_settings.enable_pay_on_delivery if payment_settings else False
 	pay_on_delivery_max = payment_settings.pay_on_delivery_max if payment_settings else 100000.00
+	enable_manual = False
+	enable_pay_on_delivery = False
 	# Prefer SiteContent values if present (Manage Site Content integration)
 	try:
 		from core.models import SiteContent
@@ -57,54 +63,54 @@ def checkout_view(request):
 			session_key = request.session.session_key
 		cart = Cart.objects.filter(session_key=session_key, user=None).first()
 
-	# Block access if any cart item exceeds available stock or is critically low
+	# Load items once with select_related to avoid N+1 queries
 	if cart:
-		items = cart.items.select_related('product', 'variant').all()
-		for item in items:
-			if item.variant:
-				# Check if stock is critically low
-				if item.variant.stock <= 1:
-					messages.error(request, f"'{item.variant.name}' is critically low in stock and cannot be ordered.")
-					return redirect('orders:cart')
-				if item.variant.stock < item.quantity:
-					messages.error(request, f"Insufficient stock for {item.variant.name}. Please adjust your cart.")
-					return redirect('orders:cart')
-			else:
-				# Check if stock is critically low
-				if item.product.stock <= 1:
-					messages.error(request, f"'{item.product.name}' is critically low in stock and cannot be ordered.")
-					return redirect('orders:cart')
-				if item.product.stock < item.quantity:
-					messages.error(request, f"Insufficient stock for {item.product.name}. Please adjust your cart.")
-					return redirect('orders:cart')
+		items = list(cart.items.select_related('product', 'variant').all())
+
+	# Block access if any cart item exceeds available stock or is critically low
+	for item in items:
+		if item.variant:
+			# Check if stock is critically low
+			if item.variant.stock <= 1:
+				messages.error(request, f"'{item.variant.name}' is critically low in stock and cannot be ordered.")
+				return redirect('orders:cart')
+			if item.variant.stock < item.quantity:
+				messages.error(request, f"Insufficient stock for {item.variant.name}. Please adjust your cart.")
+				return redirect('orders:cart')
+		else:
+			# Check if stock is critically low
+			if item.product.stock <= 1:
+				messages.error(request, f"'{item.product.name}' is critically low in stock and cannot be ordered.")
+				return redirect('orders:cart')
+			if item.product.stock < item.quantity:
+				messages.error(request, f"Insufficient stock for {item.product.name}. Please adjust your cart.")
+				return redirect('orders:cart')
 	
 	# Validate cart prices (warn if prices have changed since item was added)
-	if cart:
-		items = cart.items.select_related('product', 'variant').all()
-		price_changes = []
-		for item in items:
-			current_price = float(item.product.price)
-			cart_price = float(item.price)
-			if current_price != cart_price:
-				price_changes.append({
-					'product': item.product.name,
-					'old_price': cart_price,
-					'new_price': current_price,
-					'difference': current_price - cart_price
-				})
-		
-		# Display price change warnings (but allow checkout to proceed)
-		for change in price_changes:
-			if change['difference'] > 0:
-				messages.warning(
-					request,
-					f"{change['product']} price increased from ₦{change['old_price']:.2f} to ₦{change['new_price']:.2f} (difference: +₦{change['difference']:.2f})"
-				)
-			else:
-				messages.info(
-					request,
-					f"{change['product']} price decreased from ₦{change['old_price']:.2f} to ₦{change['new_price']:.2f} (difference: -₦{abs(change['difference']):.2f})"
-				)
+	price_changes = []
+	for item in items:
+		current_price = float(item.product.price)
+		cart_price = float(item.price)
+		if current_price != cart_price:
+			price_changes.append({
+				'product': item.product.name,
+				'old_price': cart_price,
+				'new_price': current_price,
+				'difference': current_price - cart_price
+			})
+	
+	# Display price change warnings (but allow checkout to proceed)
+	for change in price_changes:
+		if change['difference'] > 0:
+			messages.warning(
+				request,
+				f"{change['product']} price increased from ₦{change['old_price']:.2f} to ₦{change['new_price']:.2f} (difference: +₦{change['difference']:.2f})"
+			)
+		else:
+			messages.info(
+				request,
+				f"{change['product']} price decreased from ₦{change['old_price']:.2f} to ₦{change['new_price']:.2f} (difference: -₦{abs(change['difference']):.2f})"
+			)
 	
 	if request.method == 'POST':
 		payment_method = request.POST.get('payment_method')
@@ -116,6 +122,10 @@ def checkout_view(request):
 		notes = notes or ''
 		paystack_reference = request.POST.get('paystack_reference')
 		receipt_file = request.FILES.get('receipt')
+		
+		if payment_method in ('manual', 'pay_on_delivery'):
+			messages.error(request, 'This payment method is no longer available. Please use Paystack.')
+			return redirect('orders:checkout')
 		
 		# Validate receipt file size (5MB limit)
 		if receipt_file and receipt_file.size > 5 * 1024 * 1024:
@@ -138,8 +148,8 @@ def checkout_view(request):
 			if not enable_manual:
 				messages.error(request, 'Manual bank transfer is not available right now.')
 				return redirect('orders:checkout')
-			# Manual payment: check and reserve stock, then create order as pending, save receipt
-			print('DEBUG manual payment delivery_option', delivery_option, 'delivery_fee', delivery_fee, 'delivery_fee_24h', delivery_fee_24h, 'delivery_fee_2d', delivery_fee_2d)
+			# Manual payment: check stock availability (do NOT reduce yet)
+			# Stock will be reduced when admin confirms payment (status -> 'Processing')
 			from django.db import transaction
 			with transaction.atomic():
 				for item in items:
@@ -148,15 +158,11 @@ def checkout_view(request):
 						if pv.stock < item.quantity:
 							messages.error(request, f'Insufficient stock for {pv.name}.')
 							return redirect('orders:checkout')
-						pv.stock -= item.quantity
-						pv.save()
 					else:
 						p = Product.objects.select_for_update().get(id=item.product.id)
 						if p.stock < item.quantity:
 							messages.error(request, f'Insufficient stock for {p.name}.')
 							return redirect('orders:checkout')
-						p.stock -= item.quantity
-						p.save()
 				order = Order.objects.create(
 					user=request.user if request.user.is_authenticated else None,
 					full_name=full_name,
@@ -189,55 +195,64 @@ def checkout_view(request):
 					pass
 			cart.items.all().delete()
 			messages.success(request, 'Manual payment submitted. Your order will be confirmed within 24 hours.')
-			return redirect('orders:cart')
+			return redirect('orders:order_confirmation', order_id=order.id, token=order.confirmation_token)
 		elif payment_method == 'pay_on_delivery':
+			logger.warning(f"Pay on Delivery selected. enable={enable_pay_on_delivery}, total={total}, delivery_fee={delivery_fee}, max={pay_on_delivery_max}")
 			if not enable_pay_on_delivery:
 				messages.error(request, 'Pay on Delivery is not enabled.')
 				return redirect('orders:checkout')
 			# Check if order total (products + delivery) exceeds pay-on-delivery limit
 			grand_total = total + (delivery_fee or Decimal('0.00'))
+			logger.warning(f"Grand total: {grand_total}, max: {pay_on_delivery_max}, items count: {items.count() if items else 0}")
 			if grand_total > pay_on_delivery_max:
 				messages.error(request, f'Pay on Delivery is only available for orders up to ₦{pay_on_delivery_max:.2f}.')
 				return redirect('orders:checkout')
 			# Reserve stock and create the order as pending
 			from django.db import transaction
-			with transaction.atomic():
-				for item in items:
-					if item.variant:
-						pv = ProductVariant.objects.select_for_update().get(id=item.variant.id)
-						if pv.stock < item.quantity:
-							messages.error(request, f'Insufficient stock for {pv.name}.')
-							return redirect('orders:checkout')
-						pv.stock -= item.quantity
-						pv.save()
-					else:
-						p = Product.objects.select_for_update().get(id=item.product.id)
-						if p.stock < item.quantity:
-							messages.error(request, f'Insufficient stock for {p.name}.')
-							return redirect('orders:checkout')
-						p.stock -= item.quantity
-						p.save()
-				order = Order.objects.create(
-					user=request.user if request.user.is_authenticated else None,
-					full_name=full_name,
-					phone=phone,
-					email=email,
-					delivery_address=delivery_address,
-					total=total,
-					delivery_fee=delivery_fee,
-					delivery_option=delivery_option or '2d',
-					status='Pending',
-					notes=notes,
-					payment_method='pay_on_delivery'
-				)
-				for item in items:
-					OrderItem.objects.create(
-						order=order,
-						product=item.product,
-						variant=item.variant,
-						quantity=item.quantity,
-						price=item.price
+			try:
+				with transaction.atomic():
+					for item in items:
+						logger.warning(f"Processing item: {item.product.name}, qty={item.quantity}")
+						if item.variant:
+							pv = ProductVariant.objects.select_for_update().get(id=item.variant.id)
+							if pv.stock < item.quantity:
+								messages.error(request, f'Insufficient stock for {pv.name}.')
+								return redirect('orders:checkout')
+							pv.stock -= item.quantity
+							pv.save()
+						else:
+							p = Product.objects.select_for_update().get(id=item.product.id)
+							if p.stock < item.quantity:
+								messages.error(request, f'Insufficient stock for {p.name}.')
+								return redirect('orders:checkout')
+							p.stock -= item.quantity
+							p.save()
+					order = Order.objects.create(
+						user=request.user if request.user.is_authenticated else None,
+						full_name=full_name,
+						phone=phone,
+						email=email,
+						delivery_address=delivery_address,
+						total=total,
+						delivery_fee=delivery_fee,
+						delivery_option=delivery_option or '2d',
+						status='Pending',
+						notes=notes,
+						payment_method='pay_on_delivery'
 					)
+					logger.warning(f"Order created: {order.id}")
+					for item in items:
+						OrderItem.objects.create(
+							order=order,
+							product=item.product,
+							variant=item.variant,
+							quantity=item.quantity,
+							price=item.price
+						)
+			except Exception as e:
+				logger.error(f"Error creating order: {e}")
+				messages.error(request, f'Error creating order: {e}')
+				return redirect('orders:checkout')
 			# Track order placement activity
 			user = request.user
 			if user.is_authenticated:
@@ -248,7 +263,7 @@ def checkout_view(request):
 					pass
 			cart.items.all().delete()
 			messages.success(request, 'Pay on Delivery order submitted. Our team will contact you shortly.')
-			return redirect('orders:cart')
+			return redirect('orders:order_confirmation', order_id=order.id, token=order.confirmation_token)
 		elif payment_method == 'paystack' and paystack_reference:
 			# Final backend stock check before payment
 			for item in items:
@@ -308,7 +323,8 @@ def checkout_view(request):
 						delivery_fee=delivery_fee,
 						delivery_option=delivery_option or '2d',
 						status='Processing',
-						notes=notes
+						notes=notes,
+						payment_method='paystack'
 					)
 					for item in items:
 						OrderItem.objects.create(
@@ -329,7 +345,7 @@ def checkout_view(request):
 						payment_method=payment_channel,
 						raw_response=data
 					)
-					cart.items.all().delete()
+				cart.items.all().delete()
 				# Track activity
 				user = request.user
 				if user.is_authenticated:
@@ -338,21 +354,26 @@ def checkout_view(request):
 						Activity.objects.create(user=user, activity_type='order', order_id=order.id)
 					except Exception:
 						pass
-				messages.success(request, 'Payment verified and order created. Thank you!')
-				return redirect('orders:cart')
-			else:
-				messages.error(request, 'Payment was not successful. Please try again or contact support.')
-				return redirect('orders:checkout')
+			messages.success(request, 'Payment verified and order created. Thank you!')
+			return redirect('orders:order_confirmation', order_id=order.id, token=order.confirmation_token)
 		else:
-			messages.error(request, 'Invalid payment method or missing information.')
+			# Payment verification failed
+			messages.error(request, 'Payment was not successful. Please try again or contact support.')
+			return redirect('orders:checkout')
+	# Invalid payment method (only check on POST)
+	if request.method == 'POST' and payment_method not in ('manual', 'pay_on_delivery', 'paystack'):
+		messages.error(request, 'Invalid payment method or missing information.')
+	
+	bank_name = 'GTBank'
+	account_name = 'OD Ltd'
+	account_number = '0123456789'
+	
+	if cart and not items:
+		items = list(cart.items.select_related('product', 'variant').all())
 	if cart:
-		items = cart.items.select_related('product', 'variant').all()
 		total = sum(item.subtotal() for item in items)
 		
 		# Get bank transfer details from SiteContent
-		bank_name = 'GTBank'
-		account_name = 'OD Ltd'
-		account_number = '0123456789'
 		try:
 			from core.models import SiteContent
 			_sc = SiteContent.objects.filter(key='checkout').first()
@@ -366,22 +387,22 @@ def checkout_view(request):
 		except Exception:
 			pass
 		
-		context = {
-		'cart': cart,
-		'items': items,
-		'base_total': total,
-		'total': total,  # may be adjusted on the client when delivery is selected
-		'PAYSTACK_PUBLIC': settings.PAYSTACK_PUBLIC,
-		'enable_paystack': enable_paystack,
-		'enable_manual': enable_manual,
-		'enable_pay_on_delivery': enable_pay_on_delivery,
-		'pay_on_delivery_max': pay_on_delivery_max,
-		'delivery_fee_24h': delivery_fee_24h,
-		'delivery_fee_2d': delivery_fee_2d,
-		'selected_delivery_option': '2d',
-		'bank_name': bank_name,
-		'account_name': account_name,
-		'account_number': account_number,
+	context = {
+	'cart': cart,
+	'items': items,
+	'base_total': total,
+	'total': total,  # may be adjusted on the client when delivery is selected
+	'PAYSTACK_PUBLIC': settings.PAYSTACK_PUBLIC,
+	'enable_paystack': enable_paystack,
+	'enable_manual': enable_manual,
+	'enable_pay_on_delivery': enable_pay_on_delivery,
+	'pay_on_delivery_max': pay_on_delivery_max,
+	'delivery_fee_24h': delivery_fee_24h,
+	'delivery_fee_2d': delivery_fee_2d,
+	'selected_delivery_option': '2d',
+	'bank_name': bank_name,
+	'account_name': account_name,
+	'account_number': account_number,
 	}
 	return render(request, 'orders/checkout.html', context)
 
@@ -460,12 +481,6 @@ def add_to_cart(request):
 	# determine if we should treat this as AJAX early so we can suppress messages
 	is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
 			   request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest')
-	if not request.user.is_authenticated:
-		msg = "You must be logged in to add items to your cart."
-		if is_ajax:
-			return JsonResponse({'success': False, 'message': msg, 'cart_count': 0})
-		messages.error(request, msg)
-		return redirect('login')
 	if request.method == 'POST':
 		product_id = request.POST.get('product_id')
 		variant_id = request.POST.get('variant')
@@ -480,17 +495,17 @@ def add_to_cart(request):
 		# enforce stock limits
 		available_stock = variant.stock if variant else product.stock
 		
-		# Block if stock is critically low (≤ 1)
-		if available_stock <= 1:
-			msg = f"'{product.name}' is critically low in stock and unavailable for orders."
+		if available_stock <= 0:
+			msg = f"'{product.name}' is out of stock."
 			if not is_ajax:
 				messages.error(request, msg)
 			if is_ajax:
 				return JsonResponse({'success': False, 'message': msg, 'cart_count': cart.total_items(), 'available_stock': available_stock})
 			return redirect(request.META.get('HTTP_REFERER', 'products:shop'))
 		
-		if available_stock <= 0:
-			msg = f"'{product.name}' is out of stock."
+		# Block if stock is critically low (≤ 1)
+		if available_stock <= 1:
+			msg = f"'{product.name}' is critically low in stock and unavailable for orders."
 			if not is_ajax:
 				messages.error(request, msg)
 			if is_ajax:
@@ -688,15 +703,7 @@ def validate_cart_items(request):
 			# Check current stock
 			current_stock = cart_item.variant.stock if cart_item.variant else product.stock
 			
-			# Check if stock is critically low (≤ 1)
-			if current_stock <= 1:
-				item_validation['is_valid'] = False
-				item_validation['issues'].append('Critically low stock - unavailable for orders')
-				validation_result['valid'] = False
-				validation_result['warnings'].append(
-					f"{cart_item.product.name}: Critically low in stock and unavailable for orders"
-				)
-			elif current_stock <= 0:
+			if current_stock <= 0:
 				item_validation['is_valid'] = False
 				item_validation['issues'].append('Out of stock')
 				validation_result['valid'] = False
@@ -712,6 +719,13 @@ def validate_cart_items(request):
 				validation_result['valid'] = False
 				validation_result['warnings'].append(
 					f"{cart_item.product.name}: Only {current_stock} available"
+				)
+			elif current_stock <= 1:
+				item_validation['is_valid'] = False
+				item_validation['issues'].append('Critically low stock - unavailable for orders')
+				validation_result['valid'] = False
+				validation_result['warnings'].append(
+					f"{cart_item.product.name}: Critically low in stock and unavailable for orders"
 				)
 			
 			item_validation['available_quantity'] = current_stock
@@ -749,6 +763,212 @@ def validate_cart_items(request):
 		validation_result['message'] = f'Found {len([i for i in validation_result["items"] if not i["is_valid"]])} issue(s) with cart items'
 	
 	return JsonResponse(validation_result)
+
+
+def order_confirmation_view(request, order_id, token):
+    order = get_object_or_404(Order, id=order_id)
+    if order.confirmation_token != token:
+        if request.user.is_authenticated and order.user == request.user:
+            pass
+        else:
+            return redirect('core:home')
+    if request.user.is_authenticated and order.user and order.user != request.user:
+        return redirect('core:home')
+    items = order.items.select_related('product', 'variant').all()
+    payment_method = order.payment_method
+    payment_status = 'success' if order.status in ('Processing', 'Shipped', 'Delivered', 'Completed') else 'pending'
+    bank_name = 'GTBank'
+    account_name = 'OD Ltd'
+    account_number = '0123456789'
+    try:
+        from core.models import SiteContent
+        _sc = SiteContent.objects.filter(key='checkout').first()
+        if _sc:
+            if _sc.bank_name:
+                bank_name = _sc.bank_name
+            if _sc.account_name:
+                account_name = _sc.account_name
+            if _sc.account_number:
+                account_number = _sc.account_number
+    except Exception:
+        pass
+    context = {
+        'order': order,
+        'items': items,
+        'payment_method': payment_method,
+        'payment_status': payment_status,
+        'bank_name': bank_name,
+        'account_name': account_name,
+        'account_number': account_number,
+        'token': token,
+    }
+    return render(request, 'orders/order_success.html', context)
+
+
+def download_order_pdf(request, order_id, token):
+    """Generate a downloadable PDF confirmation/invoice for an order (server-side via reportlab)."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table,
+                                    TableStyle, HRFlowable)
+    from reportlab.lib.enums import TA_CENTER
+
+    order = get_object_or_404(Order, id=order_id)
+
+    # Same access control as the confirmation page
+    if order.confirmation_token != token:
+        if request.user.is_authenticated and order.user == request.user:
+            pass
+        else:
+            return redirect('core:home')
+    if request.user.is_authenticated and order.user and order.user != request.user:
+        return redirect('core:home')
+
+    items = order.items.select_related('product', 'variant').all()
+
+    def money(value):
+        try:
+            return 'NGN ' + '{:,.2f}'.format(float(value))
+        except (TypeError, ValueError):
+            return '-'
+
+    payment_method_label = {
+        'paystack': 'Paystack',
+        'manual': 'Bank Transfer',
+        'pay_on_delivery': 'Pay on Delivery',
+    }.get(order.payment_method, (order.payment_method or '').capitalize() or 'N/A')
+
+    payment_status = 'Confirmed' if order.status in ('Processing', 'Shipped', 'Delivered', 'Completed') else 'Processing'
+    delivery_option = order.get_delivery_option_display() if hasattr(order, 'get_delivery_option_display') else (order.delivery_option or '-')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="OlidStores_Order_%s.pdf"' % order.number
+
+    brand = colors.HexColor('#8B7355')
+    gold = colors.HexColor('#D4AF37')
+    dark = colors.HexColor('#1f2937')
+    light = colors.HexColor('#f3f4f6')
+    grey = colors.HexColor('#6b7280')
+
+    doc = SimpleDocTemplate(
+        response, pagesize=A4,
+        leftMargin=18 * mm, rightMargin=18 * mm,
+        topMargin=18 * mm, bottomMargin=18 * mm,
+        title='Olid Stores Order %s' % order.number,
+    )
+    base = getSampleStyleSheet()
+    title_style = ParagraphStyle('TitleX', parent=base['Title'], textColor=brand, fontSize=22, spaceAfter=2)
+    sub_style = ParagraphStyle('SubX', parent=base['Normal'], textColor=grey, fontSize=10, alignment=TA_CENTER)
+    h_style = ParagraphStyle('HX', parent=base['Heading3'], textColor=dark, fontSize=12, spaceBefore=10, spaceAfter=4)
+    normal = ParagraphStyle('NX', parent=base['Normal'], fontSize=9.5, leading=13)
+    small = ParagraphStyle('SX', parent=base['Normal'], fontSize=8.5, textColor=grey, leading=11)
+    cell = ParagraphStyle('CX', parent=base['Normal'], fontSize=9, leading=12)
+
+    story = []
+    story.append(Paragraph('OLID STORES', title_style))
+    story.append(Paragraph('Order Confirmation', sub_style))
+    story.append(Spacer(1, 6))
+    story.append(HRFlowable(width='100%', thickness=2, color=gold))
+    story.append(Spacer(1, 10))
+
+    meta = [
+        ['Order Number', order.number, 'Date', order.created_at.strftime('%B %d, %Y')],
+        ['Order Status', order.status, 'Payment', '%s (%s)' % (payment_method_label, payment_status)],
+    ]
+    meta_tbl = Table(meta, colWidths=[33 * mm, 52 * mm, 28 * mm, 61 * mm])
+    meta_tbl.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 9),
+        ('FONT', (2, 0), (2, -1), 'Helvetica-Bold', 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), grey),
+        ('TEXTCOLOR', (2, 0), (2, -1), grey),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LINEBELOW', (0, 0), (-1, -1), 0.4, light),
+    ]))
+    story.append(meta_tbl)
+    story.append(Spacer(1, 8))
+
+    story.append(Paragraph('Order Items', h_style))
+    data = [['Product', 'Qty', 'Unit Price', 'Subtotal']]
+    for it in items:
+        name = it.product.name
+        if it.variant:
+            name += ' (%s)' % it.variant.name
+        unit = money(it.subtotal / it.quantity) if it.quantity else money(it.subtotal)
+        data.append([
+            Paragraph(name, cell),
+            str(it.quantity),
+            Paragraph(unit, cell),
+            Paragraph(money(it.subtotal), cell),
+        ])
+    items_tbl = Table(data, colWidths=[90 * mm, 18 * mm, 33 * mm, 33 * mm], repeatRows=1)
+    items_tbl.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), brand),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 9),
+        ('FONT', (0, 1), (-1, -1), 'Helvetica', 9),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, light]),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#e5e7eb')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(items_tbl)
+    story.append(Spacer(1, 8))
+
+    totals = [['Subtotal', money(order.total)]]
+    if order.delivery_fee:
+        totals.append(['Delivery Fee (%s)' % delivery_option, money(order.delivery_fee)])
+    totals.append(['Grand Total', money(order.grand_total)])
+    tot_tbl = Table(totals, colWidths=[120 * mm, 54 * mm])
+    tot_tbl.setStyle(TableStyle([
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9.5),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('LINEABOVE', (0, -1), (-1, -1), 1, gold),
+        ('FONT', (0, -1), (-1, -1), 'Helvetica-Bold', 11),
+        ('TEXTCOLOR', (0, -1), (-1, -1), brand),
+    ]))
+    story.append(tot_tbl)
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph('Delivery Details', h_style))
+    deliv = [
+        ['Full Name', order.full_name or '-'],
+        ['Phone', order.phone or '-'],
+        ['Delivery Option', delivery_option],
+        ['Address', order.delivery_address or '-'],
+    ]
+    if order.notes:
+        deliv.append(['Notes', order.notes])
+    deliv_tbl = Table(deliv, colWidths=[40 * mm, 134 * mm])
+    deliv_tbl.setStyle(TableStyle([
+        ('FONT', (0, 0), (0, -1), 'Helvetica-Bold', 9),
+        ('FONT', (1, 0), (1, -1), 'Helvetica', 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), grey),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LINEBELOW', (0, 0), (-1, -1), 0.4, light),
+    ]))
+    story.append(deliv_tbl)
+    story.append(Spacer(1, 14))
+
+    story.append(HRFlowable(width='100%', thickness=0.5, color=light))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(
+        'Thank you for shopping with Olid Stores. For support, contact support@olidstores.com or +234 800 000 0000.',
+        small))
+
+    doc.build(story)
+    return response
 
 from django.contrib.auth.decorators import login_required
 from .models import Order

@@ -1,8 +1,8 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
-from core.models import ContactMessage, ChatConversation
+from core.models import ChatConversation, ChatMessage
 from users.models import Feedback
 from orders.models import Order
 
@@ -10,7 +10,6 @@ from orders.models import Order
 _ADMIN_NOTIF_TTL = 60
 
 _EMPTY = {
-    'admin_unread_messages': 0,
     'admin_unread_chats': 0,
     'admin_unresolved_feedback': 0,
     'admin_pending_orders': 0,
@@ -45,12 +44,12 @@ def admin_notifications(request):
         return cached
 
     try:
-        # Count unread contact messages
-        unread_messages = ContactMessage.objects.filter(is_read=False).count()
-
-        # Count unread live chat messages
-        all_chats = list(ChatConversation.objects.prefetch_related('messages').all())
-        unread_chats = sum(c.unread_admin_count for c in all_chats)
+        # Single aggregate query for unread chat messages (much faster than N+1 loop)
+        unread_chats = ChatMessage.objects.filter(
+            conversation__status='open',
+            sender_type='customer',
+            is_read=False
+        ).count()
         
         # Count unresolved feedback
         unresolved_feedback = Feedback.objects.filter(is_resolved=False).count()
@@ -116,10 +115,9 @@ def admin_notifications(request):
                 })
 
         order_alerts_count = len(order_alerts)
-        total_notifications = unread_messages + unread_chats + pending_orders + order_alerts_count
+        total_notifications = unread_chats + pending_orders + order_alerts_count
 
         result = {
-            'admin_unread_messages': unread_messages,
             'admin_unread_chats': unread_chats,
             'admin_unresolved_feedback': unresolved_feedback,
             'admin_pending_orders': pending_orders,

@@ -113,7 +113,6 @@ def customer_dashboard(request):
 		recent_orders = Order.objects.filter(user=request.user).order_by('-created_at')[:3]
 		payment_count = Order.objects.filter(user=request.user).exclude(payment_method__isnull=True).exclude(payment_method='').count()
 		receipt_count = Order.objects.filter(user=request.user, receipt__isnull=False).count()
-		recent_payments = Order.objects.filter(user=request.user).prefetch_related('paymenttransaction_set').order_by('-created_at')[:3]
 		wishlist_count = 0
 		if hasattr(request.user, 'wishlist'):
 			wishlist_count = request.user.wishlist.products.count()
@@ -125,7 +124,6 @@ def customer_dashboard(request):
 			'recent_orders': recent_orders,
 			'payment_count': payment_count,
 			'receipt_count': receipt_count,
-			'recent_payments': recent_payments,
 			'wishlist_count': wishlist_count,
 			'unread_notifications': unread_notifications,
 			'address_count': address_count,
@@ -200,7 +198,7 @@ def order_history(request):
 def wishlist_view(request):
     wishlist = None
     if hasattr(request.user, 'wishlist'):
-        wishlist = request.user.wishlist.products.all()
+        wishlist = request.user.wishlist.products.select_related('category').prefetch_related('images', 'variants').all()
     return render(request, 'users/wishlist.html', {'wishlist': wishlist})
 
 @login_required

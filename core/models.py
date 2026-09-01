@@ -217,31 +217,6 @@ class SiteContent(models.Model):
 		return self.get_key_display()
 
 
-class ContactMessage(models.Model):
-	"""Messages submitted via the Contact page."""
-	name = models.CharField(max_length=200)
-	email = models.EmailField()
-	subject = models.CharField(max_length=200, blank=True)
-	message = models.TextField()
-	user = models.ForeignKey('users.CustomUser', null=True, blank=True, on_delete=models.SET_NULL)
-	ip_address = models.CharField(max_length=45, blank=True)
-	is_read = models.BooleanField(default=False)
-	# Admin reply fields
-	admin_reply = models.TextField(blank=True)
-	replied_at = models.DateTimeField(null=True, blank=True)
-	created_at = models.DateTimeField(auto_now_add=True)
-
-	class Meta:
-		ordering = ['-created_at']
-
-	@property
-	def is_replied(self):
-		return bool(self.admin_reply)
-
-	def __str__(self):
-		return f"Contact from {self.name} <{self.email}> - {self.subject[:30]}"
-
-
 class TeamMember(models.Model):
 	"""Optional team members for the About page."""
 	name = models.CharField(max_length=150)
@@ -284,6 +259,9 @@ class ChatConversation(models.Model):
 
 	class Meta:
 		ordering = ['-updated_at']
+		indexes = [
+			models.Index(fields=['status', '-updated_at'], name='chatconv_status_updated'),
+		]
 
 	@property
 	def display_name(self):
@@ -326,6 +304,10 @@ class ChatMessage(models.Model):
 
 	class Meta:
 		ordering = ['created_at']
+		indexes = [
+			models.Index(fields=['conversation', 'created_at'], name='chatmsg_conv_created'),
+			models.Index(fields=['sender_type', 'is_read'], name='chatmsg_sender_read'),
+		]
 
 	def __str__(self):
 		return f"[{self.sender_type}] {self.message[:60]}"

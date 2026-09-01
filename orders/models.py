@@ -1,3 +1,6 @@
+import uuid
+from decimal import Decimal
+
 from django.db import models
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
@@ -16,7 +19,7 @@ class AllOrderManager(models.Manager):
 
 class Cart(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
-	session_key = models.CharField(max_length=40, blank=True, null=True)
+	session_key = models.CharField(max_length=40, blank=True, null=True, db_index=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -31,6 +34,11 @@ class Cart(models.Model):
 	def total_price(self):
 		return sum(item.subtotal() for item in self.items.all())
 
+	class Meta:
+		indexes = [
+			models.Index(fields=['user'], name='cart_user_idx'),
+		]
+
 class CartItem(models.Model):
 	cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
 	product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -44,6 +52,11 @@ class CartItem(models.Model):
 
 	def __str__(self):
 		return f"{self.quantity} x {self.product.name}"
+
+	class Meta:
+		indexes = [
+			models.Index(fields=['cart', 'product'], name='cartitem_cart_product_idx'),
+		]
 
 class Order(models.Model):
 	STATUS_CHOICES = (
@@ -60,7 +73,7 @@ class Order(models.Model):
 	phone = models.CharField(max_length=20)
 	email = models.EmailField(blank=True)
 	delivery_address = models.TextField()
-	delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+	delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 	delivery_option = models.CharField(max_length=10, choices=(('24h', '24-hour'), ('2d', '2-day')), default='2d')
 	total = models.DecimalField(max_digits=10, decimal_places=2)
 	payment_method = models.CharField(max_length=50, blank=True, null=True, help_text='Selected payment method for this order (paystack, manual, pay_on_delivery)')
@@ -80,9 +93,17 @@ class Order(models.Model):
 	shipped_at = models.DateTimeField(null=True, blank=True, help_text='When the order was marked shipped')
 	delivered_at = models.DateTimeField(null=True, blank=True, help_text='When the order was marked delivered')
 
+	tracking_number = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text='Carrier tracking number for this order')
+	number = models.CharField(max_length=30, unique=True, blank=True, help_text='Human-friendly order number (e.g. EST-2026-0001)')
+
 	# Soft delete fields
 	is_deleted = models.BooleanField(default=False, db_index=True)
 	deleted_at = models.DateTimeField(null=True, blank=True)
+
+	confirmation_token = models.UUIDField(default=uuid.uuid4, editable=False, db_index=True, help_text='Token for public order confirmation page access')
+
+	# Sample data flag
+	is_sample = models.BooleanField(default=False, db_index=True, help_text='Marks orders created by the sample data tool')
 
 	# Custom managers
 	objects = ActiveOrderManager()  # Default manager (excludes deleted)
@@ -94,14 +115,44 @@ class Order(models.Model):
 			models.Index(fields=['user', '-created_at'], name='order_user_created'),
 			models.Index(fields=['status'], name='order_status'),
 			models.Index(fields=['-created_at'], name='order_created_desc'),
+			models.Index(fields=['status', '-created_at'], name='order_status_created'),
+			models.Index(fields=['is_deleted', '-created_at'], name='order_deleted_created'),
 		]
 
 	def __str__(self):
-		return f"Order #{self.id} - {self.full_name}"
+		return f"Order #{self.number or self.id} - {self.full_name}"
+
+	def _generate_order_number(self):
+		from django.utils import timezone
+		import random
+		import string
+		year = timezone.now().year
+		prefix = f"EST-{year}-"
+		# Find the highest existing order number for this year
+		existing = Order.objects.filter(number__startswith=prefix).order_by('-number').first()
+		if existing and existing.number:
+			try:
+				seq = int(existing.number.split('-')[-1]) + 1
+			except (ValueError, IndexError):
+				seq = 1
+		else:
+			seq = 1
+		return f"{prefix}{seq:04d}"
+
+	def save(self, *args, **kwargs):
+		if not self.number:
+			self.number = self._generate_order_number()
+			# Handle race condition: retry if number already exists
+			while Order.objects.filter(number=self.number).exists():
+				self.number = self._generate_order_number()
+		super().save(*args, **kwargs)
 	
 	def grand_total(self):
 		"""Calculate grand total (subtotal + delivery fee)"""
-		return self.total + self.delivery_fee
+		from decimal import Decimal
+		total = self.total if isinstance(self.total, Decimal) else Decimal(str(self.total))
+		delivery_fee = self.delivery_fee if isinstance(self.delivery_fee, Decimal) else Decimal(str(self.delivery_fee))
+		return total + delivery_fee
 
 	def soft_delete(self):
 		"""Mark order as deleted without removing from database and reverse stock."""
@@ -121,6 +172,7 @@ class OrderItem(models.Model):
 	variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True)
 	quantity = models.PositiveIntegerField(default=1)
 	price = models.DecimalField(max_digits=10, decimal_places=2)
+	is_sample = models.BooleanField(default=False, help_text='Marks order items created by the sample data tool')
 
 	def subtotal(self):
 		return self.quantity * self.price
@@ -138,6 +190,7 @@ class PaymentTransaction(models.Model):
 	payment_method = models.CharField(max_length=50, blank=True, null=True, help_text='Payment channel: card, bank, ussd, qr, etc.')
 	raw_response = models.JSONField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
+	is_sample = models.BooleanField(default=False, help_text='Marks payment transactions created by the sample data tool')
 
 	def __str__(self):
 		return f"Paystack {self.reference} ({self.status})"

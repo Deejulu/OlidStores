@@ -13,6 +13,9 @@ class Feedback(models.Model):
 
 	class Meta:
 		ordering = ['-created_at']
+		indexes = [
+			models.Index(fields=['is_resolved', '-created_at'], name='feedback_resolved_created'),
+		]
 
 	def __str__(self):
 		return f"Feedback from {self.user.username if self.user else 'Anonymous'} at {self.created_at.strftime('%Y-%m-%d %H:%M')}"
@@ -24,6 +27,7 @@ from datetime import timedelta
 from products.models import Product
 import random
 import string
+import secrets
 
 class CustomUser(AbstractUser):
 	ROLE_CHOICES = [
@@ -44,6 +48,19 @@ class CustomUser(AbstractUser):
 	# Verification fields
 	email_verified = models.BooleanField(default=False, help_text='Has the user verified their email?')
 	phone_verified = models.BooleanField(default=True, help_text='Phone verification (auto-verified)')  # Auto-verified since we skip phone OTP
+	
+	# Account ID - cryptographically random identifier, separate from username
+	account_id = models.CharField(
+		max_length=12,
+		unique=True,
+		null=True,
+		blank=True,
+		db_index=True,
+		help_text='Cryptographic random account identifier'
+	)
+
+	# Sample data flag
+	is_sample = models.BooleanField(default=False, db_index=True, help_text='Marks users created by the sample data tool')
 	
 	@property
 	def is_fully_verified(self):
@@ -88,7 +105,7 @@ class OTPVerification(models.Model):
 		('email', 'Email Verification'),
 		('phone', 'Phone Verification'),
 	]
-	
+
 	user = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
 		on_delete=models.CASCADE,
@@ -99,64 +116,130 @@ class OTPVerification(models.Model):
 	# For registration before user is created
 	email = models.EmailField(blank=True, default='')
 	phone = models.CharField(max_length=20, blank=True, default='')
-	
+
 	otp_type = models.CharField(max_length=10, choices=OTP_TYPE_CHOICES)
-	otp_code = models.CharField(max_length=6)
+	otp_code_hash = models.CharField(max_length=128, null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	expires_at = models.DateTimeField()
 	is_verified = models.BooleanField(default=False)
 	attempts = models.PositiveIntegerField(default=0)
-	
+
 	class Meta:
 		ordering = ['-created_at']
 		verbose_name = 'OTP Verification'
 		verbose_name_plural = 'OTP Verifications'
-	
+
 	def __str__(self):
 		return f"{self.otp_type} OTP for {self.email or self.phone}"
-	
+
 	@classmethod
 	def generate_otp(cls):
 		"""Generate a 6-digit OTP code."""
 		return ''.join(random.choices(string.digits, k=6))
-	
+
 	@classmethod
 	def create_otp(cls, otp_type, email=None, phone=None, user=None, expiry_minutes=10):
-		"""Create a new OTP for verification."""
+		"""Create a new OTP for verification.
+
+		Returns the OTP instance. The plaintext OTP is NOT stored;
+		only a hash is kept. Use the returned instance's `plaintext_code`
+		attribute to send the code to the user.
+		"""
 		# Invalidate any existing OTPs for this email/phone
 		if email:
 			cls.objects.filter(email=email, otp_type=otp_type, is_verified=False).delete()
 		if phone:
 			cls.objects.filter(phone=phone, otp_type=otp_type, is_verified=False).delete()
-		
-		return cls.objects.create(
+
+		# Generate plaintext code for sending (not stored)
+		plaintext_code = cls.generate_otp()
+
+		instance = cls.objects.create(
 			user=user,
 			email=email or '',
 			phone=phone or '',
 			otp_type=otp_type,
-			otp_code=cls.generate_otp(),
+			otp_code_hash=cls._hash_otp(plaintext_code),
 			expires_at=timezone.now() + timedelta(minutes=expiry_minutes)
 		)
-	
+		# Attach plaintext code for one-time use (sending to user)
+		instance.plaintext_code = plaintext_code
+		return instance
+
+	@staticmethod
+	def _hash_otp(code):
+		"""Hash an OTP code using Django's password hashing."""
+		from django.contrib.auth.hashers import make_password
+		return make_password(code)
+
+	@staticmethod
+	def _check_otp(code, code_hash):
+		"""Verify an OTP code against its hash."""
+		from django.contrib.auth.hashers import check_password
+		return check_password(code, code_hash)
+
 	def is_expired(self):
 		"""Check if OTP has expired."""
 		return timezone.now() > self.expires_at
-	
+
 	def is_valid(self):
 		"""Check if OTP can still be used."""
 		return not self.is_verified and not self.is_expired() and self.attempts < 5
-	
+
 	def verify(self, code):
 		"""Attempt to verify the OTP code."""
 		self.attempts += 1
 		self.save()
-		
+
 		if not self.is_valid():
 			return False, 'OTP expired or too many attempts'
-		
-		if self.otp_code == code:
+
+		if self._check_otp(code, self.otp_code_hash):
 			self.is_verified = True
 			self.save()
 			return True, 'Verified successfully'
-		
+
 		return False, f'Invalid OTP. {5 - self.attempts} attempts remaining'
+
+
+class SecurityQuestion(models.Model):
+	"""Static security questions for account recovery."""
+	QUESTION_CHOICES = [
+		('pet_name', 'What was the name of your first pet?'),
+		('birth_city', 'In what city were you born?'),
+		('school_name', 'What was the name of your elementary school?'),
+		('mother_maiden', 'What is your mother\'s maiden name?'),
+		('first_car', 'What was the make and model of your first car?'),
+		('fav_teacher', 'Who was your favorite teacher?'),
+		('birth_month', 'In what month was your father born?'),
+		('childhood_friend', 'What was the name of your childhood best friend?'),
+	]
+	
+	question_key = models.CharField(max_length=50, unique=True, choices=QUESTION_CHOICES)
+	question_text = models.CharField(max_length=255)
+	
+	class Meta:
+		ordering = ['question_key']
+	
+	def __str__(self):
+		return self.question_text
+
+
+class SecurityAnswer(models.Model):
+	"""Hashed security answers for account recovery."""
+	user = models.ForeignKey(
+		settings.AUTH_USER_MODEL,
+		on_delete=models.CASCADE,
+		related_name='security_answers'
+	)
+	question = models.ForeignKey(SecurityQuestion, on_delete=models.CASCADE)
+	answer_hash = models.CharField(max_length=255, help_text='Hashed answer (one-way)')
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	
+	class Meta:
+		unique_together = ['user', 'question']
+		ordering = ['user', 'question']
+	
+	def __str__(self):
+		return f"Security answer for {self.user.username}"

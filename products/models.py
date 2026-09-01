@@ -55,6 +55,7 @@ class Category(models.Model):
     slug = models.SlugField(max_length=100, unique=True, blank=True)
     description = models.TextField(blank=True)
     is_editable = models.BooleanField(default=True)
+    is_sample = models.BooleanField(default=False, db_index=True, help_text='Marks categories created by the sample data tool')
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -194,23 +195,26 @@ class ProductImage(models.Model):
 
 
 class ProductReview(models.Model):
-    """Customer reviews and ratings for products"""
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    title = models.CharField(max_length=200)
-    review_text = models.TextField()
-    verified_purchase = models.BooleanField(default=False)
-    helpful_count = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+	"""Customer reviews and ratings for products"""
+	product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+	rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+	title = models.CharField(max_length=200)
+	review_text = models.TextField()
+	verified_purchase = models.BooleanField(default=False)
+	helpful_count = models.IntegerField(default=0)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        ordering = ['-created_at']
-        unique_together = ['product', 'user']  # One review per user per product
+	class Meta:
+		ordering = ['-created_at']
+		unique_together = ['product', 'user']  # One review per user per product
+		indexes = [
+			models.Index(fields=['product', '-created_at'], name='review_product_created'),
+		]
 
-    def __str__(self):
-        return f"{self.user.username} - {self.product.name} ({self.rating}★)"
+	def __str__(self):
+		return f"{self.user.username} - {self.product.name} ({self.rating}★)"
 
 
 class ReviewHelpful(models.Model):
