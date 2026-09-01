@@ -656,11 +656,13 @@ def _ensure_default_auto_replies():
                 'how to reset password, password help, login problem, cant log in'
             ),
             'response': (
-                'To reset your password: '
+                'To recover your account: '
                 '1. Click Forgot Password on the login page '
-                '2. Enter your email address '
-                '3. Check your email for a reset link (also check your spam folder) '
-                '4. Click the link and create a new password. '
+                '2. Enter your username '
+                '3. Answer your security questions to verify your identity '
+                '4. You will receive a temporary password to sign in with '
+                '(then change it in your account settings). '
+                'If your account has no security questions set up, use Reset via email on the recovery page. '
                 'If you still have issues, contact us and we will help you get back in!'
             ),
         },

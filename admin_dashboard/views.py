@@ -2121,8 +2121,9 @@ def _seed_auto_replies():
             'question': 'I forgot my password',
             'keywords': 'forgot password,reset password,cant login,cannot login,password reset',
             'response': (
-                'No problem! Click "Forgot Password" on the login page and we will send a reset link to your email. '
-                'Check your spam folder if you do not see it within a few minutes.'
+                'No problem! Click "Forgot Password" on the login page, enter your username, '
+                'and answer your security questions to recover your account. '
+                'A temporary password will be generated for you to sign in with.'
             ),
         },
         # General

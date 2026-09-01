@@ -354,11 +354,13 @@ RULES = [
             "how to reset password, password help, login problem, cant log in"
         ),
         response=(
-            "To reset your password:\n"
+            "To recover your account:\n"
             "1. Click 'Forgot Password' on the login page\n"
-            "2. Enter your email address\n"
-            "3. Check your email for a reset link (also check your spam folder)\n"
-            "4. Click the link and create a new password\n\n"
+            "2. Enter your username\n"
+            "3. Answer your security questions to verify your identity\n"
+            "4. You will receive a temporary password to sign in with\n"
+            "(then change it in your account settings)\n\n"
+            "If your account has no security questions set up, use Reset via email on the recovery page.\n"
             "If you still have issues, contact us and we will help you get back in!"
         ),
     ),
