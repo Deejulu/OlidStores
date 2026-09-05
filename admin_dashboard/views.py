@@ -83,11 +83,23 @@ def mark_all_notifications_read(request):
     if request.method == 'POST':
         ChatMessage.objects.filter(sender_type='customer', is_read=False).update(is_read=True)
         Feedback.objects.filter(is_resolved=False).update(is_resolved=True)
+        Notification.objects.filter(is_read=False).update(is_read=True)
         # Clear admin notification cache so counts update immediately
         if request.user.is_authenticated:
             cache.delete(f'admin_notifications_{request.user.pk}')
         messages.success(request, 'All notifications cleared!')
     return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard:dashboard_home'))
+
+
+@admin_role_required
+def admin_notification_mark_read(request, pk):
+    """Mark a single admin notification as read."""
+    notification = get_object_or_404(Notification, pk=pk)
+    notification.mark_as_read()
+    if request.user.is_authenticated:
+        cache.delete(f'admin_notifications_{request.user.pk}')
+    messages.success(request, f'Notification "{notification.title}" marked as read.')
+    return redirect('admin_dashboard:notification_list')
 
 @admin_role_required
 def notification_list(request):

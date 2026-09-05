@@ -10,6 +10,7 @@ from .views import (
     analytics_dashboard, generate_sample_data, send_analytics_report, compute_daily_metrics_view,
     content_manage,
     feedback_list, notification_list, mark_all_notifications_read,
+    admin_notification_mark_read,
     pending_orders_view, payments_dashboard_view, payment_detail_view, payment_print_slip,
     chat_conversation_list, chat_conversation_detail, chat_admin_poll,
     auto_reply_manage, populate_sample_data_full, delete_sample_data_full,
@@ -67,6 +68,7 @@ urlpatterns = [
     path('feedback/', feedback_list, name='feedback_list'),
     path('notifications-admin/', notification_list, name='notification_list'),
     path('notifications/clear-all/', mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/<int:pk>/mark-read/', admin_notification_mark_read, name='admin_notification_mark_read'),
     # Live Chat
     path('chat/', chat_conversation_list, name='chat_list'),
     path('chat/<int:pk>/', chat_conversation_detail, name='chat_detail'),

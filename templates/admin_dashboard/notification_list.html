@@ -1,25 +1,75 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h2>Notifications</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">Notifications</h2>
+    {% if notifications %}
+    <form method="post" action="{% url 'admin_dashboard:mark_all_notifications_read' %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-all"></i> Mark All as Read
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
   <form method="post" class="mb-4">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Send Notification</button>
   </form>
-  <table class="table table-bordered table-hover">
-    <thead><tr><th>To</th><th>Title</th><th>Message</th><th>Date</th><th>Important</th></tr></thead>
+
+  <table class="table table-bordered table-hover align-middle">
+    <thead>
+      <tr>
+        <th>To</th>
+        <th>Title</th>
+        <th>Message</th>
+        <th>Date</th>
+        <th>Important</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
     <tbody>
     {% for n in notifications %}
-      <tr>
+      <tr class="{% if not n.is_read %}table-warning{% endif %}">
         <td>{% if n.user %}{{ n.user.username }}{% else %}<span class="text-muted">All</span>{% endif %}</td>
         <td>{{ n.title }}</td>
         <td>{{ n.message }}</td>
         <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
         <td>{% if n.is_important %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+        <td>
+          {% if n.is_read %}
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Read</span>
+          {% else %}
+            <span class="badge bg-warning text-dark"><i class="bi bi-circle"></i> Unread</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if not n.is_read %}
+          <form method="post" action="{% url 'admin_dashboard:admin_notification_mark_read' n.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-success">
+              <i class="bi bi-check"></i> Mark as Read
+            </button>
+          </form>
+          {% else %}
+            <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
       </tr>
     {% empty %}
-      <tr><td colspan="5">No notifications yet.</td></tr>
+      <tr><td colspan="7" class="text-center">No notifications yet.</td></tr>
     {% endfor %}
     </tbody>
   </table>
