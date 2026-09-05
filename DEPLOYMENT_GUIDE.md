@@ -24,12 +24,13 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_STORAGE_BUCKET=media
 
-# Email (SendGrid recommended)
-EMAIL_BACKEND=sendgrid
-SENDGRID_API_KEY=SG.your-sendgrid-api-key
-SENDGRID_SENDER_EMAIL=noreply@yourdomain.com
-SENDGRID_SENDER_NAME=Your Store Name
-DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+# Email (SMTP or other provider)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@example.com
+EMAIL_HOST_PASSWORD=your-email-password
+DEFAULT_FROM_EMAIL=your-email@example.com
 
 # Payments
 PAYSTACK_PUBLIC_KEY=pk_live_your-public-key

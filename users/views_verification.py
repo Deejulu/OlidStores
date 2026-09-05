@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 
 from .models import CustomUser, SecurityQuestion, SecurityAnswer
-from .forms import SignupForm, OTPVerifyForm, AccountRecoveryForm
+from .forms import SignupForm, OTPVerifyForm
 from .username_utils import generate_unique_username_with_id
 
 
@@ -349,60 +349,86 @@ IMPORTANT: Keep this file secure and do not share it with anyone.
 
 
 def account_recovery(request):
-	"""Recover account using username and security questions."""
-	from .forms import AccountRecoveryForm
+    """Recover account using username and security questions (two-step flow)."""
+    if request.user.is_authenticated:
+        return redirect('users:dashboard')
 
-	if request.user.is_authenticated:
-		return redirect('users:dashboard')
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        answers = request.POST.getlist('answer', [])
 
-	if request.method == 'POST':
-		form = AccountRecoveryForm(request.POST)
-		if form.is_valid():
-			username = form.cleaned_data['username']
-			answers = form.cleaned_data['answers']
+        # Step 2: Validate answers if submitted
+        if answers and username:
+            try:
+                user = CustomUser.objects.get(username__iexact=username)
+                security_answers = SecurityAnswer.objects.filter(user=user).select_related('question')
 
-			try:
-				user = CustomUser.objects.get(username__iexact=username)
-				security_answers = SecurityAnswer.objects.filter(user=user).select_related('question')
+                if not security_answers.exists():
+                    messages.error(request, "Account recovery is not set up for this account.")
+                    return redirect('users:account_recovery')
 
-				if not security_answers.exists():
-					messages.error(request, "Account recovery is not set up for this account.")
-					return redirect('users:account_recovery')
+                all_correct = True
+                for i, sa in enumerate(security_answers):
+                    if i < len(answers):
+                        provided = answers[i].strip().lower()
+                        from django.contrib.auth.hashers import check_password
+                        if not check_password(provided, sa.answer_hash):
+                            all_correct = False
+                            break
+                    else:
+                        all_correct = False
+                        break
 
-			except CustomUser.DoesNotExist:
-				messages.error(request, "The information provided is incorrect. Please try again.")
-				return redirect('users:account_recovery')
+                if all_correct:
+                    temp_password = secrets.token_urlsafe(12)
+                    user.set_password(temp_password)
+                    user.save()
 
-			# Check all answers
-			all_correct = True
-			for sa in security_answers:
-				answer_key = f'answer_{sa.question.id}'
-				provided = answers.get(answer_key, '').strip().lower()
-				from django.contrib.auth.hashers import check_password
-				if not check_password(provided, sa.answer_hash):
-					all_correct = False
-					break
+                    request.session['recovery_temp_password'] = temp_password
+                    request.session['recovery_username'] = user.username
 
-			if all_correct:
-				# Generate a temporary password and show it
-				temp_password = secrets.token_urlsafe(12)
-				user.set_password(temp_password)
-				user.save()
+                    messages.success(request, "Account recovered successfully! Please log in with your temporary password.")
+                    return redirect('users:recovery_success')
+                else:
+                    messages.error(request, "The information provided is incorrect. Please try again.")
+                    questions = [
+                        {'id': sa.question.id, 'text': sa.question.question_text}
+                        for sa in security_answers
+                    ]
+                    return render(request, 'users/account_recovery.html', {
+                        'step': 'questions',
+                        'username': username,
+                        'questions': questions,
+                    })
+            except CustomUser.DoesNotExist:
+                messages.error(request, "Username not found. Please try again.")
 
-				# Store temporary password in session for one-time display
-				request.session['recovery_temp_password'] = temp_password
-				request.session['recovery_username'] = user.username
+        # If username submitted but no answers yet, show security questions
+        if username and not answers:
+            try:
+                user = CustomUser.objects.get(username__iexact=username)
+                security_answers = SecurityAnswer.objects.filter(user=user).select_related('question')
 
-				messages.success(request, "Account recovered successfully! Please log in with your temporary password.")
-				return redirect('users:recovery_success')
-			else:
-				messages.error(request, "The information provided is incorrect. Please try again.")
-	else:
-		form = AccountRecoveryForm()
+                if not security_answers.exists():
+                    messages.error(request, "Account recovery is not set up for this account.")
+                    return redirect('users:account_recovery')
 
-	return render(request, 'users/account_recovery.html', {
-		'form': form,
-	})
+                questions = [
+                    {'id': sa.question.id, 'text': sa.question.question_text}
+                    for sa in security_answers
+                ]
+                return render(request, 'users/account_recovery.html', {
+                    'step': 'questions',
+                    'username': username,
+                    'questions': questions,
+                })
+            except CustomUser.DoesNotExist:
+                messages.error(request, "Username not found. Please try again.")
+
+    # GET request or invalid POST: show username form
+    return render(request, 'users/account_recovery.html', {
+        'step': 'username',
+    })
 
 
 def recovery_success(request):

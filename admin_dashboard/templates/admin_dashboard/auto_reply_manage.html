@@ -162,11 +162,10 @@
     </div>
 
     <!-- Stats row -->
-    {% with total=rules|length %}
     <div class="row g-3 mb-3">
         <div class="col-6 col-md-3">
             <div class="ar-stat">
-                <div class="ar-stat-val" style="color:{{ theme_colors.primary }};">{{ total }}</div>
+                <div class="ar-stat-val" style="color:{{ theme_colors.primary }};">{{ rules|length }}</div>
                 <div class="ar-stat-lbl">Total rules</div>
             </div>
         </div>
@@ -192,7 +191,6 @@
             </div>
         </div>
     </div>
-    {% endwith %}
 
     <!-- Category filter tabs -->
     <div class="ar-cat-bar">
@@ -346,7 +344,7 @@ function filterCat(cat, btn) {
     setEl('active-count', active);
     setEl('inactive-count', cards.length - active);
     setEl('cat-count', cats.size);
-    // Hide the raw {% with %} number that appears before the span
+    // Strip the raw count text node that appears before the active-count span
     document.querySelectorAll('.ar-stat-val').forEach(el => {
         if (el.querySelector('#active-count')) {
             // strip the text node at the start

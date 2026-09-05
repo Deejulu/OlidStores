@@ -77,7 +77,7 @@ The `generate_sample_data` view should also be gated — it creates fake orders 
 | Area | Rating | Notes |
 |------|--------|-------|
 | Username/Olid system | **Ready** | Migration complete. 5 existing users migrated to Olid format. New signups generate correctly. |
-| Password reset | **Needs work** | Uses Django's built-in views (reliable). But email template says "OD account" instead of "Olid Stores" (`templates/users/password_reset_email.txt:4`). |
+| Password reset | **Ready** | Uses security questions (no email). Temporary password displayed on-screen. |
 | Account recovery | **Needs work** | Security questions flow works. No rate limiting on `/users/recovery/` — brute-forceable. |
 | Security settings | **Needs work** | All production settings correct (HSTS, secure cookies, CSRF). **BUT** `CSRF_TRUSTED_ORIGINS` not set in `render.yaml` — will cause CSRF failures on Render. |
 | OTP code | **Ready** | Still actively used for: admin-created customer verification, existing user email verification. Not dead code. Properly secured. |
@@ -95,9 +95,9 @@ The `generate_sample_data` view should also be gated — it creates fake orders 
 
 | Area | Rating | Notes |
 |------|--------|-------|
-| Environment variables | **Missing** | `render.yaml` only sets `DJANGO_DEBUG` and `DJANGO_ALLOWED_HOSTS`. Missing: `DJANGO_SECRET_KEY`, `DATABASE_URL`, `SUPABASE_*`, `PAYSTACK_*`, `SENDGRID_*`, `REDIS_URL`. |
+| Environment variables | **Missing** | `render.yaml` only sets `DJANGO_DEBUG` and `DJANGO_ALLOWED_HOSTS`. Missing: `DJANGO_SECRET_KEY`, `DATABASE_URL`, `SUPABASE_*`, `PAYSTACK_*`, `REDIS_URL`. |
 | Database | **Ready** | PostgreSQL via Supabase with connection pooling. Production-ready. |
-| Email delivery | **Needs work** | SendGrid configured but sender is `daveed0011@gmail.com` — should use verified domain email. |
+| Email delivery | **Ready** | SMTP/Brevo/Resend supported. Configure email backend in Render environment variables. |
 | Error handling | **Missing** | 500/404 pages are bare-bones (no branding, no navigation). Order failed page has no error details or next steps. |
 | Performance | **Ready** | GZip, WhiteNoise, template caching, database indexes, query optimization. |
 | Caching | **Needs work** | No `REDIS_URL` in `render.yaml` — falls back to LocMemCache (not suitable for multi-worker production). |
@@ -126,7 +126,7 @@ The `generate_sample_data` view should also be gated — it creates fake orders 
 | 3 | **"Olid" branding in 7 SVG files** — customer-facing | `static/images/*.svg` | Medium |
 | 4 | **"OD" references in policy templates** | `templates/terms_conditions.html`, `templates/privacy_policy.html` | Low |
 | 5 | **Fallback bank details on order success** | `templates/orders/order_success.html:234-238` | Low |
-| 6 | **Password reset email says "OD account"** | `templates/users/password_reset_email.txt:4` | Low |
+| 6 | **Password reset uses security questions** | `users/views_verification.py:351` | Low |
 | 7 | **Sample data buttons work in production** — risk of accidental data loss | `templates/admin_dashboard/products/product_list.html`, `templates/admin_dashboard/categories/category_list.html` | Medium |
 | 8 | **Search results pagination broken** | `templates/products/search_results.html:591,709,719` | Low |
 | 9 | **Missing environment variables in render.yaml** | `render.yaml` | Medium |

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Account Recovery - Olid Stores{% endblock %}
+{% block title %}Forgot Password - Olid Stores{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -179,6 +179,24 @@
         background: rgba(16, 185, 129, 0.1);
         color: #10b981;
     }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #d1d5db;
+    }
+    
+    .step-dot.active {
+        background: {{ theme_colors.primary }};
+    }
 </style>
 {% endblock %}
 
@@ -190,8 +208,14 @@
                 <div class="auth-icon">
                     <i class="bi bi-shield-lock-fill"></i>
                 </div>
-                <h1 class="auth-title">Account Recovery</h1>
-                <p class="auth-subtitle">Answer your security questions to recover your account</p>
+                <h1 class="auth-title">Forgot Password?</h1>
+                <p class="auth-subtitle">
+                    {% if step == 'questions' %}
+                        Answer your security questions to reset your password
+                    {% else %}
+                        Enter your username to begin password recovery
+                    {% endif %}
+                </p>
             </div>
             
             <div class="auth-body">
@@ -204,60 +228,53 @@
                     {% endfor %}
                 {% endif %}
                 
-                {% if form.non_field_errors %}
-                    <div class="alert-modern alert-danger">
-                        <i class="bi bi-exclamation-circle-fill"></i>
-                        <span>{{ form.non_field_errors }}</span>
-                    </div>
-                {% endif %}
+                <div class="step-indicator">
+                    <div class="step-dot {% if step != 'questions' %}active{% endif %}"></div>
+                    <div class="step-dot {% if step == 'questions' %}active{% endif %}"></div>
+                </div>
                 
+                {% if step == 'questions' %}
                 <form method="post" id="recoveryForm">
                     {% csrf_token %}
+                    <input type="hidden" name="username" value="{{ username }}">
                     
-                    <div class="form-group">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">
-                            <i class="bi bi-person me-1"></i> Username
+                    {% for q in questions %}
+                    <div class="question-box">
+                        <label for="id_answer_{{ q.id }}" class="question-label">
+                            <i class="bi bi-shield-question-fill me-1"></i> {{ q.text }}
                         </label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem;">
-                                {% for error in form.username.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        <input type="text" name="answer" class="form-control form-control-lg" 
+                               placeholder="Your answer" autocomplete="off" required>
                     </div>
-                    
-                    {% for field in form %}
-                        {% if field.name|slice:":6" == "answer_" %}
-                        <div class="question-box">
-                            <label for="{{ field.id_for_label }}" class="question-label">
-                                <i class="bi bi-shield-question-fill me-1"></i> {{ field.label }}
-                            </label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem;">
-                                    {% for error in field.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
                     {% endfor %}
                     
                     <button type="submit" class="btn-auth">
                         <i class="bi bi-check-circle"></i>
-                        <span>Recover Account</span>
+                        <span>Reset Password</span>
                     </button>
                 </form>
+                {% else %}
+                <form method="post" id="recoveryForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="id_username" class="form-label">
+                            <i class="bi bi-person me-1"></i> Username
+                        </label>
+                        <input type="text" name="username" id="id_username" class="form-control form-control-lg" 
+                               placeholder="Enter your username" autofocus required>
+                    </div>
+                    
+                    <button type="submit" class="btn-auth">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        <span>Continue</span>
+                    </button>
+                </form>
+                {% endif %}
                 
                 <div class="auth-links">
                     <p class="mb-2" style="color: #6c757d;">
                         Remember your password? <a href="{% url 'users:login' %}" class="auth-link">Sign In</a>
-                    </p>
-                    <p style="color: #6c757d;">
-                        <a href="{% url 'users:password_reset' %}" class="auth-link">Reset via email</a>
                     </p>
                 </div>
             </div>

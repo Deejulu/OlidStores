@@ -772,7 +772,7 @@
             </div>
         </div>
 
-        {% if debug %}
+        {% if user.role == 'admin' %}
         <!-- Sample Data Section -->
         <div class="sample-data-section" style="margin-top: 2rem; padding: 1.5rem; background: rgba(102, 126, 234, 0.08); border-radius: 16px; border: 1px solid rgba(102, 126, 234, 0.2);">
             <h4 style="color: var(--accent-color, #667eea); margin-bottom: 1rem;">
@@ -781,14 +781,19 @@
             <p style="color: #666; margin-bottom: 1rem; font-size: 0.9rem;">
                 Populate the entire site with realistic sample data (categories, products, customers, orders, payments) for preview purposes, or remove it cleanly afterward.
             </p>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            {% if not debug %}
+            <div class="alert alert-warning" role="alert" style="background: #fff3cd; border-color: #ffeaa7; color: #856404; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem;">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Warning: Live database detected.</strong> Populate/Delete will only affect <em>sample-flagged</em> records. Real data will not be affected.
+            </div>
+            {% endif %}
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items-end;">
                 <form method="post" action="{% url 'admin_dashboard:populate_sample_data_full' %}" onsubmit="return confirmPopulateFull(event)" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" id="populate-btn-full" class="admin-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                         <span><i class="fas fa-magic"></i> Populate Sample Data</span>
                     </button>
                 </form>
-                <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" onsubmit="return confirm('Remove all sample data (categories, products, customers, orders, payments)? Real data will not be affected. This cannot be undone.');" style="display: inline;">
+                <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" onsubmit="return confirmDeleteSample(event)" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" class="admin-btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                         <span><i class="fas fa-trash-alt"></i> Delete Sample Data</span>
@@ -806,13 +811,13 @@
 
         <script>
         function confirmPopulateFull(e) {
-            if (!confirm('This will fill the site with sample data across products, categories, customers, orders, and payments. Continue?')) {
-                return false;
-            }
             var overlay = document.getElementById('populate-loading-overlay-full');
             if (overlay) overlay.style.display = 'flex';
             var btn = document.getElementById('populate-btn-full');
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…'; }
+            return true;
+        }
+        function confirmDeleteSample(e) {
             return true;
         }
         </script>

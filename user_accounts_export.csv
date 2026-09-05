@@ -1,0 +1,3 @@
+Username,Full Name,Email,Role,Password Hash,Date Joined,Is Active
+localadmin,,admin@local.test,admin,pbkdf2_sha256$1200000$FXCS0dPBWrsA1kPQFViV5K$vhDSim92cKLbvqC8x9FrIEPzK+FvTGvv0kwbRjkyWHI=,2026-08-28 08:18:18,True
+localcustomer,,customer@local.test,customer,pbkdf2_sha256$1200000$0YYq2kPEITem9qrkbokmin$fFiDWIiNdYi3EV7AW1pff2Abgu31g/uZxQlVTsLFhB0=,2026-08-28 08:18:20,True

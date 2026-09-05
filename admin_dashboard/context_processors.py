@@ -115,7 +115,12 @@ def admin_notifications(request):
                 })
 
         order_alerts_count = len(order_alerts)
-        total_notifications = unread_chats + pending_orders + order_alerts_count
+        total_notifications = (
+            unread_chats
+            + unresolved_feedback
+            + pending_orders
+            + order_alerts_count
+        )
 
         result = {
             'admin_unread_chats': unread_chats,

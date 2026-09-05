@@ -7,16 +7,16 @@ from django.core.mail.backends.base import BaseEmailBackend
 logger = logging.getLogger(__name__)
 
 
-class SendGridEmailBackend(BaseEmailBackend):
-    """Send email through SendGrid HTTP API."""
+class BrevoEmailBackend(BaseEmailBackend):
+    """Send email through Brevo (formerly Sendinblue) HTTP API."""
 
-    API_URL = 'https://api.sendgrid.com/v3/mail/send'
+    API_URL = 'https://api.brevo.com/v3/smtp/email'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.api_key = getattr(settings, 'SENDGRID_API_KEY', '')
-        self.sender_email = getattr(settings, 'SENDGRID_SENDER_EMAIL', '')
-        self.sender_name = getattr(settings, 'SENDGRID_SENDER_NAME', 'Olid Stores')
+        self.api_key = getattr(settings, 'BREVO_API_KEY', '')
+        self.sender_email = getattr(settings, 'BREVO_SENDER_EMAIL', '')
+        self.sender_name = getattr(settings, 'BREVO_SENDER_NAME', 'Olid Stores')
         self.timeout = getattr(settings, 'EMAIL_SEND_TIMEOUT', 10)
 
     def send_messages(self, email_messages):
@@ -24,7 +24,7 @@ class SendGridEmailBackend(BaseEmailBackend):
             return 0
 
         if not self.api_key:
-            logger.error('SendGridEmailBackend: SENDGRID_API_KEY is not configured.')
+            logger.error('BrevoEmailBackend: BREVO_API_KEY is not configured.')
             return 0
 
         sent_count = 0
@@ -35,55 +35,50 @@ class SendGridEmailBackend(BaseEmailBackend):
         return sent_count
 
     def _send_email_message(self, message):
-        personalizations = [{
-            'to': [{'email': recipient} for recipient in message.to or []],
-        }]
+        recipients = [{'email': recipient} for recipient in message.to or []]
+        if not recipients:
+            logger.warning('BrevoEmailBackend: no recipients provided. Skipping email.')
+            return False
 
-        if message.cc:
-            personalizations[0]['cc'] = [{'email': recipient} for recipient in message.cc]
-        if message.bcc:
-            personalizations[0]['bcc'] = [{'email': recipient} for recipient in message.bcc]
-
-        content = []
-        if message.content_subtype == 'html':
-            content.append({'type': 'text/html', 'value': message.body})
-            content.append({'type': 'text/plain', 'value': message.body})
-        else:
-            content.append({'type': 'text/plain', 'value': message.body})
+        html_content = None
+        if getattr(message, 'alternatives', None):
+            for alternative, mime in message.alternatives:
+                if mime == 'text/html':
+                    html_content = alternative
+                    break
 
         payload = {
-            'personalizations': personalizations,
-            'from': {
-                'email': self.sender_email,
-                'name': self.sender_name,
-            },
+            'sender': {'name': self.sender_name, 'email': self.sender_email},
+            'to': recipients,
             'subject': message.subject,
-            'content': content,
+            'textContent': message.body,
         }
+
+        if html_content:
+            payload['htmlContent'] = html_content
+
+        if message.cc:
+            payload['cc'] = [{'email': recipient} for recipient in message.cc]
+        if message.bcc:
+            payload['bcc'] = [{'email': recipient} for recipient in message.bcc]
 
         if message.extra_headers:
             reply_to = message.extra_headers.get('Reply-To')
             if reply_to:
-                payload['reply_to'] = {'email': reply_to}
+                payload['replyTo'] = {'email': reply_to}
 
         headers = {
-            'Authorization': f'Bearer {self.api_key}',
+            'api-key': self.api_key,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
         }
-
-        logger.info('SendGridEmailBackend: sending email from %s to %s', self.sender_email, [recipient['email'] for recipient in personalizations[0]['to']])
-        if hasattr(settings, 'DEBUG') and settings.DEBUG:
-            logger.debug('SendGridEmailBackend payload: %s', payload)
 
         try:
             response = requests.post(self.API_URL, headers=headers, json=payload, timeout=self.timeout)
             response.raise_for_status()
-            logger.info('SendGridEmailBackend: SendGrid responded with %s', response.status_code)
-            if hasattr(settings, 'DEBUG') and settings.DEBUG:
-                logger.debug('SendGridEmailBackend response body: %s', response.text)
             return True
         except requests.RequestException as exc:
-            logger.error('SendGridEmailBackend: failed to send email: %s', exc, exc_info=True)
+            logger.error('BrevoEmailBackend: failed to send email: %s', exc)
             if not self.fail_silently:
                 raise
             return False

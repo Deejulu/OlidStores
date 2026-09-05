@@ -254,6 +254,7 @@ class UnifiedSampleDataTest(TransactionTestCase):
         self.admin.save()
         self.client = Client()
         self.client.force_login(self.admin)
+        self.sample_post_data = {'confirmation': 'CONFIRM'}
 
     @override_settings(DEBUG=True)
     def test_populate_creates_sample_data_across_all_models(self):
@@ -261,7 +262,7 @@ class UnifiedSampleDataTest(TransactionTestCase):
         from products.models import Category, Product
         from orders.models import Order, OrderItem, PaymentTransaction
 
-        resp = self.client.post(reverse('admin_dashboard:populate_sample_data_full'))
+        resp = self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
         self.assertEqual(resp.status_code, 302)  # redirect to dashboard
 
         # Categories
@@ -296,12 +297,12 @@ class UnifiedSampleDataTest(TransactionTestCase):
         from orders.models import Order, OrderItem, PaymentTransaction
 
         # First populate
-        self.client.post(reverse('admin_dashboard:populate_sample_data_full'))
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
         first_product_count = Product.objects.filter(is_sample=True).count()
         first_order_count = Order.objects.filter(is_sample=True).count()
 
         # Second populate
-        self.client.post(reverse('admin_dashboard:populate_sample_data_full'))
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
         second_product_count = Product.objects.filter(is_sample=True).count()
         second_order_count = Order.objects.filter(is_sample=True).count()
 
@@ -357,7 +358,7 @@ class UnifiedSampleDataTest(TransactionTestCase):
         )
 
         # Run populate
-        self.client.post(reverse('admin_dashboard:populate_sample_data_full'))
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
 
         # Verify real data still exists
         self.assertTrue(Category.objects.filter(pk=real_cat.pk).exists())
@@ -368,6 +369,8 @@ class UnifiedSampleDataTest(TransactionTestCase):
         self.assertTrue(PaymentTransaction.objects.filter(pk=real_payment.pk).exists())
 
         # Verify real data is NOT flagged as sample
+        real_cat.refresh_from_db()
+        self.assertFalse(real_cat.is_sample)
         real_product.refresh_from_db()
         self.assertFalse(real_product.is_sample)
         real_user.refresh_from_db()
@@ -376,7 +379,7 @@ class UnifiedSampleDataTest(TransactionTestCase):
         self.assertFalse(real_order.is_sample)
 
         # Run delete-sample
-        self.client.post(reverse('admin_dashboard:delete_sample_data_full'))
+        self.client.post(reverse('admin_dashboard:delete_sample_data_full'), data=self.sample_post_data)
 
         # Verify real data STILL exists after delete
         self.assertTrue(Category.objects.filter(pk=real_cat.pk).exists())
@@ -393,12 +396,12 @@ class UnifiedSampleDataTest(TransactionTestCase):
         from orders.models import Order, OrderItem, PaymentTransaction
 
         # First populate
-        self.client.post(reverse('admin_dashboard:populate_sample_data_full'))
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
         self.assertGreater(Product.objects.filter(is_sample=True).count(), 0)
         self.assertGreater(Order.objects.filter(is_sample=True).count(), 0)
 
         # Delete sample data
-        resp = self.client.post(reverse('admin_dashboard:delete_sample_data_full'))
+        resp = self.client.post(reverse('admin_dashboard:delete_sample_data_full'), data=self.sample_post_data)
         self.assertEqual(resp.status_code, 302)
 
         # Verify all sample data is gone
@@ -411,20 +414,99 @@ class UnifiedSampleDataTest(TransactionTestCase):
         self.assertEqual(User.objects.filter(is_sample=True, role='customer').count(), 0)
 
     @override_settings(DEBUG=False)
-    def test_populate_forbidden_when_debug_false(self):
-        """Populate view is inaccessible when DEBUG=False."""
-        resp = self.client.post(reverse('admin_dashboard:populate_sample_data_full'))
-        self.assertEqual(resp.status_code, 403)
+    def test_populate_works_when_debug_false(self):
+        """Populate view is accessible to admin even when DEBUG=False (admin gating, not DEBUG gating)."""
+        resp = self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
+        self.assertEqual(resp.status_code, 302)
 
     @override_settings(DEBUG=False)
-    def test_delete_forbidden_when_debug_false(self):
-        """Delete view is inaccessible when DEBUG=False."""
-        resp = self.client.post(reverse('admin_dashboard:delete_sample_data_full'))
-        self.assertEqual(resp.status_code, 403)
+    def test_delete_works_when_debug_false(self):
+        """Delete view is accessible to admin even when DEBUG=False (admin gating, not DEBUG gating)."""
+        resp = self.client.post(reverse('admin_dashboard:delete_sample_data_full'), data=self.sample_post_data)
+        self.assertEqual(resp.status_code, 302)
 
-    @override_settings(DEBUG=True)
-    def test_buttons_render_in_template_when_debug_true(self):
-        """Sample Data section renders in dashboard template when DEBUG=True."""
+    def test_populate_requires_admin(self):
+        """Non-admin and anonymous users are redirected away from populate."""
+        User = get_user_model()
+        # Non-admin user
+        non_admin = User.objects.create_user(
+            username='regular', email='reg@example.com', password='pass', role='customer'
+        )
+        client2 = Client()
+        client2.force_login(non_admin)
+        resp = client2.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
+        self.assertEqual(resp.status_code, 302)
+
+        # Anonymous (not logged in)
+        client3 = Client()
+        resp = client3.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
+        self.assertEqual(resp.status_code, 302)
+
+    def test_delete_requires_admin(self):
+        """Non-admin and anonymous users are redirected away from delete."""
+        User = get_user_model()
+        non_admin = User.objects.create_user(
+            username='regular2', email='reg2@example.com', password='pass', role='customer'
+        )
+        client2 = Client()
+        client2.force_login(non_admin)
+        resp = client2.post(reverse('admin_dashboard:delete_sample_data_full'), data=self.sample_post_data)
+        self.assertEqual(resp.status_code, 302)
+
+        # Anonymous
+        client3 = Client()
+        resp = client3.post(reverse('admin_dashboard:delete_sample_data_full'), data=self.sample_post_data)
+        self.assertEqual(resp.status_code, 302)
+
+    def test_populate_requires_confirmation(self):
+        """POST without confirmation='CONFIRM' is rejected and creates no data."""
+        resp = self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data={})
+        self.assertEqual(resp.status_code, 302)
+        from products.models import Product
+        self.assertEqual(Product.objects.filter(is_sample=True).count(), 0)
+
+    def test_delete_requires_confirmation(self):
+        """POST without confirmation='CONFIRM' is rejected and leaves sample data intact."""
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
+        from products.models import Product
+        self.assertGreater(Product.objects.filter(is_sample=True).count(), 0)
+
+        resp = self.client.post(reverse('admin_dashboard:delete_sample_data_full'), data={})
+        self.assertEqual(resp.status_code, 302)
+        self.assertGreater(Product.objects.filter(is_sample=True).count(), 0)
+
+    def test_real_user_not_marked_sample_on_populate(self):
+        """An existing real user whose username matches a sample username is NOT converted to sample."""
+        from products.models import Category
+        User = get_user_model()
+        # Create a real user whose username matches one of the sample usernames
+        real_user = User.objects.create_user(
+            username='adaobi.sample',
+            email='adaobi.real@example.com',
+            password='realpass123',
+            role='customer',
+        )
+        self.assertFalse(real_user.is_sample)
+
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
+
+        real_user.refresh_from_db()
+        self.assertFalse(real_user.is_sample)
+
+    def test_real_category_not_marked_sample_on_populate(self):
+        """An existing real category sharing a sample-category name is NOT converted to sample."""
+        from products.models import Category
+        # Create a real category with the same name as a sample category
+        real_cat = Category.objects.create(name='Electronics', slug='electronics-real', is_sample=False)
+        self.assertFalse(real_cat.is_sample)
+
+        self.client.post(reverse('admin_dashboard:populate_sample_data_full'), data=self.sample_post_data)
+
+        real_cat.refresh_from_db()
+        self.assertFalse(real_cat.is_sample)
+
+    def test_buttons_render_in_template_for_admin(self):
+        """Sample Data section renders in dashboard template for admin users."""
         resp = self.client.get(reverse('admin_dashboard:dashboard_home'))
         self.assertEqual(resp.status_code, 200)
         content = resp.content.decode()
@@ -433,13 +515,25 @@ class UnifiedSampleDataTest(TransactionTestCase):
         self.assertIn('Delete Sample Data', content)
 
     @override_settings(DEBUG=False)
-    def test_buttons_do_not_render_when_debug_false(self):
-        """Sample Data section does NOT render in dashboard template when DEBUG=False."""
+    def test_buttons_render_in_template_when_debug_false(self):
+        """Sample Data section renders for admin even when DEBUG=False."""
         resp = self.client.get(reverse('admin_dashboard:dashboard_home'))
         self.assertEqual(resp.status_code, 200)
         content = resp.content.decode()
-        self.assertNotIn('Populate Sample Data', content)
-        self.assertNotIn('Delete Sample Data', content)
+        self.assertIn('Sample Data', content)
+        self.assertIn('Populate Sample Data', content)
+        self.assertIn('Delete Sample Data', content)
+
+    def test_buttons_do_not_render_for_non_admin(self):
+        """Sample Data section does NOT render for non-admin users (redirected away)."""
+        User = get_user_model()
+        non_admin = User.objects.create_user(
+            username='regular3', email='reg3@example.com', password='pass', role='customer'
+        )
+        client2 = Client()
+        client2.force_login(non_admin)
+        resp = client2.get(reverse('admin_dashboard:dashboard_home'))
+        self.assertEqual(resp.status_code, 302)  # non-admin redirected away from dashboard
 
     @override_settings(DEBUG=True)
     def test_populate_requires_post(self):

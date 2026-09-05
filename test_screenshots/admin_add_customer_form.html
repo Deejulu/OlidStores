@@ -1,23 +1,23 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{% block title %}{{ site_name|default:"Olid Stores" }} | Premium Shopping{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}{{ site_meta_description|default:"Olid Stores - Your trusted online shopping destination" }}{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}{{ site_meta_keywords|default:"luxury fashion, sustainable clothing, designer accessories, premium style" }}{% endblock %}">
+    <title>Olid Stores | Premium Shopping</title>
+    <meta name="description" content="Olid Stores - Your trusted online shopping destination">
+    <meta name="keywords" content="luxury fashion, sustainable clothing, designer accessories, premium style">
     <!-- Open Graph / Social Media -->
-    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}{{ site_name|default:"Olid Stores" }}{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}{{ site_meta_description|default:"Olid Stores - Your trusted online shopping destination" }}{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{% static 'images/logo.png' %}{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Olid Stores">
+    <meta property="og:description" content="Olid Stores - Your trusted online shopping destination">
+    <meta property="og:url" content="http://testserver/admin-dashboard/customers/add/">
+    <meta property="og:image" content="/static/images/logo.png">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% block twitter_title %}{{ site_name|default:"Olid Stores" }}{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}{{ site_meta_description|default:"Olid Stores - Your trusted online shopping destination" }}{% endblock %}">
-    <link rel="canonical" href="{% block canonical %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta name="twitter:title" content="Olid Stores">
+    <meta name="twitter:description" content="Olid Stores - Your trusted online shopping destination">
+    <link rel="canonical" href="http://testserver/admin-dashboard/customers/add/">
     <!-- DNS prefetch for CDN domains (reduces connection latency) -->
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -47,19 +47,19 @@
     <!-- CSS Libraries -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    {% if request.path|slice:':16' == '/admin-dashboard' or request.path|slice:':17' == '/admin-dashboard/' or request.path|slice:':7' == '/admin/' %}
+    
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    {% endif %}
+    
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/modern-theme.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cards.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
-    <link rel="stylesheet" href="{% static 'css/smooth.css' %}">
-    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
-    <link rel="alternate icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="/static/css/modern-theme.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/cards.css">
+    <link rel="stylesheet" href="/static/css/dark-mode.css">
+    <link rel="stylesheet" href="/static/css/smooth.css">
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="/static/images/favicon.png">
 <style>
     /* ----------------------------------------------
     🎨 Olid Stores - Premium Theme System
@@ -67,19 +67,19 @@
     ---------------------------------------------- */
     :root {
         /* ----- Dynamic Theme Colors ----- */
-        --primary-color: {{ theme_colors.primary|default:"#2a2a2a" }};
-        --accent-color: {{ theme_colors.primary_light|default:"#8B7355" }};
-        --accent-light: {{ theme_colors.primary_light|default:"#a58c6e" }};
-        --accent-dark: {{ theme_colors.primary|default:"#6b5a44" }};
-        --theme-accent: {{ theme_colors.accent|default:"#D4AF37" }};
-        --theme-accent-light: {{ theme_colors.accent_light|default:"#f4d06f" }};
+        --primary-color: #166534;
+        --accent-color: #22c55e;
+        --accent-light: #22c55e;
+        --accent-dark: #166534;
+        --theme-accent: #4ade80;
+        --theme-accent-light: #86efac;
 
         /* ----- Override static CSS vars with dynamic theme (covers modern-theme.css) ----- */
-        --primary: {{ theme_colors.primary_light|default:"#8B7355" }};
-        --primary-dark: {{ theme_colors.primary|default:"#6b5a44" }};
-        --primary-light: {{ theme_colors.accent|default:"#D4AF37" }};
-        --primary-lighter: {{ theme_colors.accent_light|default:"#f4d06f" }};
-        --theme-primary: {{ theme_colors.primary|default:"#2a2a2a" }};
+        --primary: #22c55e;
+        --primary-dark: #166534;
+        --primary-light: #4ade80;
+        --primary-lighter: #86efac;
+        --theme-primary: #166534;
 
         /* ----- Premium Color Palette ----- */
         --white: #FFFFFF;
@@ -151,7 +151,7 @@
     <!-- Convert theme accent color to RGB for dark mode -->
     <script>
         (function() {
-            const themeAccent = '{{ theme_colors.accent|default:"#D4AF37" }}';
+            const themeAccent = '#4ade80';
             const hexToRgb = (hex) => {
                 const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
                 return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 215, 0';
@@ -2374,7 +2374,7 @@
     .text-muted { color: var(--gray-500); }
 
 </style>
-{% block extra_css %}{% endblock %}
+
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -2403,15 +2403,15 @@
             <div class="announcement-content">
                 <div class="announcement-item">
                     <i class="bi bi-truck"></i>
-                    <span>{{ announcement_bar_item1 }}</span>
+                    <span>Free shipping on orders over ₦15,000</span>
                 </div>
                 <div class="announcement-item">
                     <i class="bi bi-percent"></i>
-                    <span>{{ announcement_bar_item2 }}</span>
+                    <span>Use code OLID10 for 10% off</span>
                 </div>
                 <div class="announcement-item">
                     <i class="bi bi-shield-check"></i>
-                    <span>{{ announcement_bar_item3 }}</span>
+                    <span>Secure checkout guaranteed</span>
                 </div>
             </div>
         </div>
@@ -2422,7 +2422,7 @@
         <div class="container">
             <div class="header-container">
                 <!-- Restored SVG wordmark + icon (both visible) -->
-                <a href="/" class="brand-logo" aria-label="{{ site_name|default:'Olid Stores' }} — Timeless Elegance" title="{{ site_name|default:'Olid Stores' }}">
+                <a href="/" class="brand-logo" aria-label="Olid Stores — Timeless Elegance" title="Olid Stores">
 
                     <!-- Handbag Icon -->
                     <svg class="logo-handbag" viewBox="0 0 56 60" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
@@ -2453,7 +2453,7 @@
                         <span class="logo-tagline">Timeless Elegance</span>
                     </span>
 
-                    <span class="logo-wordmark visually-hidden">{{ site_name|default:'Olid Stores' }} — Timeless Elegance</span>
+                    <span class="logo-wordmark visually-hidden">Olid Stores — Timeless Elegance</span>
                 </a>
 
                 <!-- Mobile Menu Button -->
@@ -2520,7 +2520,7 @@
 
                 <!-- User Actions -->
                 <div class="user-actions">
-                    {% if user.is_authenticated %}
+                    
                         <div class="dropdown">
                             <a href="#" class="action-item dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="User menu">
                                 <i class="bi bi-person-circle action-icon"></i>
@@ -2532,8 +2532,8 @@
                                         <i class="bi bi-person-circle"></i>
                                     </div>
                                     <div class="user-header-info">
-                                        <div class="user-header-name">{{ user.username }}</div>
-                                        <div class="user-header-email">{{ user.email }}</div>
+                                        <div class="user-header-name">Iamadmin</div>
+                                        <div class="user-header-email">admin@example.com</div>
                                     </div>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -2553,7 +2553,7 @@
                                     <span>Wishlist</span>
                                 </a></li>
                                 
-                                {% if user.role == 'admin' %}
+                                
                                     <li><hr class="dropdown-divider"></li>
                                     <li class="dropdown-section-title">Management</li>
                                     <li><a class="dropdown-item admin-item" href="/admin-dashboard/">
@@ -2561,14 +2561,14 @@
                                         <span>Dashboard</span>
                                         <span class="admin-badge">Admin</span>
                                     </a></li>
-                                {% endif %}
+                                
                                 
                                 <li><hr class="dropdown-divider"></li>
                                 
                                 <!-- Logout Section -->
                                 <li>
-                                    <form id="logoutForm" action="{% url 'users:logout' %}" method="post" style="display:contents">
-                                        {% csrf_token %}
+                                    <form id="logoutForm" action="/accounts/logout/" method="post" style="display:contents">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="C9tNbID75mC0xTNKeGym9ADjyemitpldtO4XkXabuh8cnJ6dkGR2M8CFN0CnMEB0">
                                         <li><button type="submit" class="dropdown-item logout-item">
                                             <i class="bi bi-box-arrow-right"></i>
                                             <span>Logout</span>
@@ -2577,56 +2577,41 @@
                                 </li>
                             </ul>
                         </div>
-                    {% else %}
-                        <a href="/accounts/login/" class="action-item" title="Login">
-                            <i class="bi bi-box-arrow-in-right action-icon"></i>
-                        </a>
-                    {% endif %}
+                    
 
-                    {% if user.is_authenticated and user.role == 'admin' %}
+                    
                         <div class="dropdown">
                             <a href="#" class="action-item dropdown-toggle" id="adminNotifications" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-bell action-icon"></i>
-                                {% if admin_total_notifications > 0 %}
-                                    <span class="notification-badge">{{ admin_total_notifications }}</span>
-                                {% endif %}
+                                
+                                    <span class="notification-badge">33</span>
+                                
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminNotifications">
                                 <li class="dropdown-header">Notifications</li>
-                                {% if admin_total_notifications > 0 %}
-                                    {% if admin_unread_chats > 0 %}
-                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard:chat_list' %}">
+                                
+                                    
+                                    <li><a class="dropdown-item" href="/admin-dashboard/chat/">
                                         <i class="bi bi-chat-dots-fill me-2" style="color:#10b981;"></i>
-                                        {{ admin_unread_chats }} unread chat message{{ admin_unread_chats|pluralize }}
+                                        17 unread chat messages
                                     </a></li>
-                                    {% endif %}
-                                    {% if admin_unresolved_feedback > 0 %}
-                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard:feedback_list' %}">
-                                        <i class="bi bi-chat-left-text text-warning me-2"></i>
-                                        {{ admin_unresolved_feedback }} unresolved feedback
-                                    </a></li>
-                                    {% endif %}
-                                    {% if admin_pending_orders > 0 %}
-                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard:pending_orders' %}">
+                                    
+                                    
+                                    <li><a class="dropdown-item" href="/admin-dashboard/orders/pending/">
                                         <i class="bi bi-cart text-warning me-2"></i>
-                                        {{ admin_pending_orders }} pending order{{ admin_pending_orders|pluralize }}
+                                        11 pending orders
                                     </a></li>
-                                    {% endif %}
-                                    {% if admin_order_alerts_count > 0 %}
-                                    <li class="dropdown-header text-white-50 small">Order Alerts</li>
-                                    {% for alert in admin_order_alerts %}
-                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard:order_detail' alert.order_id %}">
-                                        <i class="bi {{ alert.icon }} text-{{ alert.severity }} me-2"></i>
-                                        {{ alert.message }}
+                                    
+                                    
+                                    <li><a class="dropdown-item" href="/admin-dashboard/orders/pending/">
+                                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+                                        5 order alerts
                                     </a></li>
-                                    {% endfor %}
-                                    {% endif %}
-                                {% else %}
-                                    <li><a class="dropdown-item disabled">No new notifications</a></li>
-                                {% endif %}
+                                    
+                                
                             </ul>
                         </div>
-                    {% endif %}
+                    
 
                     <!-- Dark Mode Toggle -->
                     <button class="action-item dark-mode-toggle-btn" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle Dark Mode">
@@ -2640,9 +2625,9 @@
 
                     <a href="/cart/" class="action-item" title="Cart">
                         <i class="bi bi-bag action-icon"></i>
-                        {% if cart_count %}
-                            <span class="notification-badge">{{ cart_count }}</span>
-                        {% endif %}
+                        
+                            <span class="notification-badge">12</span>
+                        
                     </a>
                 </div>
             </div>
@@ -2651,7 +2636,7 @@
 
     <!-- Printable Wordmark for merchandise (SVG, monochrome) -->
     <div class="logo-printable" aria-hidden="true">
-        <img src="{% static 'images/logo-monochrome.svg' %}" alt="{{ site_name|default:'Olid Stores' }}" style="max-width:360px; width:60%; height:auto; display:block; margin:0 auto;" />
+        <img src="/static/images/logo-monochrome.svg" alt="Olid Stores" style="max-width:360px; width:60%; height:auto; display:block; margin:0 auto;" />
     </div>
 
     <!-- Main Navigation -->
@@ -2663,46 +2648,46 @@
                         <i class="bi bi-x-lg"></i>
                     </button>
                     <li class="nav-item">
-                        <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                        <a href="/" class="nav-link ">
                             <i class="bi bi-house-door"></i>
                             Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/shop/" class="nav-link {% if '/shop/' in request.path %}active{% endif %}">
+                        <a href="/shop/" class="nav-link ">
                             <i class="bi bi-shop"></i>
                             Shop
                         </a>
                     </li>
-                    {% if user.is_authenticated %}
+                    
                         <li class="nav-item">
-                            <a href="{% if user.role == 'admin' %}/admin-dashboard/{% else %}/accounts/dashboard/{% endif %}" 
-                               class="nav-link {% if '/dashboard/' in request.path %}active{% endif %}">
+                            <a href="/admin-dashboard/" 
+                               class="nav-link ">
                                 <i class="bi bi-speedometer2"></i>
                                 Dashboard
                             </a>
                         </li>
-                    {% endif %}
+                    
                     <li class="nav-item">
-                        <a href="/gallery/" class="nav-link {% if '/gallery/' in request.path %}active{% endif %}">
+                        <a href="/gallery/" class="nav-link ">
                             <i class="bi bi-images"></i>
                             Lookbook
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/about/" class="nav-link {% if '/about/' in request.path %}active{% endif %}">
+                        <a href="/about/" class="nav-link ">
                             <i class="bi bi-info-circle"></i>
                             About
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/contact/" class="nav-link {% if '/contact/' in request.path %}active{% endif %}">
+                        <a href="/contact/" class="nav-link ">
                             <i class="bi bi-envelope"></i>
                             Contact
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/tools/pdf-to-word/" class="nav-link {% if '/tools/pdf-to-word/' in request.path %}active{% endif %}">
+                        <a href="/tools/pdf-to-word/" class="nav-link ">
                             <i class="bi bi-file-earmark-word"></i>
                             PDF to Word
                         </a>
@@ -2721,20 +2706,7 @@
 
     <!-- Messages Container -->
     <div class="messages-container" id="messagesContainer">
-        {% for message in messages %}
-            <div class="alert-message {{ message.tags }}">
-                <i class="bi 
-                    {% if message.tags == 'success' %}bi-check-circle-fill text-success
-                    {% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-circle-fill text-danger
-                    {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
-                    {% else %}bi-info-circle-fill text-info{% endif %} alert-icon">
-                </i>
-                <div class="alert-content">{{ message }}</div>
-                <button class="alert-close" onclick="this.parentElement.remove()">
-                    <i class="bi bi-x"></i>
-                </button>
-            </div>
-        {% endfor %}
+        
     </div>
     <script>
     // Auto-dismiss messages after 6 seconds
@@ -2765,20 +2737,636 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        {% block content %}{% endblock %}
+        
+<style>
+    .add-customer-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2.5rem 0;
+        margin: -2rem -2rem 2rem -2rem;
+        color: white;
+        border-radius: 0;
+    }
+    
+    .add-customer-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white !important;
+    }
+    
+    .add-customer-header h1 i {
+        font-size: 2.5rem;
+        opacity: 0.9;
+    }
+    
+    .add-customer-header p {
+        margin: 0;
+        opacity: 0.95;
+        font-size: 1.05rem;
+        color: white !important;
+    }
+    
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .form-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .form-card h3 i {
+        color: #667eea;
+        font-size: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-group label .required {
+        color: #ef4444;
+        margin-left: 0.25rem;
+    }
+    
+    .form-group .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.375rem;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    
+    .form-group .help-text i {
+        color: #9ca3af;
+    }
+    
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-color: white;
+        color: #1f2937;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 2px solid #f3f4f6;
+        margin-top: 2rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #6b7280;
+        padding: 0.875rem 2rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+    
+    .error-list {
+        background: #fef2f2;
+        border-left: 4px solid #ef4444;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .error-list ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: #dc2626;
+    }
+    
+    .error-list p {
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+        color: #991b1b;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Dark mode overrides */
+    @media (prefers-color-scheme: dark) {
+        .add-customer-header h1,
+        .add-customer-header p {
+            color: #e2e8f0 !important;
+        }
+        
+        .form-card {
+            background: #111827 !important;
+            border-color: #334155 !important;
+        }
+        
+        .form-card h3 {
+            color: #e2e8f0 !important;
+        }
+        
+        .form-group label {
+            color: #cbd5e1 !important;
+        }
+        
+        .form-control,
+        .form-select {
+            background-color: #0f172a !important;
+            color: #e2e8f0 !important;
+            border-color: #334155 !important;
+        }
+        
+        .form-group .help-text {
+            color: #94a3b8 !important;
+        }
+    }
+
+    body.dark-mode .add-customer-header h1,
+    body.dark-mode .add-customer-header p {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .form-card {
+        background: #111827 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .form-card h3 {
+        color: #e2e8f0 !important;
+    }
+
+    body.dark-mode .form-group label {
+        color: #cbd5e1 !important;
+    }
+
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border-color: #334155 !important;
+    }
+
+    body.dark-mode .form-group .help-text {
+        color: #94a3b8 !important;
+    }
+</style>
+
+<div class="add-customer-header">
+    <div class="container">
+        <h1>
+            <i class="bi bi-person-plus-fill"></i>
+            Add New Customer
+        </h1>
+        <p>Create a new customer account</p>
+    </div>
+</div>
+
+<div class="container form-container">
+    
+    
+    <form method="post" class="form-card">
+        <input type="hidden" name="csrfmiddlewaretoken" value="C9tNbID75mC0xTNKeGym9ADjyemitpldtO4XkXabuh8cnJ6dkGR2M8CFN0CnMEB0">
+        
+        <h3>
+            <i class="bi bi-person-badge"></i>
+            Account Information
+        </h3>
+        
+        <!-- Username Auto-Generated Notice -->
+        <div class="alert alert-info" style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+                <i class="bi bi-info-circle-fill" style="color: #3b82f6; font-size: 1.25rem; margin-top: 0.15rem;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #1e40af; margin-bottom: 0.25rem;">Username Auto-Generated</div>
+                    <div style="font-size: 0.9rem; color: #1e40af; opacity: 0.9;">
+                        The username will be automatically created from the first and last name (e.g., JohnDoe007).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_email">
+                    Email Address
+                </label>
+                <input type="email" name="email" class="form-control" placeholder="Email (optional)" maxlength="254" id="id_email">
+                
+                <div class="help-text">
+                    <i class="bi bi-info-circle"></i>
+                    Optional. The customer can add their email later from their profile.
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_first_name">
+                    First Name
+                    <span class="required">*</span>
+                </label>
+                <input type="text" name="first_name" class="form-control" placeholder="First Name" maxlength="150" required id="id_first_name">
+            </div>
+            
+            <div class="form-group">
+                <label for="id_last_name">
+                    Last Name
+                    <span class="required">*</span>
+                </label>
+                <input type="text" name="last_name" class="form-control" placeholder="Last Name" maxlength="150" required id="id_last_name">
+            </div>
+        </div>
+        
+        <h3 style="margin-top: 2rem;">
+            <i class="bi bi-shield-lock"></i>
+            Security
+        </h3>
+        
+        <div class="form-group">
+            <label for="id_password">
+                Password
+                <span class="required">*</span>
+            </label>
+            <input type="password" name="password" class="form-control" placeholder="Password" required aria-describedby="id_password_helptext" id="id_password">
+            
+            <div class="help-text">
+                <i class="bi bi-info-circle"></i>
+                Minimum 8 characters
+            </div>
+            
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password_confirm">
+                Confirm Password
+                <span class="required">*</span>
+            </label>
+            <input type="password" name="password_confirm" class="form-control" placeholder="Confirm Password" required id="id_password_confirm">
+            
+        </div>
+
+        <h3 style="margin-top: 2rem;">
+            <i class="bi bi-question-circle"></i>
+            Account Recovery Questions
+        </h3>
+
+        <div class="alert alert-warning" style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+                <i class="bi bi-exclamation-triangle-fill" style="color: #f59e0b; font-size: 1.25rem; margin-top: 0.15rem;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #92400e; margin-bottom: 0.25rem;">Important</div>
+                    <div style="font-size: 0.9rem; color: #92400e; opacity: 0.9;">
+                        Pick 3 different questions and provide answers you will share with the customer.
+                        These will be used for password/account recovery. Answers are stored hashed.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_security_question_1">
+                Security Question 1
+                <span class="required">*</span>
+            </label>
+            <select name="security_question_1" class="form-select" required id="id_security_question_1">
+  <option value="" selected>--- Select a question ---</option>
+
+  <option value="10">What is the name of your best friend?</option>
+
+  <option value="2">In what city were you born?</option>
+
+  <option value="7">In what month was your father born?</option>
+
+  <option value="8">What was the name of your childhood best friend?</option>
+
+  <option value="13">What is the name of your childhood hero?</option>
+
+  <option value="14">What is the name of the street you grew up on?</option>
+
+  <option value="25">What is the name of your closest relative?</option>
+
+  <option value="21">What is your dream job or career?</option>
+
+  <option value="19">What is the name of your favorite athlete or sports team?</option>
+
+  <option value="12">What is your favorite book or author?</option>
+
+  <option value="18">What is your favorite childhood memory?</option>
+
+  <option value="9">What is your favorite color?</option>
+
+  <option value="11">What is your favorite food?</option>
+
+  <option value="15">What is your favorite movie of all time?</option>
+
+  <option value="20">What is the name of your favorite restaurant or meal?</option>
+
+  <option value="23">What is your favorite song or artist?</option>
+
+  <option value="6">Who was your favorite teacher?</option>
+
+  <option value="24">What is your favorite family tradition?</option>
+
+  <option value="17">What is your favorite vacation destination?</option>
+
+  <option value="5">What was the make and model of your first car?</option>
+
+  <option value="22">What is the name of the first school you attended?</option>
+
+  <option value="16">What is the name of your first teacher?</option>
+
+  <option value="4">What is your mother&#x27;s maiden name?</option>
+
+  <option value="1">What is the name of your first pet?</option>
+
+  <option value="3">What was the name of your elementary school?</option>
+
+</select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_security_answer_1">
+                Answer 1
+                <span class="required">*</span>
+            </label>
+            <input type="text" name="security_answer_1" class="form-control" placeholder="Your answer" maxlength="255" required id="id_security_answer_1">
+        </div>
+
+        <div class="form-group">
+            <label for="id_security_question_2">
+                Security Question 2
+                <span class="required">*</span>
+            </label>
+            <select name="security_question_2" class="form-select" required id="id_security_question_2">
+  <option value="" selected>--- Select a question ---</option>
+
+  <option value="10">What is the name of your best friend?</option>
+
+  <option value="2">In what city were you born?</option>
+
+  <option value="7">In what month was your father born?</option>
+
+  <option value="8">What was the name of your childhood best friend?</option>
+
+  <option value="13">What is the name of your childhood hero?</option>
+
+  <option value="14">What is the name of the street you grew up on?</option>
+
+  <option value="25">What is the name of your closest relative?</option>
+
+  <option value="21">What is your dream job or career?</option>
+
+  <option value="19">What is the name of your favorite athlete or sports team?</option>
+
+  <option value="12">What is your favorite book or author?</option>
+
+  <option value="18">What is your favorite childhood memory?</option>
+
+  <option value="9">What is your favorite color?</option>
+
+  <option value="11">What is your favorite food?</option>
+
+  <option value="15">What is your favorite movie of all time?</option>
+
+  <option value="20">What is the name of your favorite restaurant or meal?</option>
+
+  <option value="23">What is your favorite song or artist?</option>
+
+  <option value="6">Who was your favorite teacher?</option>
+
+  <option value="24">What is your favorite family tradition?</option>
+
+  <option value="17">What is your favorite vacation destination?</option>
+
+  <option value="5">What was the make and model of your first car?</option>
+
+  <option value="22">What is the name of the first school you attended?</option>
+
+  <option value="16">What is the name of your first teacher?</option>
+
+  <option value="4">What is your mother&#x27;s maiden name?</option>
+
+  <option value="1">What is the name of your first pet?</option>
+
+  <option value="3">What was the name of your elementary school?</option>
+
+</select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_security_answer_2">
+                Answer 2
+                <span class="required">*</span>
+            </label>
+            <input type="text" name="security_answer_2" class="form-control" placeholder="Your answer" maxlength="255" required id="id_security_answer_2">
+        </div>
+
+        <div class="form-group">
+            <label for="id_security_question_3">
+                Security Question 3
+                <span class="required">*</span>
+            </label>
+            <select name="security_question_3" class="form-select" required id="id_security_question_3">
+  <option value="" selected>--- Select a question ---</option>
+
+  <option value="10">What is the name of your best friend?</option>
+
+  <option value="2">In what city were you born?</option>
+
+  <option value="7">In what month was your father born?</option>
+
+  <option value="8">What was the name of your childhood best friend?</option>
+
+  <option value="13">What is the name of your childhood hero?</option>
+
+  <option value="14">What is the name of the street you grew up on?</option>
+
+  <option value="25">What is the name of your closest relative?</option>
+
+  <option value="21">What is your dream job or career?</option>
+
+  <option value="19">What is the name of your favorite athlete or sports team?</option>
+
+  <option value="12">What is your favorite book or author?</option>
+
+  <option value="18">What is your favorite childhood memory?</option>
+
+  <option value="9">What is your favorite color?</option>
+
+  <option value="11">What is your favorite food?</option>
+
+  <option value="15">What is your favorite movie of all time?</option>
+
+  <option value="20">What is the name of your favorite restaurant or meal?</option>
+
+  <option value="23">What is your favorite song or artist?</option>
+
+  <option value="6">Who was your favorite teacher?</option>
+
+  <option value="24">What is your favorite family tradition?</option>
+
+  <option value="17">What is your favorite vacation destination?</option>
+
+  <option value="5">What was the make and model of your first car?</option>
+
+  <option value="22">What is the name of the first school you attended?</option>
+
+  <option value="16">What is the name of your first teacher?</option>
+
+  <option value="4">What is your mother&#x27;s maiden name?</option>
+
+  <option value="1">What is the name of your first pet?</option>
+
+  <option value="3">What was the name of your elementary school?</option>
+
+</select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_security_answer_3">
+                Answer 3
+                <span class="required">*</span>
+            </label>
+            <input type="text" name="security_answer_3" class="form-control" placeholder="Your answer" maxlength="255" required id="id_security_answer_3">
+        </div>
+
+        <h3 style="margin-top: 2rem;">
+            <i class="bi bi-sliders"></i>
+            Settings
+        </h3>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_role">
+                    Role
+                    <span class="required">*</span>
+                </label>
+                <select name="role" class="form-select" id="id_role">
+  <option value="customer" selected>Customer</option>
+
+  <option value="admin">Admin</option>
+
+</select>
+                
+            </div>
+            
+            <div class="form-group">
+                <label for="id_is_active">
+                    Account Status
+                </label>
+                <div style="display: flex; align-items: center; gap: 0.5rem; padding-top: 0.5rem;">
+                    <input type="checkbox" name="is_active" class="form-check-input" aria-describedby="id_is_active_helptext" id="id_is_active" checked>
+                    <label for="id_is_active" style="margin: 0; font-weight: 400;">
+                        Active Account
+                    </label>
+                </div>
+                
+                <div class="help-text">
+                    <i class="bi bi-info-circle"></i>
+                    Designates whether this user should be treated as active. Unselect this instead of deleting accounts.
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <i class="bi bi-check-circle"></i>
+                Create Customer
+            </button>
+            <a href="/admin-dashboard/customers/" class="btn-secondary">
+                <i class="bi bi-x-circle"></i>
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
     </main>
 
     <!-- Floating Cart -->
-    {% if request.path != '/cart/' and request.path != '/checkout/' and not '/admin' in request.path %}
-        <a href="/cart/" class="floating-cart" title="View Cart" style="display: flex;">
-            <i class="bi bi-bag"></i>
-            {% if cart_count %}
-                <span class="cart-count">{{ cart_count }}</span>
-            {% else %}
-                <span class="cart-count" style="display: none;">0</span>
-            {% endif %}
-        </a>
-    {% endif %}
+    
 
     <!-- Back to Top -->
     <button class="back-to-top" id="backToTop" title="Back to top">
@@ -2841,7 +3429,7 @@
                 <div class="footer-section">
                     <!-- Footer Logo -->
                     <a href="/" class="footer-logo" style="display: inline-block; margin-bottom: 1rem;">
-                        <svg viewBox="0 0 320 80" role="img" aria-label="{{ site_name|default:'Olid Stores' }}" xmlns="http://www.w3.org/2000/svg" style="width: 200px; height: auto;">
+                        <svg viewBox="0 0 320 80" role="img" aria-label="Olid Stores" xmlns="http://www.w3.org/2000/svg" style="width: 200px; height: auto;">
                             <defs>
                                 <linearGradient id="footerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" style="stop-color:#D4AF37"/>
@@ -2857,7 +3445,7 @@
                             </g>
                             <!-- Brand Name -->
                             <g transform="translate(68,0)">
-                                <text x="0" y="42" font-family="'Cormorant Garamond', Georgia, serif" font-size="38" font-weight="700" fill="#D4AF37" letter-spacing="-1">{{ site_name|default:'Olid Stores' }}</text>
+                                <text x="0" y="42" font-family="'Cormorant Garamond', Georgia, serif" font-size="38" font-weight="700" fill="#D4AF37" letter-spacing="-1">Olid Stores</text>
                                 <text x="0" y="64" font-family="'Lora', Georgia, serif" font-size="12" fill="rgba(255,255,255,0.6)" letter-spacing="2" font-style="italic">Timeless Elegance</text>
                             </g>
                         </svg>
@@ -2866,23 +3454,7 @@
                         Redefining luxury fashion with curated collections and sustainable elegance since 2024.
                     </p>
                     <div class="social-links">
-                        {% for s in contact_social_list %}
-                            <a href="{{ s.url }}" class="social-link" {% if s.platform != 'email' %}target="_blank" rel="noopener"{% endif %}>
-                                {% if s.platform == 'instagram' %}
-                                    <i class="bi bi-instagram"></i>
-                                {% elif s.platform == 'facebook' %}
-                                    <i class="bi bi-facebook"></i>
-                                {% elif s.platform == 'twitter' %}
-                                    <i class="bi bi-twitter"></i>
-                                {% elif s.platform == 'whatsapp' %}
-                                    <i class="bi bi-whatsapp"></i>
-                                {% elif s.platform == 'email' %}
-                                    <i class="bi bi-envelope"></i>
-                                {% else %}
-                                    <i class="bi bi-link-45deg"></i>
-                                {% endif %}
-                            </a>
-                        {% endfor %}
+                        
                     </div>
                 </div>
 
@@ -2923,7 +3495,7 @@
             </div>
 
             <div class="footer-bottom">
-                <p class="mb-2">© 2024 {{ site_name|default:'Olid Stores' }}. All rights reserved.</p>
+                <p class="mb-2">© 2024 Olid Stores. All rights reserved.</p>
                 <p class="small footer-subtitle">Luxury fashion meets sustainable elegance</p>
                 <p class="small footer-subtitle mb-0">Powered by <strong>Julu Works</strong></p>
             </div>
@@ -2931,960 +3503,7 @@
     </footer>
 
     <!-- ===== FLOATING LIVE CHAT WIDGET ===== -->
-    {% if not request.path|slice:":17" == "/admin-dashboard/" %}
-    <style>
-        /* ── Chat button lives in the header nav bar ── */
-        #fcFab .fc-unread-dot {
-            position: absolute;
-            top: -4px; right: -4px;
-            min-width: 20px; height: 20px;
-            background: #ef4444;
-            border-radius: 99px;
-            border: 2px solid #fff;
-            display: none;
-            animation: fc-ping 1.5s ease-in-out infinite;
-            font-size: 0.62rem;
-            font-weight: 800;
-            color: #fff;
-            align-items: center;
-            justify-content: center;
-            padding: 0 4px;
-            line-height: 1;
-        }
-        #fcFab.has-unread .fc-unread-dot { display: flex; }
-        @keyframes fc-ping {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50%       { transform: scale(1.3); opacity: 0.7; }
-        }
-
-
-        /* ── Chat panel ── */
-        .fc-panel {
-            position: fixed;
-            top: 72px;
-            right: 1.5rem;
-            z-index: 199999;
-            width: 350px;
-            max-width: calc(100vw - 2rem);
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transform: scale(0.9) translateY(-12px);
-            transform-origin: top right;
-            opacity: 0;
-            pointer-events: none;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
-            max-height: 520px;
-        }
-        .fc-panel.open {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-            pointer-events: all;
-        }
-        .fc-panel-header {
-            background: linear-gradient(135deg, var(--primary-color, #2a2a2a), var(--accent-color, #8B7355));
-            color: #fff;
-            padding: 1rem 1.1rem 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            flex-shrink: 0;
-        }
-        .fc-avatar {
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.15rem;
-            flex-shrink: 0;
-        }
-        .fc-header-info { flex: 1; min-width: 0; }
-        .fc-header-title { font-size: 0.95rem; font-weight: 800; }
-        .fc-header-sub   { font-size: 0.72rem; opacity: 0.85; }
-        .fc-close-btn {
-            background: rgba(255,255,255,0.15);
-            border: none; color: #fff;
-            width: 30px; height: 30px;
-            border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }
-        .fc-close-btn:hover { background: rgba(255,255,255,0.3); }
-
-        /* ── Start screen ── */
-        .fc-start-screen { padding: 1.25rem; flex: 1; overflow-y: auto; }
-        .fc-form-field    { margin-bottom: 0.75rem; }
-        .fc-form-label    { font-size: 0.76rem; font-weight: 700; color: #374151; margin-bottom: 0.3rem; display: block; }
-        .fc-form-input, .fc-form-select, .fc-form-textarea {
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            transition: border-color 0.2s;
-            font-family: inherit;
-            outline: none;
-        }
-        .fc-form-input:focus, .fc-form-select:focus, .fc-form-textarea:focus {
-            border-color: var(--primary-color, #2a2a2a);
-        }
-        .fc-form-textarea { resize: none; height: 72px; }
-        .fc-send-first-btn {
-            width: 100%;
-            padding: 0.65rem;
-            background: linear-gradient(135deg, var(--primary-color, #2a2a2a), var(--accent-color, #8B7355));
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-            transition: opacity 0.2s;
-            margin-top: 0.5rem;
-        }
-        .fc-send-first-btn:hover   { opacity: 0.9; }
-        .fc-send-first-btn:disabled { opacity: 0.6; cursor: default; }
-        .fc-start-error { font-size: 0.78rem; color: #ef4444; margin-top: 0.4rem; display: none; }
-
-        /* ── Messages screen ── */
-        .fc-messages-screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-        .fc-messages-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.85rem 0.9rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-        .fc-msg {
-            max-width: 82%;
-            padding: 0.55rem 0.8rem;
-            border-radius: 14px;
-            font-size: 0.84rem;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-        .fc-msg-customer {
-            background: linear-gradient(135deg, var(--primary-color, #2a2a2a), var(--accent-color, #8B7355));
-            color: #fff;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-        .fc-msg-admin {
-            background: #f3f4f6;
-            color: #1a1a1a;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
-        .fc-msg-meta {
-            font-size: 0.68rem;
-            opacity: 0.6;
-            margin-top: 0.2rem;
-            text-align: right;
-        }
-        .fc-msg-admin .fc-msg-meta { text-align: left; }
-        .fc-msg-sender { font-size: 0.7rem; font-weight: 700; margin-bottom: 0.15rem; color: #6b7280; }
-        .fc-messages-footer {
-            padding: 0.75rem 0.9rem;
-            border-top: 1.5px solid #f3f4f6;
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-            flex-shrink: 0;
-            background: #fff;
-        }
-        .fc-input-wrap { flex: 1; position: relative; }
-        .fc-reply-input {
-            width: 100%;
-            padding: 0.55rem 0.75rem;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 0.84rem;
-            resize: none;
-            height: 40px;
-            max-height: 100px;
-            overflow-y: auto;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s, height 0.15s;
-        }
-        .fc-reply-input:focus { border-color: var(--primary-color, #2a2a2a); }
-        .fc-reply-send-btn {
-            width: 38px; height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color, #2a2a2a), var(--accent-color, #8B7355));
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-        .fc-reply-send-btn:hover   { transform: scale(1.1); }
-        .fc-reply-send-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
-        .fc-closed-notice {
-            text-align: center;
-            padding: 0.6rem;
-            font-size: 0.78rem;
-            color: #6b7280;
-            font-style: italic;
-            background: #f9fafb;
-            border-top: 1px solid #e5e7eb;
-        }
-        .fc-typing-indicator {
-            display: none;
-            align-self: flex-start;
-            padding: 0.4rem 0.7rem;
-            background: #f3f4f6;
-            border-radius: 14px;
-            border-bottom-left-radius: 4px;
-        }
-        .fc-typing-indicator span {
-            display: inline-block;
-            width: 6px; height: 6px;
-            background: #9ca3af;
-            border-radius: 50%;
-            margin: 0 1px;
-            animation: fc-bounce 1.2s infinite;
-        }
-        .fc-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .fc-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes fc-bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40%           { transform: translateY(-5px); }
-        }
-
-        /* On mobile, chat panel becomes a full-width bottom sheet */
-        @media (max-width: 767px) {
-            .fc-panel {
-                top: auto; bottom: 0;
-                left: 0; right: 0;
-                width: 100%; max-width: 100%;
-                border-radius: 18px 18px 0 0;
-                transform-origin: bottom center;
-                transform: scale(0.97) translateY(20px);
-            }
-            .fc-teaser { display: none; }
-        }
-
-        /* ── Teaser bubble ── */
-        .fc-teaser {
-            position: fixed;
-            top: 72px;
-            right: 1.5rem;
-            z-index: 199998;
-            background: #fff;
-            border-radius: 14px 14px 4px 14px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-            padding: 0.85rem 1.1rem 0.85rem 1rem;
-            max-width: 230px;
-            font-size: 0.82rem;
-            line-height: 1.45;
-            color: #1a1a1a;
-            cursor: default;
-            opacity: 0;
-            transform: translateY(12px) scale(0.94);
-            pointer-events: none;
-            transition: opacity 0.32s ease, transform 0.32s cubic-bezier(0.175,0.885,0.32,1.275);
-        }
-        .fc-teaser.visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
-        .fc-teaser-close {
-            position: absolute;
-            top: 0.3rem; right: 0.45rem;
-            background: none; border: none;
-            font-size: 0.85rem; color: #9ca3af;
-            cursor: pointer; line-height: 1; padding: 2px;
-        }
-        .fc-teaser-close:hover { color: #374151; }
-        .fc-teaser-name { font-weight: 800; font-size: 0.88rem; color: #111; margin-bottom: 0.2rem; }
-        .fc-teaser-sub  { color: #6b7280; font-size: 0.77rem; margin-top: 0.15rem; }
-        .fc-teaser-cta  {
-            display: inline-block;
-            margin-top: 0.55rem;
-            padding: 0.35rem 0.9rem;
-            background: linear-gradient(135deg, var(--primary-color,#2a2a2a), var(--accent-color,#8B7355));
-            color: #fff; border-radius: 999px;
-            font-size: 0.75rem; font-weight: 700;
-            border: none; cursor: pointer;
-            transition: opacity 0.18s;
-        }
-        .fc-teaser-cta:hover { opacity: 0.88; }
-        @media (max-width: 400px) {
-            .fc-teaser { right: 1rem; max-width: calc(100vw - 6rem); }
-        }
-
-        /* ── Welcome banner inside panel ── */
-        .fc-welcome-banner {
-            background: linear-gradient(135deg, var(--primary-color,#2a2a2a), var(--accent-color,#8B7355));
-            color: #fff;
-            border-radius: 12px;
-            padding: 0.9rem 1rem;
-            margin-bottom: 0.85rem;
-            font-size: 0.82rem;
-            line-height: 1.5;
-        }
-        .fc-welcome-banner strong { font-size: 0.9rem; display: block; margin-bottom: 0.2rem; }
-
-        /* ── Quick reply chips ── */
-        .fc-quick-replies {
-            display: flex; flex-wrap: wrap; gap: 0.4rem;
-            margin-top: 0.3rem; align-self: flex-start; max-width: 95%;
-        }
-        .fc-quick-btn {
-            padding: 0.3rem 0.75rem;
-            background: #fff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 999px;
-            font-size: 0.74rem; font-weight: 600;
-            color: #374151; cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
-        }
-        .fc-quick-btn:hover {
-            background: #f3f4f6;
-            border-color: var(--primary-color,#2a2a2a);
-        }
-
-        /* ── Dark mode ── */
-        [data-theme="dark"] .fc-teaser {
-            background: #1e1e1e;
-            color: #f0f0f0;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        [data-theme="dark"] .fc-teaser-name { color: #f0f0f0; }
-        [data-theme="dark"] .fc-teaser-sub  { color: #999; }
-        [data-theme="dark"] .fc-panel { background: #181818; }
-        [data-theme="dark"] .fc-msg-admin { background: #2a2a2a; color: #f0f0f0; }
-        [data-theme="dark"] .fc-messages-footer { background: #181818; border-top-color: #2a2a2a; }
-        [data-theme="dark"] .fc-reply-input { background: #111; border-color: #333; color: #f0f0f0; }
-        [data-theme="dark"] .fc-form-input,
-        [data-theme="dark"] .fc-form-select,
-        [data-theme="dark"] .fc-form-textarea { background: #111; border-color: #333; color: #f0f0f0; }
-        [data-theme="dark"] .fc-form-label { color: #b0b0b0; }
-        [data-theme="dark"] .fc-quick-btn { background: #222; border-color: #444; color: #d0d0d0; }
-        [data-theme="dark"] .fc-quick-btn:hover { background: #2a2a2a; }
-        [data-theme="dark"] .fc-closed-notice { background: #1a1a1a; color: #888; border-top-color: #2a2a2a; }
-
-        /* ── Dropdown dark mode ── */
-        [data-theme="dark"] .dropdown-menu,
-        [data-theme="dark"] .user-dropdown-menu {
-            background: #1e2130 !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.55) !important;
-            border: 1px solid #2a2e45 !important;
-        }
-        [data-theme="dark"] .dropdown-header-section {
-            background: linear-gradient(135deg, #252842 0%, #1e2130 100%) !important;
-            border-bottom: 1px solid #2a2e45 !important;
-        }
-        [data-theme="dark"] .user-header-name  { color: #eef2ff !important; }
-        [data-theme="dark"] .user-header-email { color: #6b7280 !important; }
-        [data-theme="dark"] .dropdown-section-title { color: #4b5280 !important; }
-        [data-theme="dark"] .dropdown-item {
-            color: #c7cee8 !important;
-        }
-        [data-theme="dark"] .dropdown-item:hover,
-        [data-theme="dark"] .dropdown-item:focus {
-            background: #252842 !important;
-            color: #eef2ff !important;
-        }
-        [data-theme="dark"] .dropdown-item i { color: #5a6282 !important; }
-        [data-theme="dark"] .dropdown-item:hover i,
-        [data-theme="dark"] .dropdown-item:focus i { color: var(--accent-color, #8b7355) !important; }
-        [data-theme="dark"] .dropdown-divider { border-top-color: #2a2e45 !important; }
-        [data-theme="dark"] .logout-item { color: #f87171 !important; }
-        [data-theme="dark"] .logout-item i { color: #f87171 !important; }
-        [data-theme="dark"] .logout-item:hover,
-        [data-theme="dark"] .logout-item:focus {
-            background: rgba(239,68,68,0.12) !important;
-            color: #fca5a5 !important;
-        }
-        [data-theme="dark"] .logout-item:hover i,
-        [data-theme="dark"] .logout-item:focus i { color: #fca5a5 !important; }
-    </style>
-
-    <!-- Teaser bubble — auto-pops after 3 s if no active conversation -->
-    <div class="fc-teaser" id="fcTeaser" role="status" aria-live="polite">
-        <button class="fc-teaser-close" id="fcTeaserClose" aria-label="Dismiss">&#x2715;</button>
-        <div class="fc-teaser-name">&#128075; Hi{% if user.is_authenticated %} {{ user.get_full_name|default:user.username }}{% endif %}!</div>
-        <div>Welcome to <strong>{{ site_name|default:"our store" }}</strong></div>
-        <div class="fc-teaser-sub">Have a question? We reply in seconds.</div>
-        <button class="fc-teaser-cta" id="fcTeaserCta">Chat with us &rarr;</button>
-    </div>
-
-    <!-- FAB button is now embedded in the header nav bar -->
-
-    <!-- Chat panel -->
-    <div class="fc-panel" id="fcPanel" role="dialog" aria-label="Support chat">
-        <!-- Header -->
-        <div class="fc-panel-header">
-            <div class="fc-avatar"><i class="bi bi-headset"></i></div>
-            <div class="fc-header-info">
-                <div class="fc-header-title">{{ site_name|default:"Support" }} Chat</div>
-                <div class="fc-header-sub" id="fcHeaderSub">
-                    <span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly
-                </div>
-            </div>
-            <button class="fc-close-btn" id="fcCloseBtn" aria-label="Close chat"><i class="bi bi-x-lg"></i></button>
-        </div>
-
-        <!-- ① New conversation form -->
-        <div class="fc-start-screen" id="fcStartScreen">
-            <div class="fc-welcome-banner">
-                <strong>&#128075; Hi {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}there{% endif %}! Welcome to {{ site_name|default:"our store" }}.</strong>
-                How can we help you today? Send us a message and we&rsquo;ll reply right away &mdash; even outside business hours our bot has answers ready.
-            </div>
-            {% if not user.is_authenticated %}
-            <div class="fc-form-field">
-                <label class="fc-form-label" for="fcName">Your Name <span style="color:#ef4444">*</span></label>
-                <input type="text" class="fc-form-input" id="fcName" placeholder="Full name" autocomplete="name">
-            </div>
-            <div class="fc-form-field">
-                <label class="fc-form-label" for="fcEmail">Email Address</label>
-                <input type="email" class="fc-form-input" id="fcEmail" placeholder="your@email.com" autocomplete="email">
-            </div>
-            {% endif %}
-            <div class="fc-form-field">
-                <label class="fc-form-label" for="fcSubject">Topic</label>
-                <select class="fc-form-select" id="fcSubject">
-                    <option value="Support Request">Support Request</option>
-                    <option value="Order Issue">Order Issue</option>
-                    <option value="Product Question">Product Question</option>
-                    <option value="Payment Problem">Payment Problem</option>
-                    <option value="Return / Refund">Return / Refund</option>
-                    <option value="Complaint">Complaint</option>
-                    <option value="General Inquiry">General Inquiry</option>
-                </select>
-            </div>
-            <div class="fc-form-field">
-                <label class="fc-form-label" for="fcFirstMsg">Message <span style="color:#ef4444">*</span></label>
-                <textarea class="fc-form-textarea" id="fcFirstMsg" placeholder="How can we help you today?"></textarea>
-            </div>
-            <div class="fc-start-error" id="fcStartError"></div>
-            <button class="fc-send-first-btn" id="fcStartBtn">
-                <i class="bi bi-send-fill"></i>
-                <span id="fcStartBtnLabel">Start Chat</span>
-            </button>
-        </div>
-
-        <!-- ② Active/closed conversation -->
-        <div class="fc-messages-screen" id="fcMessagesScreen">
-            <div class="fc-messages-body" id="fcMessagesBody"></div>
-            <div class="fc-messages-footer" id="fcFooter">
-                <div class="fc-input-wrap">
-                    <textarea class="fc-reply-input" id="fcReplyInput"
-                        placeholder="Type a message…" rows="1" aria-label="Type your message"></textarea>
-                </div>
-                <button class="fc-reply-send-btn" id="fcReplySendBtn" aria-label="Send message">
-                    <i class="bi bi-send-fill"></i>
-                </button>
-            </div>
-            <div class="fc-closed-notice" id="fcClosedNotice" style="display:none;">
-                This conversation has been closed. <button id="fcNewConvBtn" style="background:none;border:none;color:var(--primary-color,#2a2a2a);font-weight:700;cursor:pointer;padding:0;">Start a new one?</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    (function () {
-        'use strict';
-
-        const fab       = document.getElementById('fcFab');
-        const panel     = document.getElementById('fcPanel');
-        const closeBtn  = document.getElementById('fcCloseBtn');
-        const startScreen    = document.getElementById('fcStartScreen');
-        const messagesScreen = document.getElementById('fcMessagesScreen');
-        const messagesBody   = document.getElementById('fcMessagesBody');
-        const startBtn       = document.getElementById('fcStartBtn');
-        const startBtnLabel  = document.getElementById('fcStartBtnLabel');
-        const startError     = document.getElementById('fcStartError');
-        const replyInput     = document.getElementById('fcReplyInput');
-        const replySendBtn   = document.getElementById('fcReplySendBtn');
-        const fcFooter       = document.getElementById('fcFooter');
-        const closedNotice   = document.getElementById('fcClosedNotice');
-        const newConvBtn     = document.getElementById('fcNewConvBtn');
-        const headerSub      = document.getElementById('fcHeaderSub');
-        const unreadDot      = document.getElementById('fcUnreadDot');
-        const teaser         = document.getElementById('fcTeaser');
-        const teaserClose    = document.getElementById('fcTeaserClose');
-        const teaserCta      = document.getElementById('fcTeaserCta');
-
-        const STORAGE_KEY    = 'fc_conv_id';
-        const TEASER_KEY     = 'fc_teaser_dismissed';
-        const CSRF = (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || '';
-
-        let convId        = null;
-        let lastMsgAt    = null;
-        let pollInterval = null;
-        let bgPollInterval = null;
-        let isPanelOpen  = false;
-        let unreadCount  = 0;
-        let isPolling    = false;   // guards against overlapping polls (dup bug)
-        let sending      = false;   // guards against double-submit of a message
-        const renderedMsgIds = new Set();  // dedup by message id (dup bug)
-        const renderedCustomerTexts = new Set();  // dedup optimistic customer echoes (dup bug)
-        let tmpMsgCounter = 0;
-
-        const LAST_SEEN_KEY = 'fc_last_seen';
-
-        // ── Teaser bubble ─────────────────────────────────────
-        function showTeaser() {
-            if (!teaser) return;
-            if (localStorage.getItem(STORAGE_KEY)) return;   // active conv → no teaser
-            if (sessionStorage.getItem(TEASER_KEY)) return;   // dismissed this session
-            teaser.classList.add('visible');
-        }
-        function hideTeaser() {
-            if (teaser) teaser.classList.remove('visible');
-        }
-        // Auto-pop after 3 seconds
-        setTimeout(showTeaser, 3000);
-
-        if (teaserClose) {
-            teaserClose.addEventListener('click', function (e) {
-                e.stopPropagation();
-                hideTeaser();
-                sessionStorage.setItem(TEASER_KEY, '1');
-            });
-        }
-        if (teaserCta) {
-            teaserCta.addEventListener('click', function () {
-                hideTeaser();
-                sessionStorage.setItem(TEASER_KEY, '1');
-                openPanel();
-            });
-        }
-        if (teaser) {
-            teaser.addEventListener('click', function () {
-                hideTeaser();
-                sessionStorage.setItem(TEASER_KEY, '1');
-                openPanel();
-            });
-        }
-
-        // ── Quick replies (common questions) ─────────────────
-        const QUICK_REPLIES = [
-            'Track my order',
-            'Payment failed',
-            'Return an item',
-            'Delivery time',
-            'Contact support',
-        ];
-
-        function addQuickReplies() {
-            const existing = document.getElementById('fcQuickReplies');
-            if (existing) return;
-            const wrap = document.createElement('div');
-            wrap.className = 'fc-quick-replies';
-            wrap.id = 'fcQuickReplies';
-            QUICK_REPLIES.forEach(function (q) {
-                const btn = document.createElement('button');
-                btn.className = 'fc-quick-btn';
-                btn.textContent = q;
-                btn.addEventListener('click', function () {
-                    const ta = document.getElementById('fcFirstMsg');
-                    if (ta) { ta.value = q; ta.focus(); }
-                });
-                wrap.appendChild(btn);
-            });
-            // Insert before the send button
-            const sendBtn = document.getElementById('fcStartBtn');
-            if (sendBtn && sendBtn.parentNode) {
-                sendBtn.parentNode.insertBefore(wrap, sendBtn);
-            }
-        }
-
-        // ── Toggle panel ─────────────────────────────────────
-        fab.addEventListener('click', function () {
-            isPanelOpen ? closePanel() : openPanel();
-        });
-        closeBtn.addEventListener('click', closePanel);
-
-        function openPanel() {
-            isPanelOpen = true;
-            panel.classList.add('open');
-            fab.querySelector('i').className = 'bi bi-x-lg';
-            hideTeaser();
-            clearUnread();
-            stopBgPolling();
-            // If we have a saved conv, load it; else show start screen
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                convId = parseInt(saved, 10);
-                loadHistory();
-            } else {
-                addQuickReplies();
-            }
-            // Start fast polling if conv exists
-            if (convId) startPolling();
-        }
-
-        function closePanel() {
-            isPanelOpen = false;
-            panel.classList.remove('open');
-            fab.querySelector('i').className = 'bi bi-chat-dots-fill';
-            stopPolling();
-            // Keep a slow background poll to catch admin replies
-            if (convId) startBgPolling();
-        }
-
-        // ── Unread badge ──────────────────────────────────────
-        function clearUnread() {
-            unreadCount = 0;
-            fab.classList.remove('has-unread');
-            unreadDot.textContent = '';
-            if (convId) localStorage.setItem(LAST_SEEN_KEY + convId, lastMsgAt || '');
-        }
-
-        function bumpUnread(n) {
-            n = n || 1;
-            if (!isPanelOpen) {
-                unreadCount += n;
-                fab.classList.add('has-unread');
-                unreadDot.textContent = unreadCount > 9 ? '9+' : (unreadCount > 1 ? unreadCount : '');
-            }
-        }
-
-        // ── Load full history ─────────────────────────────────
-        function loadHistory() {
-            fetch('/chat/history/' + convId + '/')
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.success) { resetToStart(); return; }
-                    showMessagesScreen();
-                    messagesBody.innerHTML = '';
-                     renderedMsgIds.clear();
-                     renderedCustomerTexts.clear();
-                     data.messages.forEach(appendMessage);
-                    if (data.messages.length) {
-                        lastMsgAt = data.messages[data.messages.length - 1].created_at;
-                    }
-                    scrollBottom();
-                    updateConvStatus(data.status);
-                    headerSub.textContent = 'Conversation #' + convId;
-                })
-                .catch(resetToStart);
-        }
-
-        // ── Show/hide screens ─────────────────────────────────
-        function showMessagesScreen() {
-            startScreen.style.display = 'none';
-            messagesScreen.style.display = 'flex';
-        }
-        function showStartScreen() {
-            startScreen.style.display = '';
-            messagesScreen.style.display = 'none';
-        }
-        function resetToStart() {
-            convId = null;
-            localStorage.removeItem(STORAGE_KEY);
-            lastMsgAt = null;
-            stopPolling();
-            showStartScreen();
-            messagesBody.innerHTML = '';
-            renderedMsgIds.clear();
-            renderedCustomerTexts.clear();
-            headerSub.innerHTML = '<span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly';
-            addQuickReplies();
-        }
-
-        // ── Append a message bubble ───────────────────────────
-        function appendMessage(m) {
-            // Deduplication guard: never render the same message twice.
-            // Server messages carry a stable `id`; optimistic (client-only)
-            // messages get a temporary id so they are also protected.
-            if (m.id && renderedMsgIds.has(m.id)) return;
-            // Optimistic echoes: a customer message can be re-delivered by a
-            // poll (carrying a real id) after we already appended it locally.
-            // Skip the duplicate by matching the message text for customer msgs.
-            if (m.sender_type === 'customer' && m.message &&
-                renderedCustomerTexts.has(m.message)) return;
-            if (m.id) {
-                renderedMsgIds.add(m.id);
-            } else if (!m.__tmp_id) {
-                m.__tmp_id = 'tmp_' + (++tmpMsgCounter);
-            }
-            if (m.sender_type === 'customer' && m.message) {
-                renderedCustomerTexts.add(m.message);
-            }
-            const isCustomer = m.sender_type === 'customer';
-            const wrapper = document.createElement('div');
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';
-            wrapper.style.alignItems = isCustomer ? 'flex-end' : 'flex-start';
-
-            const bubble = document.createElement('div');
-            bubble.className = 'fc-msg fc-msg-' + m.sender_type;
-
-            if (!isCustomer) {
-                const sn = document.createElement('div');
-                sn.className = 'fc-msg-sender';
-                sn.textContent = m.sender_name || 'Support Team';
-                bubble.appendChild(sn);
-            }
-
-            const text = document.createElement('div');
-            text.textContent = m.message;
-            bubble.appendChild(text);
-
-            const meta = document.createElement('div');
-            meta.className = 'fc-msg-meta';
-            meta.textContent = formatTime(m.created_at);
-            bubble.appendChild(meta);
-
-            wrapper.appendChild(bubble);
-            messagesBody.appendChild(wrapper);
-        }
-
-        function formatTime(iso) {
-            try {
-                const d = new Date(iso);
-                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } catch (e) { return ''; }
-        }
-
-        function scrollBottom() {
-            messagesBody.scrollTop = messagesBody.scrollHeight;
-        }
-
-        // ── Update status (open/closed) ───────────────────────
-        function updateConvStatus(status) {
-            if (status === 'closed') {
-                fcFooter.style.display = 'none';
-                closedNotice.style.display = '';
-            } else {
-                fcFooter.style.display = '';
-                closedNotice.style.display = 'none';
-            }
-        }
-
-        // ── Start new conversation ────────────────────────────
-        startBtn.addEventListener('click', function () {
-            startError.style.display = 'none';
-            const name    = (document.getElementById('fcName')     || {}).value || '';
-            const email   = (document.getElementById('fcEmail')    || {}).value || '';
-            const subject = document.getElementById('fcSubject').value;
-            const msg     = document.getElementById('fcFirstMsg').value.trim();
-
-            if (!msg) {
-                startError.textContent = 'Please enter a message.';
-                startError.style.display = '';
-                return;
-            }
-
-            startBtn.disabled = true;
-            startBtnLabel.textContent = 'Sending…';
-
-            fetch('/chat/start/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-                body: JSON.stringify({ name, email, subject, message: msg }),
-            })
-            .then(r => r.json())
-            .then(data => {
-                startBtn.disabled = false;
-                startBtnLabel.textContent = 'Start Chat';
-                if (!data.success) {
-                    startError.textContent = data.error || 'Error. Please try again.';
-                    startError.style.display = '';
-                    return;
-                }
-                convId = data.conversation_id;
-                localStorage.setItem(STORAGE_KEY, convId);
-                showMessagesScreen();
-                messagesBody.innerHTML = '';
-                appendMessage({
-                    sender_type: 'customer',
-                    sender_name: data.display_name,
-                    message: msg,
-                    created_at: new Date().toISOString(),
-                });
-                // Use server timestamp so the first poll catches welcome + auto-reply
-                lastMsgAt = data.message_created_at || new Date().toISOString();
-                scrollBottom();
-                headerSub.textContent = 'Conversation #' + convId;
-                updateConvStatus('open');
-                // Poll immediately so the welcome + auto-reply appear fast
-                setTimeout(pollMessages, 800);
-                startPolling();
-            })
-            .catch(function () {
-                startBtn.disabled = false;
-                startBtnLabel.textContent = 'Start Chat';
-                startError.textContent = 'Network error. Please try again.';
-                startError.style.display = '';
-            });
-        });
-
-        // ── Send reply ────────────────────────────────────────
-        replySendBtn.addEventListener('click', sendReply);
-        replyInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendReply();
-            }
-        });
-
-        function sendReply() {
-            const text = replyInput.value.trim();
-            if (!text || !convId) return;
-
-            replyInput.value = '';
-            replyInput.style.height = '40px';
-            replySendBtn.disabled = true;
-
-            // Optimistic UI
-            appendMessage({
-                sender_type: 'customer',
-                sender_name: 'You',
-                message: text,
-                created_at: new Date().toISOString(),
-            });
-            scrollBottom();
-
-            fetch('/chat/send/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-                body: JSON.stringify({ conversation_id: convId, message: text }),
-            })
-            .then(r => r.json())
-            .then(data => {
-                replySendBtn.disabled = false;
-                if (data.success) {
-                    lastMsgAt = data.created_at;
-                    // Reconcile the optimistic user bubble with its real server id so
-                    // any poll that re-delivers this message is de-duplicated by id.
-                    if (data.message_id) renderedMsgIds.add(data.message_id);
-                    // Poll quickly to pick up any bot auto-reply
-                    setTimeout(pollMessages, 800);
-                }
-            })
-            .catch(function () { replySendBtn.disabled = false; });
-        }
-
-        // Auto-grow textarea
-        replyInput.addEventListener('input', function () {
-            this.style.height = '40px';
-            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-        });
-
-        // ── Polling ───────────────────────────────────────────
-        function startPolling() {
-            stopPolling();
-            pollInterval = setInterval(pollMessages, 4000);
-        }
-        function stopPolling() {
-            if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
-        }
-        function startBgPolling() {
-            stopBgPolling();
-            bgPollInterval = setInterval(bgPollMessages, 15000);
-        }
-        function stopBgPolling() {
-            if (bgPollInterval) { clearInterval(bgPollInterval); bgPollInterval = null; }
-        }
-
-        // Background poll — only bumps badge, does not render messages
-        function bgPollMessages() {
-            if (!convId || isPanelOpen) return;
-            const after = localStorage.getItem(LAST_SEEN_KEY + convId) || '';
-            const url = '/chat/poll/' + convId + '/' + (after ? '?after=' + encodeURIComponent(after) : '');
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.success) return;
-                    const adminMsgs = (data.messages || []).filter(m => m.sender_type === 'admin');
-                    if (adminMsgs.length) {
-                        bumpUnread(adminMsgs.length);
-                        // Update last_seen to after these new messages so we don't recount
-                        const last = data.messages[data.messages.length - 1];
-                        if (last) localStorage.setItem(LAST_SEEN_KEY + convId, last.created_at);
-                    }
-                    if (data.status === 'closed') stopBgPolling();
-                })
-                .catch(function () {});
-        }
-
-        function pollMessages() {
-            if (!convId) return;
-            // Skip while a poll is already in flight — overlapping polls with the
-            // same cursor are the root cause of duplicate bot/user messages.
-            if (isPolling) return;
-            isPolling = true;
-            const url = '/chat/poll/' + convId + '/' + (lastMsgAt ? '?after=' + encodeURIComponent(lastMsgAt) : '');
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.success) return;
-                    if (data.messages && data.messages.length) {
-                        data.messages.forEach(function (m) {
-                            appendMessage(m);
-                            if (m.sender_type === 'admin') bumpUnread(1);
-                        });
-                        lastMsgAt = data.messages[data.messages.length - 1].created_at;
-                        scrollBottom();
-                    }
-                    updateConvStatus(data.status);
-                    if (data.status === 'closed') stopPolling();
-                })
-                .catch(function () {})
-                .finally(function () { isPolling = false; });
-        }
-
-        // ── Start new conversation from closed state ──────────
-        newConvBtn && newConvBtn.addEventListener('click', function () {
-            localStorage.removeItem(STORAGE_KEY);
-            convId = null;
-            lastMsgAt = null;
-            messagesBody.innerHTML = '';
-            stopPolling();
-            showStartScreen();
-            headerSub.innerHTML = '<span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly';
-            addQuickReplies();
-        });
-
-        // ── Resume polling when page becomes visible ──────────
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden && convId) {
-                if (isPanelOpen) startPolling();
-                else startBgPolling();
-            } else if (document.hidden) {
-                stopPolling();
-                stopBgPolling();
-            }
-        });
-
-        // ── On page load: check for unread messages ────────────
-        (function initBadge() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (!saved) return;
-            convId = parseInt(saved, 10);
-            const after = localStorage.getItem(LAST_SEEN_KEY + convId) || '';
-            const url = '/chat/poll/' + convId + '/' + (after ? '?after=' + encodeURIComponent(after) : '');
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.success) return;
-                    const adminMsgs = (data.messages || []).filter(m => m.sender_type === 'admin');
-                    if (adminMsgs.length) {
-                        bumpUnread(adminMsgs.length);
-                    }
-                    if (data.status !== 'closed') startBgPolling();
-                })
-                .catch(function () {});
-        })();
-
-    })();
-    </script>
-    {% endif %}
+    
     <!-- ===== END FLOATING LIVE CHAT WIDGET ===== -->
 
     <!-- Scripts -->
@@ -4546,7 +4165,7 @@
             window.updateFloatingCart = window.updateCartBadges;
 
             // Initialize cart count (safely quoted)
-            const initialCount = Number('{{ cart_count|default:"0" }}');
+            const initialCount = Number('12');
             updateCartBadges(initialCount);
 
             // Cache original add-to-cart button text for UI restore
@@ -4911,7 +4530,7 @@
         })();
     </script>
     
-    {% block extra_js %}{% endblock %}
+    
 
     <!-- Lazy-loaded image reveal: add .img-loaded once each lazy img finishes loading -->
     <script>

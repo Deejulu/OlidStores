@@ -1,5 +1,5 @@
 """
-Test OTP email sending with real SendGrid credentials
+Test OTP email sending with configured email backend
 """
 import os
 import django
@@ -17,7 +17,6 @@ print(f"\nConfiguration:")
 print(f"  OTP_DEBUG_MODE: {settings.OTP_DEBUG_MODE}")
 print(f"  EMAIL_BACKEND: {settings.EMAIL_BACKEND}")
 print(f"  DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}")
-print(f"  SENDGRID API Key: {settings.SENDGRID_API_KEY[:10]}...")
 
 print(f"\nSending test OTP email to: daveed0011@gmail.com")
 print(f"Test OTP Code: 123456")
@@ -30,15 +29,11 @@ if success:
     print("✅ SUCCESS! Email sent successfully!")
     print("\nCheck your inbox at: daveed0011@gmail.com")
     print("Subject: Your Olid Stores Verification Code: 123456")
-    print("\nIf you don't see it:")
-    print("  1. Check your spam/junk folder")
-    print("  2. Wait 1-2 minutes (SendGrid can be slow)")
-    print("  3. Verify daveed0011@gmail.com is a valid sender in SendGrid")
 else:
     print("❌ FAILED to send email!")
     print(f"\nError: {error}")
     print("\nPossible issues:")
-    print("  1. SendGrid API key is invalid")
-    print("  2. Sender email not verified in SendGrid")
-    print("  3. SendGrid account suspended/inactive")
+    print("  1. Email backend not configured")
+    print("  2. SMTP credentials invalid")
+    print("  3. API key invalid (Brevo/Resend)")
 print("="*60)
