@@ -772,7 +772,7 @@
             </div>
         </div>
 
-        {% if user.role == 'admin' %}
+        {% if user.is_superuser %}
         <!-- Sample Data Section -->
         <div class="sample-data-section" style="margin-top: 2rem; padding: 1.5rem; background: rgba(102, 126, 234, 0.08); border-radius: 16px; border: 1px solid rgba(102, 126, 234, 0.2);">
             <h4 style="color: var(--accent-color, #667eea); margin-bottom: 1rem;">

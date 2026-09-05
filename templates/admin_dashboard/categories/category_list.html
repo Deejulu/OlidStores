@@ -534,7 +534,7 @@
                         <i class="bi bi-plus-circle"></i>
                         Add New Category
                     </a>
-                    {% if DEBUG %}
+                    {% if user.is_superuser %}
                     <form method="post" action="{% url 'admin_dashboard:category_populate_sample' %}" style="display:inline" id="populate-form-cat" onsubmit="return confirmPopulateCat(event)">
                         {% csrf_token %}
                         <button type="submit" class="btn-add-category btn-secondary" id="populate-btn-cat">

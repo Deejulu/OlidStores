@@ -28,9 +28,8 @@ def admin_role_required(view_func):
     @wraps(view_func)
     @login_required
     def _wrapped_view(request, *args, **kwargs):
-        if getattr(request.user, 'role', None) == 'admin':
+        if request.user.is_superuser or getattr(request.user, 'role', None) == 'admin':
             return view_func(request, *args, **kwargs)
-        # Log unauthorized access attempt
         security_logger.warning(
             'Unauthorized admin access attempt: user=%s, role=%s, ip=%s, path=%s',
             request.user.username if request.user.is_authenticated else 'anonymous',
@@ -101,9 +100,218 @@ def admin_notification_mark_read(request, pk):
     messages.success(request, f'Notification "{notification.title}" marked as read.')
     return redirect('admin_dashboard:notification_list')
 
+
+@admin_role_required
+@require_POST
+def admin_chat_mark_read(request, pk):
+    """Mark a single customer chat message as read."""
+    from core.models import ChatMessage
+    msg = get_object_or_404(ChatMessage, pk=pk, sender_type='customer', is_read=False)
+    msg.is_read = True
+    msg.save(update_fields=['is_read'])
+    if request.user.is_authenticated:
+        cache.delete(f'admin_notifications_{request.user.pk}')
+    messages.success(request, 'Chat message marked as read.')
+    return redirect('admin_dashboard:notification_list')
+
+
+@admin_role_required
+@require_POST
+def admin_feedback_resolve(request, pk):
+    """Mark a single feedback entry as resolved."""
+    from users.models import Feedback
+    fb = get_object_or_404(Feedback, pk=pk, is_resolved=False)
+    fb.is_resolved = True
+    fb.save(update_fields=['is_resolved'])
+    if request.user.is_authenticated:
+        cache.delete(f'admin_notifications_{request.user.pk}')
+    messages.success(request, 'Feedback marked as resolved.')
+    return redirect('admin_dashboard:notification_list')
+
 @admin_role_required
 def notification_list(request):
-    notifications = Notification.objects.select_related('user').all()
+    """Unified admin notifications inbox.
+
+    Aggregates items from:
+      * Notification rows (admin-sent announcements)
+      * ChatMessage rows (unread customer chat)
+      * Feedback rows (unresolved customer feedback)
+      * Order rows (pending/processing + stale/alerts)
+
+    Each item has a 'type' key (notification/chat/feedback/order/alert) and
+    a 'mark_read_url'. Filter via ?filter=<type>.
+    """
+    from django.utils import timezone as dj_tz
+    from datetime import timedelta
+    from core.models import ChatMessage as _ChatMessage
+    from users.models import Feedback as _Feedback
+
+    now = dj_tz.now()
+    inbox = []
+
+    # --- 1. Notification rows ---
+    notif_qs = Notification.objects.select_related('user').order_by('-created_at')[:50]
+    for n in notif_qs:
+        inbox.append({
+            'type': 'notification',
+            'id': n.pk,
+            'title': n.title,
+            'message': n.message,
+            'created_at': n.created_at,
+            'is_read': n.is_read,
+            'is_important': n.is_important,
+            'icon': 'bi-megaphone-fill',
+            'severity': 'danger' if n.is_important else 'primary',
+            'to_label': n.user.username if n.user else 'All customers',
+            'action_url': n.action_url or '#',
+            'mark_read_url': reverse('admin_dashboard:admin_notification_mark_read', args=[n.pk]),
+        })
+
+    # --- 2. Unread customer chat messages ---
+    unread_chats = _ChatMessage.objects.filter(
+        sender_type='customer', is_read=False
+    ).select_related('conversation', 'conversation__user').order_by('-created_at')[:50]
+    for m in unread_chats:
+        conv = m.conversation
+        inbox.append({
+            'type': 'chat',
+            'id': m.pk,
+            'title': f"Chat from {conv.display_name}",
+            'message': m.message,
+            'created_at': m.created_at,
+            'is_read': False,
+            'is_important': False,
+            'icon': 'bi-chat-dots-fill',
+            'severity': 'success',
+            'to_label': conv.display_email or '',
+            'action_url': reverse('admin_dashboard:chat_detail', args=[conv.pk]),
+            'mark_read_url': reverse('admin_dashboard:admin_chat_mark_read', args=[m.pk]),
+        })
+
+    # --- 3. Unresolved feedback ---
+    unresolved = _Feedback.objects.filter(is_resolved=False).select_related('user').order_by('-created_at')[:50]
+    for f in unresolved:
+        inbox.append({
+            'type': 'feedback',
+            'id': f.pk,
+            'title': f"Feedback from {f.user.username if f.user else 'Anonymous'}",
+            'message': f.message,
+            'created_at': f.created_at,
+            'is_read': False,
+            'is_important': False,
+            'icon': 'bi-chat-left-text-fill',
+            'severity': 'warning',
+            'to_label': f.user.username if f.user else 'Anonymous',
+            'action_url': reverse('admin_dashboard:feedback_list'),
+            'mark_read_url': reverse('admin_dashboard:admin_feedback_resolve', args=[f.pk]),
+        })
+
+    # --- 4. Pending / Processing orders (not "handled") ---
+    pending_orders = Order.objects.filter(
+        Q(status='Pending') | Q(status='Processing')
+    ).order_by('created_at')[:50]
+    for o in pending_orders:
+        hours_old = (now - o.created_at).total_seconds() / 3600
+        inbox.append({
+            'type': 'order',
+            'id': o.pk,
+            'title': f"Order #{o.id} ({o.full_name})",
+            'message': f"{o.get_status_display()} \u2014 awaiting processing ({int(hours_old)}h old)",
+            'created_at': o.created_at,
+            'is_read': False,
+            'is_important': hours_old > 12,
+            'icon': 'bi-box-seam',
+            'severity': 'danger' if hours_old > 12 else 'warning',
+            'to_label': o.full_name,
+            'action_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+            'mark_read_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+        })
+
+    # --- 5. Order alerts (stale pending, overdue, at-risk) ---
+    stale = Order.objects.filter(status='Pending', created_at__lte=now - timedelta(hours=2)).order_by('created_at')[:20]
+    for o in stale:
+        hours_old = (now - o.created_at).total_seconds() / 3600
+        inbox.append({
+            'type': 'alert',
+            'id': o.pk,
+            'title': f"Order #{o.id} stale ({int(hours_old)}h)",
+            'message': f"{o.full_name} \u2014 Pending for {int(hours_old)}h",
+            'created_at': o.created_at,
+            'is_read': False,
+            'is_important': True,
+            'icon': 'bi-hourglass-split',
+            'severity': 'danger' if hours_old > 12 else 'warning',
+            'to_label': o.full_name,
+            'action_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+            'mark_read_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+        })
+
+    shipped = Order.objects.filter(status='Shipped', shipped_at__isnull=False).order_by('shipped_at')
+    for o in shipped:
+        deadline = o.shipped_at + (timedelta(hours=24) if o.delivery_option == '24h' else timedelta(hours=48))
+        hours_left = (deadline - now).total_seconds() / 3600
+        if hours_left >= 0 and hours_left < 6:
+            inbox.append({
+                'type': 'alert',
+                'id': o.pk,
+                'title': f"Order #{o.id} at risk",
+                'message': f"{o.full_name} \u2014 only {int(hours_left)}h left to deliver ({o.get_delivery_option_display()})",
+                'created_at': o.shipped_at,
+                'is_read': False,
+                'is_important': True,
+                'icon': 'bi-clock-history',
+                'severity': 'warning',
+                'to_label': o.full_name,
+                'action_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+                'mark_read_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+            })
+        elif hours_left < 0:
+            inbox.append({
+                'type': 'alert',
+                'id': o.pk,
+                'title': f"Order #{o.id} OVERDUE",
+                'message': f"{o.full_name} \u2014 overdue by {abs(int(hours_left))}h ({o.get_delivery_option_display()})",
+                'created_at': o.shipped_at,
+                'is_read': False,
+                'is_important': True,
+                'icon': 'bi-exclamation-triangle-fill',
+                'severity': 'danger',
+                'to_label': o.full_name,
+                'action_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+                'mark_read_url': reverse('admin_dashboard:order_detail', args=[o.pk]),
+            })
+
+    # Sort newest first
+    inbox.sort(key=lambda x: x['created_at'], reverse=True)
+
+    # Filter
+    active_filter = request.GET.get('filter', 'all')
+    if active_filter != 'all':
+        inbox = [i for i in inbox if i['type'] == active_filter]
+
+    # Per-type counts (for tabs)
+    counts = {
+        'all': len(inbox) if active_filter == 'all' else sum(1 for _ in []),  # placeholder
+        'notification': 0,
+        'chat': 0,
+        'feedback': 0,
+        'order': 0,
+        'alert': 0,
+    }
+    # Recount properly across all items (not the filtered slice)
+    full_counts = {'all': 0, 'notification': 0, 'chat': 0, 'feedback': 0, 'order': 0, 'alert': 0}
+    # Re-run aggregations just for counts (cheap)
+    full_counts['notification'] = Notification.objects.count()
+    full_counts['chat'] = _ChatMessage.objects.filter(sender_type='customer', is_read=False).count()
+    full_counts['feedback'] = _Feedback.objects.filter(is_resolved=False).count()
+    full_counts['order'] = Order.objects.filter(Q(status='Pending') | Q(status='Processing')).count()
+    full_counts['alert'] = (
+        Order.objects.filter(status='Pending', created_at__lte=now - timedelta(hours=2)).count()
+        + sum(1 for o in shipped if (deadline := (o.shipped_at + (timedelta(hours=24) if o.delivery_option == '24h' else timedelta(hours=48))) - now).total_seconds() / 3600 < 6)
+    )
+    full_counts['all'] = full_counts['notification'] + full_counts['chat'] + full_counts['feedback'] + full_counts['order'] + full_counts['alert']
+
+    # Notification send form
     if request.method == 'POST':
         form = NotificationForm(request.POST)
         if form.is_valid():
@@ -111,11 +319,19 @@ def notification_list(request):
             if not notif.user:
                 notif.user = None
             notif.save()
-            # Optionally: send notification to all customers if user is None
+            if request.user.is_authenticated:
+                cache.delete(f'admin_notifications_{request.user.pk}')
+            messages.success(request, f'Notification "{notif.title}" sent.')
             return redirect('admin_dashboard:notification_list')
     else:
         form = NotificationForm()
-    return render(request, 'admin_dashboard/notification_list.html', {'notifications': notifications, 'form': form})
+
+    return render(request, 'admin_dashboard/notification_list.html', {
+        'inbox': inbox,
+        'form': form,
+        'active_filter': active_filter,
+        'counts': full_counts,
+    })
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -323,9 +539,9 @@ def product_populate_sample(request):
     from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow in development/debug mode
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:product_list')
@@ -343,9 +559,9 @@ def product_remove_sample(request):
     from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow in development/debug mode
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:product_list')
@@ -527,9 +743,9 @@ def category_populate_sample(request):
     from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow in development/debug mode
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:category_list')
@@ -547,9 +763,9 @@ def category_remove_sample(request):
     from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow in development/debug mode
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:category_list')
@@ -1409,9 +1625,9 @@ def generate_sample_data(request):
     from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow in development/debug mode
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     User = get_user_model()
     # Ensure categories and products exist
@@ -2243,8 +2459,9 @@ def populate_sample_data_full(request):
     from django.http import HttpResponseForbidden
     from orders.models import Order, OrderItem, PaymentTransaction
 
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:dashboard_home')
@@ -2616,8 +2833,9 @@ def delete_sample_data_full(request):
     from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    if not settings.DEBUG:
-        return HttpResponseForbidden("This action is not available in production.")
+    # Only allow Super Admin users (even in production)
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:dashboard_home')

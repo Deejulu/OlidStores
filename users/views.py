@@ -1,6 +1,7 @@
 from .forms import FeedbackForm
 from .models import Feedback
 from django.contrib import messages
+from django.core.cache import cache
 def feedback_view(request):
 	if request.method == 'POST':
 		form = FeedbackForm(request.POST)
@@ -30,22 +31,24 @@ from django.http import JsonResponse
 def mark_notification_read(request, pk):
 	"""Mark a notification as read and optionally redirect to its action URL."""
 	notification = Notification.objects.filter(
-		pk=pk, 
-		user=request.user, 
+		pk=pk,
+		user=request.user,
 		is_read=False
 	).first()
-	
+
 	if notification:
 		notification.mark_as_read()
-		
+		# Bust the customer notification cache so the bell badge updates immediately
+		cache.delete(f'customer_unread_notifications_{request.user.id}')
+
 		# If notification has an action URL, redirect there
 		if notification.action_url:
 			return redirect(notification.action_url)
-	
+
 	# For AJAX requests, return JSON
 	if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
 		return JsonResponse({'success': True})
-	
+
 	return redirect('users:notifications')
 
 @login_required
@@ -91,7 +94,10 @@ def mark_all_notifications_read(request):
 		models.Q(user=request.user) | models.Q(user__isnull=True),
 		is_read=False
 	).update(is_read=True)
-	
+
+	# Bust the customer notification cache so the bell badge updates immediately
+	cache.delete(f'customer_unread_notifications_{request.user.id}')
+
 	messages.success(request, 'All notifications marked as read!')
 	return redirect('users:notifications')
 

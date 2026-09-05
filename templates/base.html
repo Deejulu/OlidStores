@@ -2592,7 +2592,17 @@
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminNotifications">
-                                <li class="dropdown-header">Notifications</li>
+                                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span>Notifications</span>
+                                    {% if admin_total_notifications > 0 %}
+                                    <form method="post" action="{% url 'admin_dashboard:mark_all_notifications_read' %}" class="d-inline m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success py-0 px-2" style="font-size:0.75rem;line-height:1.4;" title="Mark all notifications, chats and feedback as read">
+                                            <i class="bi bi-check-all"></i> Mark all read
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </li>
                                 {% if admin_total_notifications > 0 %}
                                     {% if admin_unread_chats > 0 %}
                                     <li><a class="dropdown-item" href="{% url 'admin_dashboard:chat_list' %}">

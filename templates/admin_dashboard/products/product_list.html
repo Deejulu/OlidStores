@@ -789,7 +789,7 @@
                              <i class="bi bi-boxes"></i>
                              Bulk Add Products
                          </a>
-                         {% if DEBUG %}
+                          {% if user.is_superuser %}
                          <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return confirmPopulate(event)">
                              {% csrf_token %}
                              <button type="submit" class="btn-add-product btn-secondary" id="populate-btn">
