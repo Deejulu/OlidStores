@@ -806,56 +806,75 @@ def add_customer(request):
     from admin_dashboard.forms import AddCustomerForm
     from users.models import OTPVerification
     from users.otp_utils import send_email_otp
-    
+
     if request.method == 'POST':
         form = AddCustomerForm(request.POST)
         if form.is_valid():
             user = form.save()
             raw_password = form.cleaned_data['password']
-            
-            # Create and send OTP for email verification
-            try:
-                otp = OTPVerification.create_otp(
-                    otp_type='email',
-                    email=user.email,
-                    user=user,
-                    expiry_minutes=30
-                )
-                
-                # Send OTP via email (or show in console if DEBUG mode)
-                success, error_msg = send_email_otp(user.email, otp.otp_code, purpose='email_verification')
-                
-                if not success:
-                    messages.error(
+
+            # Always mark admin-created customers as verified
+            user.email_verified = True
+            user.phone_verified = True
+            user.save(update_fields=['email_verified', 'phone_verified'])
+
+            # If email is provided, send OTP for verification; otherwise skip
+            if user.email:
+                try:
+                    otp = OTPVerification.create_otp(
+                        otp_type='email',
+                        email=user.email,
+                        user=user,
+                        expiry_minutes=30
+                    )
+
+                    # Send OTP via email (or show in console if DEBUG mode)
+                    success, error_msg = send_email_otp(user.email, otp.otp_code, purpose='email_verification')
+
+                    if not success:
+                        messages.error(
+                            request,
+                            f'Failed to send verification code: {error_msg}. '
+                            f'Please check email configuration or enable DEBUG mode.'
+                        )
+                        return redirect('admin_dashboard:customer_list')
+
+                    # Store user ID in session for OTP verification
+                    request.session['pending_customer_id'] = user.id
+                    request.session['pending_customer_email'] = user.email
+
+                    # Store credentials in session for admin to download
+                    request.session['admin_credentials_username'] = user.username
+                    request.session['admin_credentials_account_id'] = user.account_id
+                    request.session['admin_credentials_password'] = raw_password
+                    request.session['admin_credentials_email'] = user.email
+
+                    messages.info(
                         request,
-                        f'Failed to send verification code: {error_msg}. '
-                        f'Please check email configuration or enable DEBUG mode.'
+                        f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
+                    )
+                    return redirect('admin_dashboard:admin_credentials')
+                except Exception as e:
+                    # Still create the customer even if OTP sending fails
+                    messages.warning(
+                        request,
+                        f'Customer "{user.username}" created, but OTP email failed to send. '
+                        f'Error: {str(e)}'
                     )
                     return redirect('admin_dashboard:customer_list')
-                
-                # Store user ID in session for OTP verification
-                request.session['pending_customer_id'] = user.id
-                request.session['pending_customer_email'] = user.email
-                
-                # Store credentials in session for admin to download
-                request.session['admin_credentials_username'] = user.username
-                request.session['admin_credentials_account_id'] = user.account_id
-                request.session['admin_credentials_password'] = raw_password
-                request.session['admin_credentials_email'] = user.email
-                
-                messages.info(
-                    request, 
-                    f'Customer "{user.username}" created! OTP sent to {user.email}. Please verify to complete setup.'
-                )
-                return redirect('admin_dashboard:admin_credentials')
-            except Exception as e:
-                # Still create the customer even if OTP sending fails
-                messages.warning(
-                    request,
-                    f'Customer "{user.username}" created, but OTP email failed to send. '
-                    f'Error: {str(e)}'
-                )
-                return redirect('admin_dashboard:customer_list')
+
+            # No email provided: skip OTP, just show credentials
+            request.session['admin_credentials_username'] = user.username
+            request.session['admin_credentials_account_id'] = user.account_id
+            request.session['admin_credentials_password'] = raw_password
+            request.session['admin_credentials_email'] = user.email
+
+            messages.success(
+                request,
+                f'Customer "{user.username}" created without an email. '
+                f'The customer can add an email later from their profile.'
+            )
+            return redirect('admin_dashboard:admin_credentials')
     else:
         form = AddCustomerForm(initial={'is_active': True, 'role': 'customer'})
     

@@ -298,21 +298,27 @@
                 </div>
             </div>
         </div>
-        
-        <div class="form-group">
-            <label for="{{ form.email.id_for_label }}">
-                Email Address
-                <span class="required">*</span>
-            </label>
-            {{ form.email }}
-            {% if form.email.help_text %}
-            <div class="help-text">
-                <i class="bi bi-info-circle"></i>
-                {{ form.email.help_text }}
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">
+                    Email Address
+                </label>
+                {{ form.email }}
+                {% if form.email.help_text %}
+                <div class="help-text">
+                    <i class="bi bi-info-circle"></i>
+                    {{ form.email.help_text }}
+                </div>
+                {% else %}
+                <div class="help-text">
+                    <i class="bi bi-info-circle"></i>
+                    Optional. The customer can add their email later from their profile.
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
-        
+
         <div class="form-row">
             <div class="form-group">
                 <label for="{{ form.first_name.id_for_label }}">
@@ -363,7 +369,73 @@
             </div>
             {% endif %}
         </div>
-        
+
+        <h3 style="margin-top: 2rem;">
+            <i class="bi bi-question-circle"></i>
+            Account Recovery Questions
+        </h3>
+
+        <div class="alert alert-warning" style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+                <i class="bi bi-exclamation-triangle-fill" style="color: #f59e0b; font-size: 1.25rem; margin-top: 0.15rem;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #92400e; margin-bottom: 0.25rem;">Important</div>
+                    <div style="font-size: 0.9rem; color: #92400e; opacity: 0.9;">
+                        Pick 3 different questions and provide answers you will share with the customer.
+                        These will be used for password/account recovery. Answers are stored hashed.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.security_question_1.id_for_label }}">
+                Security Question 1
+                <span class="required">*</span>
+            </label>
+            {{ form.security_question_1 }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.security_answer_1.id_for_label }}">
+                Answer 1
+                <span class="required">*</span>
+            </label>
+            {{ form.security_answer_1 }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.security_question_2.id_for_label }}">
+                Security Question 2
+                <span class="required">*</span>
+            </label>
+            {{ form.security_question_2 }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.security_answer_2.id_for_label }}">
+                Answer 2
+                <span class="required">*</span>
+            </label>
+            {{ form.security_answer_2 }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.security_question_3.id_for_label }}">
+                Security Question 3
+                <span class="required">*</span>
+            </label>
+            {{ form.security_question_3 }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.security_answer_3.id_for_label }}">
+                Answer 3
+                <span class="required">*</span>
+            </label>
+            {{ form.security_answer_3 }}
+        </div>
+
         <h3 style="margin-top: 2rem;">
             <i class="bi bi-sliders"></i>
             Settings

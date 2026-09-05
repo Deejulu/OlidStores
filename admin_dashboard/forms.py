@@ -135,7 +135,7 @@ class AddCustomerForm(forms.ModelForm):
         model = User
         fields = ['email', 'first_name', 'last_name', 'role', 'is_active']
         widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email (optional)'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
             'role': forms.Select(attrs={'class': 'form-select'}),
@@ -153,6 +153,8 @@ class AddCustomerForm(forms.ModelForm):
         # Make first_name and last_name required
         self.fields['first_name'].required = True
         self.fields['last_name'].required = True
+        # Email is optional
+        self.fields['email'].required = False
     
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')
@@ -189,18 +191,18 @@ class AddCustomerForm(forms.ModelForm):
                 'fake-mail.com', 'tempemail.com', 'maildrop.cc', 'temp-mail.io',
                 'tmail.com', 'fakeinbox.com', 'minutemail.com', 'sharklasers.com',
             }
-            
+
             domain = email.split('@')[1].lower() if '@' in email else ''
             if domain in disposable_domains:
                 raise forms.ValidationError(
                     f'"{domain}" is a temporary/disposable email provider. '
                     'Please use a real email address.'
                 )
-            
+
             # Check if email already exists
             if User.objects.filter(email=email).exists():
                 raise forms.ValidationError('This email is already registered.')
-        
+
         return email
     
     def clean(self):
