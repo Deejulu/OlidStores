@@ -1,7 +1,7 @@
 from users.models import Feedback
 from users.models_notification import Notification
 from .forms_notification import NotificationForm
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,16 @@ from django.core.cache import cache
 from functools import wraps
 import logging
 from .models import DailyMetric
-from .populate_tasks import _run_in_thread, do_product_populate_sample, do_populate_sample_data_full
+from .populate_tasks import (
+    _run_in_thread,
+    get_job_status,
+    do_product_populate_sample,
+    do_product_remove_sample,
+    do_category_populate_sample,
+    do_category_remove_sample,
+    do_populate_sample_data_full,
+    do_delete_sample_data_full,
+)
 from products.models import Product
 from products.forms import ProductForm
 from products.models import Category
@@ -304,7 +313,7 @@ def notification_list(request):
     # Recount properly across all items (not the filtered slice)
     full_counts = {'all': 0, 'notification': 0, 'chat': 0, 'feedback': 0, 'order': 0, 'alert': 0}
     # Re-run aggregations just for counts (cheap)
-    full_counts['notification'] = Notification.objects.count()
+    full_counts['notification'] = Notification.objects.filter(is_read=False).count()
     full_counts['chat'] = _ChatMessage.objects.filter(sender_type='customer', is_read=False).count()
     full_counts['feedback'] = _Feedback.objects.filter(is_resolved=False).count()
     full_counts['order'] = Order.objects.filter(Q(status='Pending') | Q(status='Processing')).count()
@@ -370,6 +379,12 @@ User = get_user_model()
 
 def test_admin_dashboard(request):
 	return HttpResponse('Admin Dashboard app is working!')
+
+
+@admin_role_required
+def sample_data_status(request, job_id):
+    return JsonResponse(get_job_status(job_id))
+
 
 @admin_role_required
 def dashboard_home(request):
@@ -544,28 +559,37 @@ def product_populate_sample(request):
 
     if request.method != 'POST':
         return redirect('admin_dashboard:product_list')
-    _run_in_thread(do_product_populate_sample)
+
+    job_id = _run_in_thread(do_product_populate_sample)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'job_id': job_id,
+            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
+            'message': 'Sample products are being populated in the background.',
+        })
+
     messages.success(request, 'Sample categories and products population started in background...')
     return redirect('admin_dashboard:product_list')
 
 @admin_role_required
 def product_remove_sample(request):
-    from products.models import Product
-    from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow Super Admin users (even in production)
     if not request.user.is_superuser:
         return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:product_list')
-    try:
-        # Only delete sample products, never real products
-        deleted_count, _ = Product.objects.filter(is_sample=True).delete()
-        messages.success(request, f'Removed {deleted_count} sample products.')
-    except Exception as e:
-        messages.error(request, f'Failed to remove sample products: {e}')
+
+    job_id = _run_in_thread(do_product_remove_sample)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'job_id': job_id,
+            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
+            'message': 'Sample products are being removed in the background.',
+        })
+
+    messages.success(request, 'Sample product removal started in background...')
     return redirect('admin_dashboard:product_list')
 
 @admin_role_required
@@ -733,47 +757,45 @@ def category_toggle(request, pk):
 
 @admin_role_required
 def category_populate_sample(request):
-    from django.core.management import call_command
-    from django.db import transaction
-    from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow Super Admin users (even in production)
     if not request.user.is_superuser:
         return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:category_list')
-    try:
-        with transaction.atomic():
-            call_command('populate_sample')
-        messages.success(request, 'Sample categories and products created successfully.')
-    except Exception as e:
-        messages.error(request, f'Failed to populate sample categories: {e}')
+
+    job_id = _run_in_thread(do_category_populate_sample)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'job_id': job_id,
+            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
+            'message': 'Sample categories are being populated in the background.',
+        })
+
+    messages.success(request, 'Sample category population started in background...')
     return redirect('admin_dashboard:category_list')
 
 
 @admin_role_required
 def category_remove_sample(request):
-    from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow Super Admin users (even in production)
     if not request.user.is_superuser:
         return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:category_list')
-    try:
-        # Only delete sample categories (those created by sample data tool)
-        from products.models import Category, Product
-        # First delete sample products, then sample categories
-        Product.objects.filter(is_sample=True).delete()
-        # Only delete categories that have no remaining products (all their products were samples)
-        deleted_count, _ = Category.objects.filter(products__isnull=True).delete()
-        messages.success(request, f'Removed sample data. Categories with real products were preserved.')
-    except Exception as e:
-        messages.error(request, f'Failed to remove sample categories: {e}')
+
+    job_id = _run_in_thread(do_category_remove_sample)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'job_id': job_id,
+            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
+            'message': 'Sample categories are being removed in the background.',
+        })
+
+    messages.success(request, 'Sample category removal started in background...')
     return redirect('admin_dashboard:category_list')
 
 
@@ -2451,7 +2473,15 @@ def populate_sample_data_full(request):
 
     if request.method != 'POST':
         return redirect('admin_dashboard:dashboard_home')
-    _run_in_thread(do_populate_sample_data_full)
+
+    job_id = _run_in_thread(do_populate_sample_data_full)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'job_id': job_id,
+            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
+            'message': 'Sample data generation is running in the background.',
+        })
+
     messages.success(request, 'Sample data creation started in background. Please refresh the page in a moment.')
     return redirect('admin_dashboard:dashboard_home')
 
@@ -2459,58 +2489,21 @@ def populate_sample_data_full(request):
 @admin_role_required
 def delete_sample_data_full(request):
     """Unified sample data deletion: removes all sample-flagged records across all models."""
-    from django.conf import settings
     from django.http import HttpResponseForbidden
 
-    # Only allow Super Admin users (even in production)
     if not request.user.is_superuser:
         return HttpResponseForbidden("Only Super Admins can perform this action.")
 
     if request.method != 'POST':
         return redirect('admin_dashboard:dashboard_home')
 
-    summary = {}
-    try:
-        # Delete in correct order to respect FK relationships
-        # 1. PaymentTransactions (reference Orders)
-        from orders.models import PaymentTransaction, OrderItem, Order
-        from products.models import Product, Category
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
+    job_id = _run_in_thread(do_delete_sample_data_full)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'job_id': job_id,
+            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
+            'message': 'Sample data removal is running in the background.',
+        })
 
-        # Delete payment transactions first
-        payment_count, _ = PaymentTransaction.objects.filter(is_sample=True).delete()
-        summary['payments'] = payment_count
-
-        # Delete order items
-        item_count, _ = OrderItem.objects.filter(is_sample=True).delete()
-        summary['order_items'] = item_count
-
-        # Delete orders
-        order_count, _ = Order.objects.filter(is_sample=True).delete()
-        summary['orders'] = order_count
-
-        # Delete sample users (customers only)
-        user_count, _ = User.objects.filter(is_sample=True, role='customer').delete()
-        summary['customers'] = user_count
-
-        # Delete sample products
-        product_count, _ = Product.objects.filter(is_sample=True).delete()
-        summary['products'] = product_count
-
-        # Delete sample categories (only those with no remaining products)
-        category_count, _ = Category.objects.filter(is_sample=True, products__isnull=True).delete()
-        summary['categories'] = category_count
-
-        msg_parts = [f'{v} {k}' for k, v in summary.items() if v > 0]
-        if msg_parts:
-            messages.success(
-                request,
-                f'Sample data removed: {", ".join(msg_parts)}. Real data was not affected.'
-            )
-        else:
-            messages.info(request, 'No sample data found to remove.')
-    except Exception as e:
-        messages.error(request, f'Failed to remove sample data: {e}')
-
+    messages.success(request, 'Sample data cleanup started in background. Please refresh the page in a moment.')
     return redirect('admin_dashboard:dashboard_home')
