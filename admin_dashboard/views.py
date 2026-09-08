@@ -3,7 +3,9 @@ from users.models_notification import Notification
 from .forms_notification import NotificationForm
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.core.cache import cache
 from functools import wraps
 import logging
