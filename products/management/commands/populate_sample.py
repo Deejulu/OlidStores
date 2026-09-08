@@ -157,7 +157,7 @@ class Command(BaseCommand):
         existing_cats = set(Category.objects.filter(name__in=cat_names).values_list('name', flat=True))
         new_cats = [Category(name=n, slug=slugify(n), is_sample=True) for n in cat_names if n not in existing_cats]
         if new_cats:
-            Category.objects.bulk_create(new_cats)
+            Category.objects.bulk_create(new_cats, ignore_conflicts=True)
 
         # Get all category objects and mark existing catalog categories as sample
         cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}

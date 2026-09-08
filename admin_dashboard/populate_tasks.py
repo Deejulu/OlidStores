@@ -1,6 +1,7 @@
 import sys
 import logging
 import threading
+import uuid
 from django.db import connection, transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -13,35 +14,79 @@ from django.utils.text import slugify as _slugify
 logger = logging.getLogger(__name__)
 
 RUNNING_TESTS = 'test' in sys.argv or 'pytest' in sys.argv
+JOB_STATUS = {}
+JOB_STATUS_LOCK = threading.Lock()
+
+
+def update_job_status(job_id, *, status='running', message='Working...', percent=None, done=False, error=None):
+    if not job_id:
+        return
+    payload = {
+        'status': status,
+        'message': message,
+        'done': done,
+        'error': error,
+        'percent': percent if percent is not None else 0,
+    }
+    with JOB_STATUS_LOCK:
+        current = JOB_STATUS.get(job_id, {})
+        current.update(payload)
+        JOB_STATUS[job_id] = current
+
+
+def get_job_status(job_id):
+    with JOB_STATUS_LOCK:
+        data = JOB_STATUS.get(job_id, {})
+        return {
+            'job_id': job_id,
+            'status': data.get('status', 'unknown'),
+            'message': data.get('message', 'No status available.'),
+            'percent': data.get('percent', 0),
+            'done': bool(data.get('done', False)),
+            'error': data.get('error'),
+        }
 
 
 def _run_in_thread(func, *args, **kwargs):
     if RUNNING_TESTS:
         func(*args, **kwargs)
-        return
+        return None
+
+    job_id = kwargs.pop('job_id', None) or str(uuid.uuid4())
+    update_job_status(job_id, status='queued', message=f'{getattr(func, "__name__", "task")} queued.', percent=0, done=False)
 
     def wrapper():
         connection.close()
         try:
-            func(*args, **kwargs)
+            update_job_status(job_id, status='running', message=f'{getattr(func, "__name__", "task")} started.', percent=5, done=False)
+            func(*args, job_id=job_id, **kwargs)
+            update_job_status(job_id, status='completed', message=f'{getattr(func, "__name__", "task")} completed.', percent=100, done=True)
         except Exception as e:
             logger.error(f'Background task failed: {e}', exc_info=True)
+            update_job_status(job_id, status='failed', message=f'{getattr(func, "__name__", "task")} failed.', percent=100, done=True, error=str(e))
 
     t = threading.Thread(target=wrapper, daemon=True)
     t.start()
+    return job_id
 
 
-def do_product_populate_sample():
+def do_product_populate_sample(job_id=None):
     try:
+        update_job_status(job_id, status='running', message='Preparing product catalog...', percent=25)
         call_command('populate_sample')
+        update_job_status(job_id, status='completed', message='Sample products were added successfully.', percent=100, done=True)
     except Exception as e:
         logger.error(f'Background product populate failed: {e}', exc_info=True)
+        update_job_status(job_id, status='failed', message='Sample products failed to populate.', percent=100, done=True, error=str(e))
+        raise
 
 
-def do_populate_sample_data_full():
+def do_populate_sample_data_full(job_id=None):
     User = get_user_model()
     from products.models import Category, Product
     from orders.models import Order, OrderItem, PaymentTransaction
+
+    update_job_status(job_id, status='running', message='Preparing sample catalog...', percent=8)
 
     CATALOG = {
         'Electronics': [
@@ -190,7 +235,7 @@ def do_populate_sample_data_full():
             existing_cats = set(Category.objects.filter(name__in=cat_names).values_list('name', flat=True))
             new_cats = [Category(name=n, slug=_slugify(n), is_sample=True) for n in cat_names if n not in existing_cats]
             if new_cats:
-                Category.objects.bulk_create(new_cats)
+                Category.objects.bulk_create(new_cats, ignore_conflicts=True)
             Category.objects.filter(name__in=cat_names, is_sample=False).update(is_sample=True)
 
             cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}
