@@ -790,14 +790,14 @@
                              Bulk Add Products
                          </a>
                           {% if user.is_superuser %}
-                         <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return confirmPopulate(event)">
+                         <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return startSampleTask(this, 'product-populate', 'populate-loading-overlay', 'populate-btn', 'Creating sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-populate' %}')">
                              {% csrf_token %}
                              <button type="submit" class="btn-add-product btn-secondary" id="populate-btn">
                                  <i class="bi bi-box-seam"></i>
                                  Populate Sample Products
                              </button>
                          </form>
-                         <form method="post" action="{% url 'admin_dashboard:product_remove_sample' %}" style="display:inline" onsubmit="return confirm('Remove all sample products? This cannot be undone.')">
+                         <form method="post" action="{% url 'admin_dashboard:product_remove_sample' %}" style="display:inline" onsubmit="return startSampleTask(this, 'product-remove', 'populate-loading-overlay', 'populate-btn', 'Removing sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-remove' %}')">
                              {% csrf_token %}
                              <button type="submit" class="btn-add-product btn-danger">
                                  <i class="bi bi-trash3"></i>
@@ -1123,23 +1123,92 @@ document.querySelector('.search-input').addEventListener('keypress', function(e)
 })();
 
 // Populate sample products — show loading overlay while the server processes
-function confirmPopulate(e) {
-    if (!confirm('This will replace all existing sample products with fresh ones. Continue?')) {
+function startSampleTask(form, taskName, overlayId, buttonId, loadingText, statusUrl) {
+    if (!confirm('This will create a new sample dataset. Continue?')) {
         return false;
     }
-    // Show full-screen loading overlay
-    var overlay = document.getElementById('populate-loading-overlay');
+    const overlay = document.getElementById(overlayId);
+    const btn = document.getElementById(buttonId);
+    const statusEl = document.getElementById('populate-status-text');
     if (overlay) overlay.style.display = 'flex';
-    var btn = document.getElementById('populate-btn');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…'; }
-    return true;
+    if (btn) {
+        btn.dataset.originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…';
+    }
+    if (statusEl) statusEl.textContent = loadingText;
+
+    const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+    const payload = new FormData(form);
+    fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+        body: payload,
+        credentials: 'same-origin'
+    })
+    .then(response => response.json().catch(() => ({})))
+    .then(data => {
+        if (data && data.task_key) {
+            pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, loadingText);
+        } else {
+            if (overlay) overlay.style.display = 'none';
+            if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
+            window.location.reload();
+        }
+    })
+    .catch(() => {
+        if (overlay) overlay.style.display = 'none';
+        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
+        window.location.reload();
+    });
+    return false;
+}
+
+function pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, loadingText) {
+    const overlay = document.getElementById(overlayId);
+    const btn = document.getElementById(buttonId);
+    const poll = () => fetch(statusUrl, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json().catch(() => ({})))
+    .then(data => {
+        const status = data && data.status ? data.status : 'idle';
+        const message = data && data.message ? data.message : loadingText;
+        if (statusEl) statusEl.textContent = message;
+        if (status === 'completed') {
+            if (overlay) overlay.style.display = 'none';
+            if (btn) { btn.disabled = false; btn.innerHTML = '<span><i class="bi bi-check-circle-fill"></i> Done</span>'; }
+            window.location.reload();
+            return;
+        }
+        if (status === 'error') {
+            if (overlay) overlay.style.display = 'none';
+            if (btn) { btn.disabled = false; btn.innerHTML = '<span><i class="bi bi-exclamation-triangle-fill"></i> Failed</span>'; }
+            if (statusEl) statusEl.textContent = data.error || 'The sample-data task failed.';
+            return;
+        }
+        if (status === 'queued' || status === 'running') {
+            setTimeout(poll, 1500);
+        } else {
+            if (overlay) overlay.style.display = 'none';
+            if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
+            window.location.reload();
+        }
+    })
+    .catch(() => {
+        if (overlay) overlay.style.display = 'none';
+        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
+        window.location.reload();
+    });
+    poll();
 }
 </script>
 
 <!-- Loading overlay shown while populate-sample request is in progress -->
 <div id="populate-loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
     <div class="spinner-border text-light" style="width:3rem;height:3rem;" role="status"></div>
-    <p style="color:#fff;font-size:1.1rem;font-weight:600;margin:0;">Creating 120 sample products… please wait</p>
+    <p id="populate-status-text" style="color:#fff;font-size:1.1rem;font-weight:600;margin:0;">Creating 120 sample products… please wait</p>
     <p style="color:#ccc;font-size:.85rem;margin:0;">This may take up to 30 seconds on the first run.</p>
 </div>
 {% endblock %}

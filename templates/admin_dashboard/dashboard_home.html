@@ -787,15 +787,15 @@
             </div>
             {% endif %}
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items-end;">
-                <form method="post" action="{% url 'admin_dashboard:populate_sample_data_full' %}" onsubmit="return confirmPopulateFull(event)" style="display: inline;">
+                <form method="post" action="{% url 'admin_dashboard:populate_sample_data_full' %}" onsubmit="return startSampleTask(this, 'full-populate', 'populate-loading-overlay-full', 'populate-btn-full', 'Populating sample data… please wait', '{% url 'admin_dashboard:sample_task_status' 'full-populate' %}')" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" id="populate-btn-full" class="admin-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                         <span><i class="fas fa-magic"></i> Populate Sample Data</span>
                     </button>
                 </form>
-                <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" onsubmit="return confirmDeleteSample(event)" style="display: inline;">
+                <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" onsubmit="return startSampleTask(this, 'full-delete', 'populate-loading-overlay-full', 'delete-btn-full', 'Removing sample data… please wait', '{% url 'admin_dashboard:sample_task_status' 'full-delete' %}')" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="admin-btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <button type="submit" id="delete-btn-full" class="admin-btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                         <span><i class="fas fa-trash-alt"></i> Delete Sample Data</span>
                     </button>
                 </form>
@@ -805,20 +805,104 @@
         <!-- Loading overlay for populate -->
         <div id="populate-loading-overlay-full" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
             <div class="spinner-border text-light" style="width:3rem;height:3rem;" role="status"></div>
-            <p style="color:#fff;font-size:1.1rem;font-weight:600;margin:0;">Populating sample data… please wait</p>
+            <p id="populate-status-text-full" style="color:#fff;font-size:1.1rem;font-weight:600;margin:0;">Populating sample data… please wait</p>
             <p style="color:#ccc;font-size:.85rem;margin:0;">This may take up to 30 seconds.</p>
         </div>
 
         <script>
-        function confirmPopulateFull(e) {
-            var overlay = document.getElementById('populate-loading-overlay-full');
+        function startSampleTask(form, taskName, overlayId, buttonId, loadingText, statusUrl) {
+            if (!confirm('This may take a moment. Continue?')) {
+                return false;
+            }
+            if (statusUrl && typeof statusUrl === 'string' && statusUrl.includes('TASK_NAME_PLACEHOLDER')) {
+                statusUrl = statusUrl.replace('TASK_NAME_PLACEHOLDER', taskName);
+            }
+            const overlay = document.getElementById(overlayId);
+            const btn = document.getElementById(buttonId);
+            const statusText = document.getElementById('populate-status-text-full');
             if (overlay) overlay.style.display = 'flex';
-            var btn = document.getElementById('populate-btn-full');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…'; }
-            return true;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Working…';
+            }
+            if (statusText) statusText.textContent = loadingText;
+
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
+            const payload = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: payload,
+                credentials: 'same-origin'
+            })
+            .then(response => response.json().catch(() => ({})))
+            .then(data => {
+                if (data && data.task_key) {
+                    pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusText, data.message || loadingText);
+                } else {
+                    if (overlay) overlay.style.display = 'none';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+                    }
+                    window.location.reload();
+                }
+            })
+            .catch(() => {
+                if (overlay) overlay.style.display = 'none';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+                }
+                window.location.reload();
+            });
+            return false;
         }
-        function confirmDeleteSample(e) {
-            return true;
+
+        function pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusTextEl, loadingText) {
+            const overlay = document.getElementById(overlayId);
+            const btn = document.getElementById(buttonId);
+            const poll = () => fetch(statusUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                .then(response => response.json().catch(() => ({})))
+                .then(data => {
+                    const status = data && data.status ? data.status : 'idle';
+                    const message = data && data.message ? data.message : loadingText;
+                    if (statusTextEl) statusTextEl.textContent = message;
+                    if (status === 'completed') {
+                        if (overlay) overlay.style.display = 'none';
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<span><i class="fas fa-check"></i> Complete</span>';
+                        }
+                        window.location.reload();
+                        return;
+                    }
+                    if (status === 'error') {
+                        if (overlay) overlay.style.display = 'none';
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<span><i class="fas fa-exclamation-triangle"></i> Failed</span>';
+                        }
+                        if (statusTextEl) statusTextEl.textContent = data.error || 'The sample-data task failed.';
+                        return;
+                    }
+                    if (status === 'queued' || status === 'running') {
+                        setTimeout(poll, 1500);
+                    } else if (status === 'idle') {
+                        if (overlay) overlay.style.display = 'none';
+                        if (btn) { btn.disabled = false; }
+                        window.location.reload();
+                    }
+                })
+                .catch(() => {
+                    if (overlay) overlay.style.display = 'none';
+                    if (btn) btn.disabled = false;
+                    window.location.reload();
+                });
+            poll();
         }
         </script>
         {% endif %}

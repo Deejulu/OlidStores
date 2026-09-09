@@ -1,7 +1,7 @@
 from users.models import Feedback
 from users.models_notification import Notification
 from .forms_notification import NotificationForm
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -12,13 +12,15 @@ import logging
 from .models import DailyMetric
 from .populate_tasks import (
     _run_in_thread,
-    get_job_status,
     do_product_populate_sample,
-    do_product_remove_sample,
     do_category_populate_sample,
+    do_product_remove_sample,
     do_category_remove_sample,
     do_populate_sample_data_full,
     do_delete_sample_data_full,
+    start_background_sample_task,
+    get_sample_task_key,
+    get_sample_task_status,
 )
 from products.models import Product
 from products.forms import ProductForm
@@ -313,7 +315,7 @@ def notification_list(request):
     # Recount properly across all items (not the filtered slice)
     full_counts = {'all': 0, 'notification': 0, 'chat': 0, 'feedback': 0, 'order': 0, 'alert': 0}
     # Re-run aggregations just for counts (cheap)
-    full_counts['notification'] = Notification.objects.filter(is_read=False).count()
+    full_counts['notification'] = Notification.objects.count()
     full_counts['chat'] = _ChatMessage.objects.filter(sender_type='customer', is_read=False).count()
     full_counts['feedback'] = _Feedback.objects.filter(is_resolved=False).count()
     full_counts['order'] = Order.objects.filter(Q(status='Pending') | Q(status='Processing')).count()
@@ -379,12 +381,6 @@ User = get_user_model()
 
 def test_admin_dashboard(request):
 	return HttpResponse('Admin Dashboard app is working!')
-
-
-@admin_role_required
-def sample_data_status(request, job_id):
-    return JsonResponse(get_job_status(job_id))
-
 
 @admin_role_required
 def dashboard_home(request):
@@ -551,48 +547,6 @@ def product_list(request):
     return render(request, 'admin_dashboard/products/product_list.html', {'products': products, 'search_query': search_query})
 
 @admin_role_required
-def product_populate_sample(request):
-    from django.http import HttpResponseForbidden
-
-    if not request.user.is_superuser:
-        return HttpResponseForbidden("Only Super Admins can perform this action.")
-
-    if request.method != 'POST':
-        return redirect('admin_dashboard:product_list')
-
-    job_id = _run_in_thread(do_product_populate_sample)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'job_id': job_id,
-            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
-            'message': 'Sample products are being populated in the background.',
-        })
-
-    messages.success(request, 'Sample categories and products population started in background...')
-    return redirect('admin_dashboard:product_list')
-
-@admin_role_required
-def product_remove_sample(request):
-    from django.http import HttpResponseForbidden
-
-    if not request.user.is_superuser:
-        return HttpResponseForbidden("Only Super Admins can perform this action.")
-
-    if request.method != 'POST':
-        return redirect('admin_dashboard:product_list')
-
-    job_id = _run_in_thread(do_product_remove_sample)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'job_id': job_id,
-            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
-            'message': 'Sample products are being removed in the background.',
-        })
-
-    messages.success(request, 'Sample product removal started in background...')
-    return redirect('admin_dashboard:product_list')
-
-@admin_role_required
 def product_create(request):
     from products.models import ProductImage
     if request.method == 'POST':
@@ -752,50 +706,6 @@ def category_toggle(request, pk):
     if request.method == 'POST':
         category.is_editable = not category.is_editable
         category.save()
-    return redirect('admin_dashboard:category_list')
-
-
-@admin_role_required
-def category_populate_sample(request):
-    from django.http import HttpResponseForbidden
-
-    if not request.user.is_superuser:
-        return HttpResponseForbidden("Only Super Admins can perform this action.")
-
-    if request.method != 'POST':
-        return redirect('admin_dashboard:category_list')
-
-    job_id = _run_in_thread(do_category_populate_sample)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'job_id': job_id,
-            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
-            'message': 'Sample categories are being populated in the background.',
-        })
-
-    messages.success(request, 'Sample category population started in background...')
-    return redirect('admin_dashboard:category_list')
-
-
-@admin_role_required
-def category_remove_sample(request):
-    from django.http import HttpResponseForbidden
-
-    if not request.user.is_superuser:
-        return HttpResponseForbidden("Only Super Admins can perform this action.")
-
-    if request.method != 'POST':
-        return redirect('admin_dashboard:category_list')
-
-    job_id = _run_in_thread(do_category_remove_sample)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'job_id': job_id,
-            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
-            'message': 'Sample categories are being removed in the background.',
-        })
-
-    messages.success(request, 'Sample category removal started in background...')
     return redirect('admin_dashboard:category_list')
 
 
@@ -2464,46 +2374,123 @@ def auto_reply_manage(request):
     return render(request, 'admin_dashboard/auto_reply_manage.html', context)
 
 
-@admin_role_required
-def populate_sample_data_full(request):
-    from django.http import HttpResponseForbidden
+def _start_sample_task(request, task_name, task_func, message, redirect_url='admin_dashboard:dashboard_home'):
+    if request.method != 'POST':
+        return redirect(redirect_url)
 
     if not request.user.is_superuser:
         return HttpResponseForbidden("Only Super Admins can perform this action.")
 
+    if request.POST.get('confirmation') != 'CONFIRM':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'status': 'error',
+                'message': 'Confirmation is required before running this sample-data task.',
+            })
+        messages.error(request, 'Please confirm the action before continuing.')
+        return redirect(redirect_url)
+
+    task_key, started = start_background_sample_task(task_name, request.user.pk, task_func, message)
+    payload = {
+        'success': started,
+        'task_key': task_key,
+        'status': 'queued' if started else 'already_running',
+        'message': message,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse(payload)
+
+    if started:
+        messages.success(request, f'{message} The operation is running in the background.')
+    else:
+        messages.info(request, 'A sample-data task is already running. Please wait for it to finish.')
+    return redirect(redirect_url)
+
+
+@admin_role_required
+def sample_task_status(request, task_name):
+    status = get_sample_task_status(task_name, request.user.pk)
+    if status is None:
+        status = {'status': 'idle', 'message': 'No task is running.'}
+    return JsonResponse(status)
+
+
+@admin_role_required
+def product_populate_sample(request):
+    if request.method != 'POST':
+        return redirect('admin_dashboard:product_list')
+    return _start_sample_task(
+        request,
+        'product-populate',
+        do_product_populate_sample,
+        'Creating sample products...',
+        redirect_url='admin_dashboard:product_list',
+    )
+
+
+@admin_role_required
+def product_remove_sample(request):
+    if request.method != 'POST':
+        return redirect('admin_dashboard:product_list')
+    return _start_sample_task(
+        request,
+        'product-remove',
+        do_product_remove_sample,
+        'Removing sample products...',
+        redirect_url='admin_dashboard:product_list',
+    )
+
+
+@admin_role_required
+def category_populate_sample(request):
+    if request.method != 'POST':
+        return redirect('admin_dashboard:category_list')
+    return _start_sample_task(
+        request,
+        'category-populate',
+        do_category_populate_sample,
+        'Creating sample categories...',
+        redirect_url='admin_dashboard:category_list',
+    )
+
+
+@admin_role_required
+def category_remove_sample(request):
+    if request.method != 'POST':
+        return redirect('admin_dashboard:category_list')
+    return _start_sample_task(
+        request,
+        'category-remove',
+        do_category_remove_sample,
+        'Removing sample categories...',
+        redirect_url='admin_dashboard:category_list',
+    )
+
+
+@admin_role_required
+def populate_sample_data_full(request):
     if request.method != 'POST':
         return redirect('admin_dashboard:dashboard_home')
-
-    job_id = _run_in_thread(do_populate_sample_data_full)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'job_id': job_id,
-            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
-            'message': 'Sample data generation is running in the background.',
-        })
-
-    messages.success(request, 'Sample data creation started in background. Please refresh the page in a moment.')
-    return redirect('admin_dashboard:dashboard_home')
+    return _start_sample_task(
+        request,
+        'full-populate',
+        do_populate_sample_data_full,
+        'Populating sample data...',
+        redirect_url='admin_dashboard:dashboard_home',
+    )
 
 
 @admin_role_required
 def delete_sample_data_full(request):
     """Unified sample data deletion: removes all sample-flagged records across all models."""
-    from django.http import HttpResponseForbidden
-
-    if not request.user.is_superuser:
-        return HttpResponseForbidden("Only Super Admins can perform this action.")
-
     if request.method != 'POST':
         return redirect('admin_dashboard:dashboard_home')
-
-    job_id = _run_in_thread(do_delete_sample_data_full)
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'job_id': job_id,
-            'status_url': reverse('admin_dashboard:sample_data_status', args=[job_id]),
-            'message': 'Sample data removal is running in the background.',
-        })
-
-    messages.success(request, 'Sample data cleanup started in background. Please refresh the page in a moment.')
-    return redirect('admin_dashboard:dashboard_home')
+    return _start_sample_task(
+        request,
+        'full-delete',
+        do_delete_sample_data_full,
+        'Removing sample data...',
+        redirect_url='admin_dashboard:dashboard_home',
+    )

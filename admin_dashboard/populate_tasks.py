@@ -1,10 +1,10 @@
 import sys
 import logging
 import threading
-import uuid
 from django.db import connection, transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+from django.core.cache import cache
 from django.core.management import call_command
 from django.utils import timezone
 from datetime import timedelta
@@ -14,79 +14,146 @@ from django.utils.text import slugify as _slugify
 logger = logging.getLogger(__name__)
 
 RUNNING_TESTS = 'test' in sys.argv or 'pytest' in sys.argv
-JOB_STATUS = {}
-JOB_STATUS_LOCK = threading.Lock()
+
+SAMPLE_TASK_TIMEOUT = 600
+SAMPLE_TASK_PREFIX = 'admin_sample_task:'
 
 
-def update_job_status(job_id, *, status='running', message='Working...', percent=None, done=False, error=None):
-    if not job_id:
-        return
-    payload = {
-        'status': status,
-        'message': message,
-        'done': done,
-        'error': error,
-        'percent': percent if percent is not None else 0,
-    }
-    with JOB_STATUS_LOCK:
-        current = JOB_STATUS.get(job_id, {})
-        current.update(payload)
-        JOB_STATUS[job_id] = current
+def get_sample_task_key(task_name, user_id):
+    return f'{SAMPLE_TASK_PREFIX}{task_name}:{user_id}'
 
 
-def get_job_status(job_id):
-    with JOB_STATUS_LOCK:
-        data = JOB_STATUS.get(job_id, {})
-        return {
-            'job_id': job_id,
-            'status': data.get('status', 'unknown'),
-            'message': data.get('message', 'No status available.'),
-            'percent': data.get('percent', 0),
-            'done': bool(data.get('done', False)),
-            'error': data.get('error'),
-        }
+def get_sample_task_status(task_name, user_id):
+    return cache.get(get_sample_task_key(task_name, user_id))
+
+
+def set_sample_task_status(task_name, user_id, status, message='', error=None, **extra):
+    task_key = get_sample_task_key(task_name, user_id)
+    payload = {'status': status, 'message': message}
+    if error is not None:
+        payload['error'] = error
+    payload.update(extra)
+    cache.set(task_key, payload, timeout=SAMPLE_TASK_TIMEOUT)
+    return payload
+
+
+def start_background_sample_task(task_name, user_id, task_func, message='Working...'):
+    task_key = get_sample_task_key(task_name, user_id)
+    existing = cache.get(task_key)
+    if existing and existing.get('status') in {'queued', 'running'}:
+        return task_key, False
+
+    set_sample_task_status(task_name, user_id, 'queued', message)
+
+    def wrapper():
+        connection.close()
+        try:
+            set_sample_task_status(task_name, user_id, 'running', message)
+            result = task_func()
+            set_sample_task_status(
+                task_name,
+                user_id,
+                'completed',
+                f'{task_name.replace("-", " ").title()} completed.',
+                result=result,
+            )
+        except Exception as exc:
+            logger.error(f'Background sample task failed for {task_name}: {exc}', exc_info=True)
+            set_sample_task_status(
+                task_name,
+                user_id,
+                'error',
+                'The sample-data task failed. Please try again.',
+                error=str(exc),
+            )
+
+    if RUNNING_TESTS:
+        wrapper()
+        return task_key, True
+
+    t = threading.Thread(target=wrapper, daemon=True)
+    t.start()
+    return task_key, True
 
 
 def _run_in_thread(func, *args, **kwargs):
     if RUNNING_TESTS:
         func(*args, **kwargs)
-        return None
-
-    job_id = kwargs.pop('job_id', None) or str(uuid.uuid4())
-    update_job_status(job_id, status='queued', message=f'{getattr(func, "__name__", "task")} queued.', percent=0, done=False)
+        return
 
     def wrapper():
         connection.close()
         try:
-            update_job_status(job_id, status='running', message=f'{getattr(func, "__name__", "task")} started.', percent=5, done=False)
-            func(*args, job_id=job_id, **kwargs)
-            update_job_status(job_id, status='completed', message=f'{getattr(func, "__name__", "task")} completed.', percent=100, done=True)
+            func(*args, **kwargs)
         except Exception as e:
             logger.error(f'Background task failed: {e}', exc_info=True)
-            update_job_status(job_id, status='failed', message=f'{getattr(func, "__name__", "task")} failed.', percent=100, done=True, error=str(e))
 
     t = threading.Thread(target=wrapper, daemon=True)
     t.start()
-    return job_id
 
 
-def do_product_populate_sample(job_id=None):
+def do_product_populate_sample():
     try:
-        update_job_status(job_id, status='running', message='Preparing product catalog...', percent=25)
         call_command('populate_sample')
-        update_job_status(job_id, status='completed', message='Sample products were added successfully.', percent=100, done=True)
     except Exception as e:
         logger.error(f'Background product populate failed: {e}', exc_info=True)
-        update_job_status(job_id, status='failed', message='Sample products failed to populate.', percent=100, done=True, error=str(e))
         raise
 
 
-def do_populate_sample_data_full(job_id=None):
+def do_category_populate_sample():
+    try:
+        call_command('populate_sample')
+    except Exception as e:
+        logger.error(f'Background category populate failed: {e}', exc_info=True)
+        raise
+
+
+def do_product_remove_sample():
+    from products.models import Product
+    deleted_count, _ = Product.objects.filter(is_sample=True).delete()
+    return {'deleted_count': deleted_count}
+
+
+def do_category_remove_sample():
+    from products.models import Product, Category
+    Product.objects.filter(is_sample=True).delete()
+    deleted_count, _ = Category.objects.filter(is_sample=True, products__isnull=True).delete()
+    return {'deleted_count': deleted_count}
+
+
+def do_delete_sample_data_full():
+    from django.contrib.auth import get_user_model
+    from orders.models import PaymentTransaction, OrderItem, Order
+    from products.models import Product, Category
+
+    User = get_user_model()
+    summary = {}
+
+    payment_count, _ = PaymentTransaction.objects.filter(is_sample=True).delete()
+    summary['payments'] = payment_count
+
+    item_count, _ = OrderItem.objects.filter(is_sample=True).delete()
+    summary['order_items'] = item_count
+
+    order_count, _ = Order.objects.filter(is_sample=True).delete()
+    summary['orders'] = order_count
+
+    user_count, _ = User.objects.filter(is_sample=True, role='customer').delete()
+    summary['customers'] = user_count
+
+    product_count, _ = Product.objects.filter(is_sample=True).delete()
+    summary['products'] = product_count
+
+    category_count, _ = Category.objects.filter(is_sample=True, products__isnull=True).delete()
+    summary['categories'] = category_count
+
+    return summary
+
+
+def do_populate_sample_data_full():
     User = get_user_model()
     from products.models import Category, Product
     from orders.models import Order, OrderItem, PaymentTransaction
-
-    update_job_status(job_id, status='running', message='Preparing sample catalog...', percent=8)
 
     CATALOG = {
         'Electronics': [
@@ -236,15 +303,16 @@ def do_populate_sample_data_full(job_id=None):
             new_cats = [Category(name=n, slug=_slugify(n), is_sample=True) for n in cat_names if n not in existing_cats]
             if new_cats:
                 Category.objects.bulk_create(new_cats, ignore_conflicts=True)
-            Category.objects.filter(name__in=cat_names, is_sample=False).update(is_sample=True)
 
-            cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}
+            cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names, is_sample=True)}
             Product.objects.filter(is_sample=True).delete()
 
             to_create = []
             seen_slugs = set()
             for cat_name, products in CATALOG.items():
-                category = cat_objects[cat_name]
+                category = cat_objects.get(cat_name)
+                if category is None:
+                    continue
                 for name, description, base_price, base_stock in products:
                     price = round(base_price * random.uniform(0.9, 1.1), 2)
                     stock = random.randint(max(1, base_stock - 20), base_stock + 20)
@@ -298,15 +366,16 @@ def do_populate_sample_data_full(job_id=None):
                         first_name=first_name,
                         role='customer',
                         is_sample=True,
-                        password=make_password('samplepass123'),
+                        password='samplepass123',
                     ))
                 sample_customers.append(username)
 
             if new_customers:
+                for user in new_customers:
+                    user.set_password('samplepass123')
                 User.objects.bulk_create(new_customers)
 
-            User.objects.filter(username__in=sample_customers, is_sample=False).update(is_sample=True)
-            sample_customers_qs = User.objects.filter(username__in=sample_customers, role='customer')
+            sample_customers_qs = User.objects.filter(username__in=sample_customers, role='customer', is_sample=True)
             customer_count = sample_customers_qs.count()
 
             products = list(Product.objects.filter(is_sample=True))

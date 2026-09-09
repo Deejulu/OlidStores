@@ -13,7 +13,7 @@ from .views import (
     admin_notification_mark_read, admin_chat_mark_read, admin_feedback_resolve,
     pending_orders_view, payments_dashboard_view, payment_detail_view, payment_print_slip,
     chat_conversation_list, chat_conversation_detail, chat_admin_poll,
-    auto_reply_manage, populate_sample_data_full, delete_sample_data_full,
+    auto_reply_manage, populate_sample_data_full, delete_sample_data_full, sample_task_status,
 )
 
 
@@ -26,6 +26,7 @@ urlpatterns = [
     # Unified Sample Data
     path('sample-data/populate/', populate_sample_data_full, name='populate_sample_data_full'),
     path('sample-data/delete/', delete_sample_data_full, name='delete_sample_data_full'),
+    path('sample-data/status/<str:task_name>/', sample_task_status, name='sample_task_status'),
     # Products
     path('products/', product_list, name='product_list'),
     path('products/add/', product_create, name='product_create'),
