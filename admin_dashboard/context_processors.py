@@ -5,6 +5,7 @@ from django.core.cache import cache
 from core.models import ChatConversation, ChatMessage
 from users.models import Feedback
 from orders.models import Order
+from django.contrib.auth import get_user_model
 
 # Cache admin notifications for 60 seconds to avoid hammering the DB on every request
 _ADMIN_NOTIF_TTL = 60
@@ -17,6 +18,20 @@ _EMPTY = {
     'admin_order_alerts': [],
     'admin_order_alerts_count': 0,
 }
+
+
+def clear_admin_notification_cache():
+    """Clear cached admin notification counts for all active admin users."""
+    try:
+        User = get_user_model()
+        admin_ids = User.objects.filter(
+            Q(role='admin') | Q(is_superuser=True),
+            is_active=True
+        ).values_list('pk', flat=True)
+        for admin_pk in admin_ids:
+            cache.delete(f'admin_notifications_{admin_pk}')
+    except Exception:
+        pass
 
 
 def admin_notifications(request):

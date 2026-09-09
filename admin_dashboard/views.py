@@ -1,6 +1,7 @@
 from users.models import Feedback
 from users.models_notification import Notification
 from .forms_notification import NotificationForm
+from .context_processors import clear_admin_notification_cache
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -776,6 +777,7 @@ def order_list(request):
                 if protected_count > 0:
                     messages.warning(request, f'{protected_count} orders with confirmed payments cannot be deleted.')
         
+        clear_admin_notification_cache()
         return redirect('admin_dashboard:order_list')
     
     # Start with all orders for display
@@ -894,6 +896,7 @@ def order_detail(request, pk):
                     ip_address=ip or None,
                 )
             messages.success(request, 'Order updated successfully.')
+            clear_admin_notification_cache()
             return redirect('admin_dashboard:order_list')
         else:
             # Always redirect after POST to prevent resubmission on Back
@@ -1927,6 +1930,7 @@ def pending_orders_view(request):
                 if protected_count > 0:
                     messages.error(request, f'{protected_count} order(s) with confirmed payments cannot be cancelled.')
             
+            clear_admin_notification_cache()
             return redirect('admin_dashboard:pending_orders')
     
     context = {

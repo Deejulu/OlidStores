@@ -8,6 +8,7 @@ from django.core.cache import cache
 from django.db import models, transaction
 from .models import Order, OrderAuditLog, CartItem
 from users.models_notification import Notification
+from admin_dashboard.context_processors import clear_admin_notification_cache
 
 User = get_user_model()
 
@@ -69,6 +70,7 @@ def notify_order_events(sender, instance, created, **kwargs):
         old_status = getattr(instance, '_old_status', None)
         if old_status and old_status != instance.status:
             notify_order_status_change(instance, old_status, instance.status)
+            clear_admin_notification_cache()
             
             # Reverse stock if order is being cancelled
             if instance.status == 'Cancelled' and old_status != 'Cancelled':
