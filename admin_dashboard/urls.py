@@ -5,7 +5,7 @@ from .views import (
     test_admin_dashboard, dashboard_home, admin_profile,
     product_list, product_create, product_edit, product_delete, product_toggle, product_populate_sample, product_remove_sample, product_bulk_create,
     category_list, category_create, category_edit, category_delete, category_toggle, category_populate_sample, category_remove_sample,
-    order_list, order_detail,
+    order_list, order_list_ajax, order_detail,
     customer_list, customer_detail, add_customer, verify_customer_otp, admin_credentials, admin_credentials_download,
     analytics_dashboard, generate_sample_data, send_analytics_report, compute_daily_metrics_view,
     content_manage,
@@ -46,6 +46,7 @@ urlpatterns = [
     path('categories/remove-sample/', category_remove_sample, name='category_remove_sample'),
     # Orders
     path('orders/', order_list, name='order_list'),
+    path('orders/ajax/', order_list_ajax, name='order_list_ajax'),
     path('orders/<int:pk>/', order_detail, name='order_detail'),
     path('orders/pending/', pending_orders_view, name='pending_orders'),
     # Payments

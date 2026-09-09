@@ -4,6 +4,7 @@ from .forms_notification import NotificationForm
 from .context_processors import clear_admin_notification_cache
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -710,11 +711,9 @@ def category_toggle(request, pk):
     return redirect('admin_dashboard:category_list')
 
 
-@admin_role_required
-def order_list(request):
+def _get_order_list_context(request):
     all_orders = Order.objects.all()
-    
-    # Calculate stats from all orders (before filtering)
+
     total_count = all_orders.count()
     pending_count = all_orders.filter(status='Pending').count()
     processing_count = all_orders.filter(status='Processing').count()
@@ -722,77 +721,17 @@ def order_list(request):
     delivered_count = all_orders.filter(status='Delivered').count()
     cancelled_count = all_orders.filter(status='Cancelled').count()
     attention_count = pending_count + processing_count
-    
-    # Handle bulk actions
-    if request.method == 'POST' and 'bulk_action' in request.POST:
-        order_ids = request.POST.getlist('order_ids')
-        action = request.POST.get('bulk_action')
-        
-        if order_ids:
-            from orders.models import PaymentTransaction
-            selected_orders = Order.objects.filter(id__in=order_ids)
-            
-            # Get orders with successful payments (should be protected)
-            orders_with_payment = selected_orders.filter(
-                paymenttransaction__status='success'
-            ).distinct()
-            
-            # Get orders that can be modified (no successful payment)
-            modifiable_orders = selected_orders.exclude(
-                paymenttransaction__status='success'
-            )
-            
-            if action == 'mark_processing':
-                count = selected_orders.update(status='Processing')
-                messages.success(request, f'Marked {count} orders as Processing.')
-            
-            elif action == 'mark_shipped':
-                # set shipped_at timestamp for records being shipped
-                from django.utils import timezone as _tz
-                count = selected_orders.update(status='Shipped', shipped_at=_tz.now())
-                messages.success(request, f'Marked {count} orders as Shipped.')
-            
-            elif action == 'mark_delivered':
-                # set delivered_at timestamp for records being delivered
-                from django.utils import timezone as _tz
-                count = selected_orders.update(status='Delivered', delivered_at=_tz.now())
-                messages.success(request, f'Marked {count} orders as Delivered.')
-            
-            elif action == 'mark_cancelled':
-                # Only cancel orders without successful payment
-                protected_count = orders_with_payment.count()
-                count = modifiable_orders.update(status='Cancelled')
-                messages.success(request, f'Cancelled {count} orders.')
-                if protected_count > 0:
-                    messages.warning(request, f'{protected_count} orders with confirmed payments cannot be cancelled.')
-            
-            elif action == 'delete':
-                # Only delete orders without successful payment
-                protected_count = orders_with_payment.count()
-                count = modifiable_orders.count()
-                # Soft delete orders instead of hard delete (preserves audit trail and allows stock reversal)
-                for order in modifiable_orders:
-                    order.soft_delete()
-                messages.success(request, f'Deleted {count} orders.')
-                if protected_count > 0:
-                    messages.warning(request, f'{protected_count} orders with confirmed payments cannot be deleted.')
-        
-        clear_admin_notification_cache()
-        return redirect('admin_dashboard:order_list')
-    
-    # Start with all orders for display
+
     orders = all_orders
-    
-    # Status filter
+
     status_filter = request.GET.get('status', '')
     current_filter = status_filter
-    
+
     if status_filter == 'attention':
         orders = orders.filter(status__in=['Pending', 'Processing'])
     elif status_filter in ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']:
         orders = orders.filter(status=status_filter)
-    
-    # Search filter
+
     search_query = request.GET.get('search', '')
     if search_query:
         from django.db.models import Q
@@ -803,7 +742,6 @@ def order_list(request):
             Q(status__icontains=search_query)
         )
 
-    # Date filter (supports "placed" -> created_at, and "shipped" -> updated_at for shipped/delivered orders)
     from django.utils.dateparse import parse_date
     date_filter = request.GET.get('date', '')
     date_type = request.GET.get('date_type', 'placed')
@@ -811,7 +749,6 @@ def order_list(request):
         parsed = parse_date(date_filter)
         if parsed:
             if date_type == 'shipped':
-                # Filter by explicit shipped/delivered timestamps (if present)
                 from django.db.models import Q
                 orders = orders.filter(
                     Q(shipped_at__date=parsed) | Q(delivered_at__date=parsed)
@@ -819,7 +756,6 @@ def order_list(request):
             else:
                 orders = orders.filter(created_at__date=parsed)
 
-    # Sort by date (newest/oldest) — defaults to newest
     sort_order = request.GET.get('sort', 'newest')
     if date_type == 'shipped' and sort_order == 'oldest':
         orders = orders.order_by('shipped_at', 'delivered_at', 'created_at')
@@ -830,7 +766,7 @@ def order_list(request):
     else:
         orders = orders.order_by('-created_at')
 
-    context = {
+    return {
         'orders': orders,
         'search_query': search_query,
         'current_filter': current_filter,
@@ -845,7 +781,88 @@ def order_list(request):
         'date_type': date_type,
         'sort_order': sort_order,
     }
+
+
+@admin_role_required
+def order_list(request):
+    context = _get_order_list_context(request)
+
+    if request.method == 'POST' and 'bulk_action' in request.POST:
+        order_ids = request.POST.getlist('order_ids')
+        action = request.POST.get('bulk_action')
+
+        if order_ids:
+            from orders.models import PaymentTransaction
+            selected_orders = Order.objects.filter(id__in=order_ids)
+
+            orders_with_payment = selected_orders.filter(
+                paymenttransaction__status='success'
+            ).distinct()
+
+            modifiable_orders = selected_orders.exclude(
+                paymenttransaction__status='success'
+            )
+
+            if action == 'mark_processing':
+                count = selected_orders.update(status='Processing')
+                messages.success(request, f'Marked {count} orders as Processing.')
+
+            elif action == 'mark_shipped':
+                from django.utils import timezone as _tz
+                count = selected_orders.update(status='Shipped', shipped_at=_tz.now())
+                messages.success(request, f'Marked {count} orders as Shipped.')
+
+            elif action == 'mark_delivered':
+                from django.utils import timezone as _tz
+                count = selected_orders.update(status='Delivered', delivered_at=_tz.now())
+                messages.success(request, f'Marked {count} orders as Delivered.')
+
+            elif action == 'mark_cancelled':
+                protected_count = orders_with_payment.count()
+                count = modifiable_orders.update(status='Cancelled')
+                messages.success(request, f'Cancelled {count} orders.')
+                if protected_count > 0:
+                    messages.warning(request, f'{protected_count} orders with confirmed payments cannot be cancelled.')
+
+            elif action == 'delete':
+                protected_count = orders_with_payment.count()
+                count = modifiable_orders.count()
+                for order in modifiable_orders:
+                    order.soft_delete()
+                messages.success(request, f'Deleted {count} orders.')
+                if protected_count > 0:
+                    messages.warning(request, f'{protected_count} orders with confirmed payments cannot be deleted.')
+
+        clear_admin_notification_cache()
+        return redirect('admin_dashboard:order_list')
+
     return render(request, 'admin_dashboard/orders/order_list.html', context)
+
+
+@admin_role_required
+def order_list_ajax(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return redirect('admin_dashboard:order_list')
+
+    context = _get_order_list_context(request)
+    html = render_to_string('admin_dashboard/orders/order_list_ajax_partial.html', context, request=request)
+
+    return JsonResponse({
+        'html': html,
+        'counts': {
+            'total': context['total_count'],
+            'pending': context['pending_count'],
+            'processing': context['processing_count'],
+            'shipped': context['shipped_count'],
+            'delivered': context['delivered_count'],
+            'cancelled': context['cancelled_count'],
+            'attention': context['attention_count'],
+        },
+        'current_filter': context['current_filter'],
+        'search_query': context['search_query'],
+    })
 
 
 @admin_role_required
@@ -1794,6 +1811,9 @@ def content_manage(request):
             for _cache_key in ['about', 'contact', 'homepage_banner', 'checkout', 'site_settings', 'faq', 'privacy', 'terms']:
                 cache.delete(f'site_content_{_cache_key}')
             cache.delete('site_content_announcement')
+            # Clear checkout/payment settings caches so delivery fees and payment options update immediately
+            cache.delete('checkout_settings')
+            cache.delete('payment_settings')
             # Process formsets (updates/deletes)
             saved_banners = formset.save()
             saved_heros = hero_formset.save()

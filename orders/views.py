@@ -40,8 +40,8 @@ def checkout_view(request):
 		cache.set('payment_settings', payment_settings, 300)
 	enable_paystack = bool(settings.PAYSTACK_PUBLIC) and (payment_settings.enable_paystack if payment_settings else True)
 	pay_on_delivery_max = payment_settings.pay_on_delivery_max if payment_settings else 100000.00
-	enable_manual = False
-	enable_pay_on_delivery = False
+	enable_manual = payment_settings.enable_manual_transfer if payment_settings else True
+	enable_pay_on_delivery = payment_settings.enable_pay_on_delivery if payment_settings else False
 	# Prefer SiteContent values if present (Manage Site Content integration)
 	try:
 		from core.models import SiteContent
@@ -123,14 +123,10 @@ def checkout_view(request):
 		paystack_reference = request.POST.get('paystack_reference')
 		receipt_file = request.FILES.get('receipt')
 		
-		if payment_method in ('manual', 'pay_on_delivery'):
-			messages.error(request, 'This payment method is no longer available. Please use Paystack.')
-			return redirect('orders:checkout')
-		
-		# Validate receipt file size (5MB limit)
-		if receipt_file and receipt_file.size > 5 * 1024 * 1024:
-			messages.error(request, 'Receipt file too large. Maximum size is 5MB.')
-			return redirect('orders:checkout')
+		if payment_method == 'manual':
+			if receipt_file and receipt_file.size > 5 * 1024 * 1024:
+				messages.error(request, 'Receipt file too large. Maximum size is 5MB.')
+				return redirect('orders:checkout')
 		
 		delivery_option = request.POST.get('delivery_option')
 		delivery_fee = 0
