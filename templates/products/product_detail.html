@@ -524,10 +524,22 @@ $(function () {
   /* - Toast helper ------------------------------------ */
   function showToast(msg, type) {
     var c = $('.toast-container');
-    if (!c.length) { c = $('<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1090;"></div>'); $('body').append(c); }
-    if (c.children('.toast').length >= 2) c.children('.toast').first().remove();
-    var t = $('<div class="toast align-items-center text-bg-' + (type||'success') + ' border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000"><div class="d-flex"><div class="toast-body">' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>');
-    c.append(t); new bootstrap.Toast(t[0]).show();
+    if (!c.length) { c = $('<div class="toast-container" style="position:fixed;top:1rem;right:1rem;z-index:1090;"></div>'); $('body').append(c); }
+    if (c.children('.toast-notification').length >= 2) c.children('.toast-notification').first().remove();
+    
+    var icons = {
+      success: 'check-circle-fill',
+      danger: 'x-circle-fill',
+      error: 'x-circle-fill',
+      warning: 'exclamation-triangle-fill',
+      info: 'info-circle-fill'
+    };
+    var icon = icons[type] || 'check-circle-fill';
+    var toastType = type === 'error' ? 'danger' : (type || 'success');
+    
+    var t = $('<div class="toast-notification ' + toastType + '" role="alert" aria-live="assertive" aria-atomic="true"><div class="toast-icon"><i class="bi bi-' + icon + '"></i></div><div class="toast-body">' + msg + '</div><button type="button" class="toast-close" data-bs-dismiss="toast" aria-label="Close"><i class="bi bi-x-lg"></i></button><div class="toast-progress"></div></div>');
+    c.append(t); new bootstrap.Toast(t[0], { delay: 3000 }).show();
+    t[0].addEventListener('hidden.bs.toast', function() { $(this).remove(); });
   }
 
   /* - Qty stepper ------------------------------------- */

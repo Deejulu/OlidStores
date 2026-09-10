@@ -1356,7 +1356,19 @@
         min-width: 280px;
         background: #ffffff;
         animation: dropdownFade 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
+    }
+
+    /* Notification dropdown — allow scrolling + text wrapping */
+    #adminNotifications + .dropdown-menu {
+        max-height: 420px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    #adminNotifications + .dropdown-menu .dropdown-item {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        line-height: 1.5;
     }
 
     .user-dropdown-menu {
@@ -1766,110 +1778,244 @@
     /* ===== MESSAGES / TOAST NOTIFICATIONS ===== */
     .messages-container {
         position: fixed;
-        top: 140px;
+        top: 100px;
         right: var(--space-md);
         left: var(--space-md);
         z-index: 2200;
-        max-width: 500px;
+        max-width: 420px;
         margin: 0 auto;
         pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
     }
     .alert-message {
-        background: var(--white);
+        pointer-events: auto;
+        animation: toastSlideIn 450ms cubic-bezier(0.16, 1, 0.3, 1);
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.5;
+        position: relative;
+        overflow: hidden;
+    }
+    .alert-message,
+    .toast-notification {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-radius: var(--radius-lg);
         padding: var(--space-md) var(--space-lg);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        border-left: 5px solid;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06);
         display: flex;
         align-items: center;
         gap: var(--space-md);
-        margin-bottom: var(--space-sm);
-        pointer-events: auto;
-        animation: messageSlideIn 400ms ease;
-        font-size: 1rem;
-        font-weight: 500;
+        margin-bottom: 0;
+        border: 1px solid rgba(255, 255, 255, 0.4);
     }
-    .alert-message .alert-icon {
-        font-size: 1.5rem;
+    .alert-message .alert-icon,
+    .toast-notification .toast-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-full);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
     }
-    .alert-message .alert-content {
+    .alert-message .alert-content,
+    .toast-notification .toast-content {
         flex: 1;
-        line-height: 1.4;
+        line-height: 1.5;
+        font-weight: 600;
+        letter-spacing: 0.01em;
     }
-    .alert-message .alert-close {
-        background: none;
+    .alert-message .alert-close,
+    .toast-notification .toast-close {
+        background: rgba(0, 0, 0, 0.06);
         border: none;
         cursor: pointer;
-        padding: 4px;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-        font-size: 1.2rem;
+        padding: 6px;
+        border-radius: var(--radius-full);
+        opacity: 0.7;
+        transition: all 200ms ease;
+        font-size: 1rem;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: inherit;
     }
-    .alert-message .alert-close:hover {
+    .alert-message .alert-close:hover,
+    .toast-notification .toast-close:hover {
         opacity: 1;
+        background: rgba(0, 0, 0, 0.12);
+        transform: scale(1.05);
     }
-    .alert-message.success { 
-        border-left-color: var(--success); 
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    .alert-message.success,
+    .toast-notification.success {
+        border-left: 4px solid var(--success);
         color: #065f46;
+        background: linear-gradient(135deg, rgba(240, 253, 244, 0.97), rgba(220, 252, 231, 0.97));
     }
-    .alert-message.error, .alert-message.danger { 
-        border-left-color: var(--error); 
-        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    .alert-message.success .alert-icon,
+    .toast-notification.success .toast-icon {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    .alert-message.error,
+    .alert-message.danger,
+    .toast-notification.error,
+    .toast-notification.danger {
+        border-left: 4px solid var(--error);
         color: #991b1b;
+        background: linear-gradient(135deg, rgba(254, 242, 242, 0.97), rgba(254, 226, 226, 0.97));
     }
-    .alert-message.warning { 
-        border-left-color: var(--warning); 
-        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    .alert-message.error .alert-icon,
+    .alert-message.danger .alert-icon,
+    .toast-notification.error .toast-icon,
+    .toast-notification.danger .toast-icon {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+    .alert-message.warning,
+    .toast-notification.warning {
+        border-left: 4px solid var(--warning);
         color: #92400e;
+        background: linear-gradient(135deg, rgba(255, 251, 235, 0.97), rgba(254, 243, 199, 0.97));
     }
-    .alert-message.info { 
-        border-left-color: var(--info); 
-        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    .alert-message.warning .alert-icon,
+    .toast-notification.warning .toast-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    .alert-message.info,
+    .toast-notification.info {
+        border-left: 4px solid var(--info);
         color: #1e40af;
+        background: linear-gradient(135deg, rgba(239, 246, 255, 0.97), rgba(219, 234, 254, 0.97));
     }
-    
+    .alert-message.info .alert-icon,
+    .toast-notification.info .toast-icon {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+    }
+    .toast-notification {
+        position: relative;
+        min-width: 320px;
+        max-width: 420px;
+    }
+    .toast-notification .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        opacity: 0.35;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        animation: toastProgress 4s linear forwards;
+    }
+    .toast-container {
+        position: fixed;
+        top: var(--space-lg);
+        right: var(--space-lg);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        pointer-events: none;
+    }
+    .toast-container .toast-notification {
+        pointer-events: auto;
+        animation: toastSlideInRight 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast-container .toast-notification.hiding {
+        animation: toastSlideOutRight 300ms ease forwards;
+    }
+
     /* Dark mode support for messages */
-    [data-theme="dark"] .alert-message {
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    [data-theme="dark"] .alert-message,
+    [data-theme="dark"] .toast-notification {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(26, 32, 44, 0.95);
+        color: #e2e8f0;
     }
-    [data-theme="dark"] .alert-message.success { 
-        background: linear-gradient(135deg, #064e3b, #065f46);
+    [data-theme="dark"] .alert-message.success,
+    [data-theme="dark"] .toast-notification.success {
+        background: linear-gradient(135deg, rgba(6, 78, 59, 0.95), rgba(6, 95, 70, 0.95));
         color: #d1fae5;
         border-left-color: #34d399;
     }
     [data-theme="dark"] .alert-message.error,
-    [data-theme="dark"] .alert-message.danger { 
-        background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    [data-theme="dark"] .alert-message.danger,
+    [data-theme="dark"] .toast-notification.error,
+    [data-theme="dark"] .toast-notification.danger {
+        background: linear-gradient(135deg, rgba(127, 29, 29, 0.95), rgba(153, 27, 27, 0.95));
         color: #fecaca;
         border-left-color: #f87171;
     }
-    [data-theme="dark"] .alert-message.warning { 
-        background: linear-gradient(135deg, #78350f, #92400e);
+    [data-theme="dark"] .alert-message.warning,
+    [data-theme="dark"] .toast-notification.warning {
+        background: linear-gradient(135deg, rgba(120, 53, 15, 0.95), rgba(146, 64, 14, 0.95));
         color: #fde68a;
         border-left-color: #fbbf24;
     }
-    [data-theme="dark"] .alert-message.info { 
-        background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    [data-theme="dark"] .alert-message.info,
+    [data-theme="dark"] .toast-notification.info {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(30, 64, 175, 0.95));
         color: #bfdbfe;
         border-left-color: #60a5fa;
     }
-    [data-theme="dark"] .alert-message .alert-close {
-        color: rgba(255, 255, 255, 0.8);
+    [data-theme="dark"] .alert-message .alert-close,
+    [data-theme="dark"] .toast-notification .toast-close {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
     }
-    [data-theme="dark"] .alert-message .alert-close:hover {
+    [data-theme="dark"] .alert-message .alert-close:hover,
+    [data-theme="dark"] .toast-notification .toast-close:hover {
+        background: rgba(255, 255, 255, 0.18);
         color: rgba(255, 255, 255, 1);
     }
-    
-    @keyframes messageSlideIn {
+    [data-theme="dark"] .toast-notification .toast-progress {
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    @keyframes toastSlideIn {
         from {
             opacity: 0;
-            transform: translateY(-20px) scale(0.95);
+            transform: translateY(-16px) scale(0.96);
         }
         to {
             opacity: 1;
             transform: translateY(0) scale(1);
         }
+    }
+    @keyframes toastSlideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(60px) scale(0.96);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+    @keyframes toastSlideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(60px) scale(0.96);
+        }
+    }
+    @keyframes toastProgress {
+        from { width: 100%; }
+        to { width: 0%; }
     }
 
     /* ===== UTILITY WIDGET ===== */
@@ -2752,23 +2898,23 @@
         const messages = document.querySelectorAll('.alert-message');
         messages.forEach(function(msg, index) {
             setTimeout(function() {
-                msg.style.animation = 'messageSlideOut 400ms ease forwards';
+                msg.style.animation = 'toastSlideOutUp 350ms ease forwards';
                 setTimeout(function() {
                     msg.remove();
-                }, 400);
+                }, 350);
             }, 6000 + (index * 500)); // Stagger dismissal
         });
     });
     </script>
     <style>
-    @keyframes messageSlideOut {
+    @keyframes toastSlideOutUp {
         from {
             opacity: 1;
             transform: translateY(0) scale(1);
         }
         to {
             opacity: 0;
-            transform: translateY(-20px) scale(0.95);
+            transform: translateY(-16px) scale(0.96);
         }
     }
     </style>
@@ -3290,6 +3436,17 @@
             background: #1e2130 !important;
             box-shadow: 0 12px 40px rgba(0,0,0,0.55) !important;
             border: 1px solid #2a2e45 !important;
+        }
+        [data-theme="dark"] #adminNotifications + .dropdown-menu {
+            max-height: 420px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        [data-theme="dark"] #adminNotifications + .dropdown-menu .dropdown-item {
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.5;
         }
         [data-theme="dark"] .dropdown-header-section {
             background: linear-gradient(135deg, #252842 0%, #1e2130 100%) !important;
@@ -4582,30 +4739,29 @@
             
             window.showCartToast = function(message, type = 'success') {
                 const toastHtml = `
-                    <div class="toast modern-toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
-                        <div class="d-flex align-items-center">
-                            <div class="toast-icon toast-icon-${type}">
-                                <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'danger' ? 'x-circle-fill' : 'info-circle-fill'}"></i>
-                            </div>
-                            <div class="toast-body fw-semibold">
-                                ${message}
-                            </div>
-                            <button type="button" class="btn-close me-2" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <div class="toast-notification ${type}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-icon">
+                            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'danger' ? 'x-circle-fill' : type === 'warning' ? 'exclamation-triangle-fill' : 'info-circle-fill'}"></i>
                         </div>
+                        <div class="toast-content">${message}</div>
+                        <button type="button" class="toast-close" data-bs-dismiss="toast" aria-label="Close">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <div class="toast-progress"></div>
                     </div>
                 `;
                 
                 let container = document.querySelector('.toast-container');
                 if (!container) {
                     container = document.createElement('div');
-                    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                    container.className = 'toast-container';
                     container.style.zIndex = '99999';
                     document.body.appendChild(container);
                 }
                 
                 container.insertAdjacentHTML('beforeend', toastHtml);
                 const toastElement = container.lastElementChild;
-                const toast = new bootstrap.Toast(toastElement);
+                const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
                 toast.show();
                 
                 toastElement.addEventListener('hidden.bs.toast', () => {

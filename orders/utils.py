@@ -108,6 +108,10 @@ def process_paystack_webhook(payload):
                 order.status = 'Processing'
                 order.save()
 
+                # Invalidate cached order tab counts
+                from django.core.cache import cache
+                cache.delete('order_tab_counts')
+
                 # Send branded confirmation email
                 _send_order_confirmation_email(order)
 

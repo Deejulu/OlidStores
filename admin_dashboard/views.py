@@ -714,23 +714,15 @@ def category_toggle(request, pk):
 def _get_order_list_context(request):
     all_orders = Order.objects.all()
 
-    total_count = all_orders.count()
-    pending_count = all_orders.filter(status='Pending').count()
-    processing_count = all_orders.filter(status='Processing').count()
-    shipped_count = all_orders.filter(status='Shipped').count()
-    delivered_count = all_orders.filter(status='Delivered').count()
-    cancelled_count = all_orders.filter(status='Cancelled').count()
-    attention_count = pending_count + processing_count
-
-    orders = all_orders
-
     status_filter = request.GET.get('status', '')
     current_filter = status_filter
 
     if status_filter == 'attention':
-        orders = orders.filter(status__in=['Pending', 'Processing'])
+        orders = all_orders.filter(status__in=['Pending', 'Processing'])
     elif status_filter in ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']:
-        orders = orders.filter(status=status_filter)
+        orders = all_orders.filter(status=status_filter)
+    else:
+        orders = all_orders
 
     search_query = request.GET.get('search', '')
     if search_query:
@@ -766,20 +758,47 @@ def _get_order_list_context(request):
     else:
         orders = orders.order_by('-created_at')
 
+    cache_key = 'order_tab_counts'
+    counts = cache.get(cache_key)
+    if counts is None:
+        counts = {
+            'total': all_orders.count(),
+            'pending': all_orders.filter(status='Pending').count(),
+            'processing': all_orders.filter(status='Processing').count(),
+            'shipped': all_orders.filter(status='Shipped').count(),
+            'delivered': all_orders.filter(status='Delivered').count(),
+            'cancelled': all_orders.filter(status='Cancelled').count(),
+            'attention': all_orders.filter(status__in=['Pending', 'Processing']).count(),
+        }
+        cache.set(cache_key, counts, 60)
+
+    page = max(1, int(request.GET.get('page', 1) or 1))
+    page_size = 25
+    total_results = orders.count()
+    total_pages = max(1, -(-total_results // page_size))
+    page = min(page, total_pages)
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    paginated_orders = orders.select_related('user')[start:end]
+
     return {
-        'orders': orders,
+        'orders': paginated_orders,
         'search_query': search_query,
         'current_filter': current_filter,
-        'total_count': total_count,
-        'pending_count': pending_count,
-        'processing_count': processing_count,
-        'shipped_count': shipped_count,
-        'delivered_count': delivered_count,
-        'cancelled_count': cancelled_count,
-        'attention_count': attention_count,
+        'total_count': counts['total'],
+        'pending_count': counts['pending'],
+        'processing_count': counts['processing'],
+        'shipped_count': counts['shipped'],
+        'delivered_count': counts['delivered'],
+        'cancelled_count': counts['cancelled'],
+        'attention_count': counts['attention'],
         'date_filter': date_filter,
         'date_type': date_type,
         'sort_order': sort_order,
+        'page': page,
+        'total_pages': total_pages,
+        'total_results': total_results,
     }
 
 
@@ -834,6 +853,7 @@ def order_list(request):
                     messages.warning(request, f'{protected_count} orders with confirmed payments cannot be deleted.')
 
         clear_admin_notification_cache()
+        cache.delete('order_tab_counts')
         return redirect('admin_dashboard:order_list')
 
     return render(request, 'admin_dashboard/orders/order_list.html', context)
@@ -1951,6 +1971,7 @@ def pending_orders_view(request):
                     messages.error(request, f'{protected_count} order(s) with confirmed payments cannot be cancelled.')
             
             clear_admin_notification_cache()
+            cache.delete('order_tab_counts')
             return redirect('admin_dashboard:pending_orders')
     
     context = {

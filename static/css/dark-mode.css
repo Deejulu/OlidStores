@@ -846,6 +846,77 @@
     font-weight: 500;
 }
 
+/* Admin Dashboard — Order Alerts Banner (dark mode) */
+[data-theme="dark"] .order-alerts-banner {
+    background: linear-gradient(135deg, #3d2e0a 0%, #4a3510 100%);
+    border-bottom-color: rgba(var(--theme-accent-rgb, 255, 215, 0), 0.35);
+}
+[data-theme="dark"] .alerts-toggle {
+    color: #fde68a;
+}
+[data-theme="dark"] .alerts-toggle:hover {
+    background: rgba(var(--theme-accent-rgb, 255, 215, 0), 0.08);
+}
+[data-theme="dark"] .alerts-toggle-left {
+    color: #fbbf24;
+}
+[data-theme="dark"] .alerts-chevron {
+    color: #fbbf24;
+}
+[data-theme="dark"] .alert-item {
+    background: #1e1e1e;
+    color: #f0f0f0;
+    border-left-color: #f59e0b;
+}
+[data-theme="dark"] .alert-item:hover {
+    background: #262626;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .alert-item.danger {
+    background: rgba(251, 113, 133, 0.08);
+    border-left-color: #fb7185;
+    color: #fca5a5;
+}
+[data-theme="dark"] .alert-item.danger:hover {
+    background: rgba(251, 113, 133, 0.14);
+    color: #ffffff;
+}
+[data-theme="dark"] .alert-item.warning .alert-icon {
+    color: #fbbf24;
+}
+[data-theme="dark"] .alert-item.danger .alert-icon {
+    color: #fb7185;
+}
+[data-theme="dark"] .alert-item .alert-action {
+    color: #8a8a8a;
+}
+[data-theme="dark"] .alerts-badge {
+    color: #ffffff;
+}
+[data-theme="dark"] .alerts-badge.warning-only {
+    background: #f59e0b;
+    color: #0a0a0a;
+}
+[data-theme="dark"] .alerts-list {
+    scrollbar-width: thin;
+    scrollbar-color: #3a3a3a #1e1e1e;
+}
+[data-theme="dark"] .alerts-list::-webkit-scrollbar {
+    width: 6px;
+}
+[data-theme="dark"] .alerts-list::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 3px;
+}
+[data-theme="dark"] .alerts-list::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 3px;
+}
+[data-theme="dark"] .alerts-list::-webkit-scrollbar-thumb:hover {
+    background: var(--theme-accent);
+}
+
 /* Admin Dashboard specific styles */
 [data-theme="dark"] .admin-sidebar,
 [data-theme="dark"] .sidebar {

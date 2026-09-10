@@ -371,4 +371,33 @@
         </div>
         {% endfor %}
     </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination-wrapper">
+        <div class="pagination-info">
+            Page {{ page }} of {{ total_pages }} &middot; {{ total_results }} order{{ total_results|pluralize }} total
+        </div>
+        <nav aria-label="Order pagination">
+            <ul class="pagination">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <button class="page-link" data-page="{{ page|add:'-1' }}" aria-label="Previous">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">{{ page }}</span>
+                </li>
+                {% if page < total_pages %}
+                <li class="page-item">
+                    <button class="page-link" data-page="{{ page|add:'1' }}" aria-label="Next">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </form>

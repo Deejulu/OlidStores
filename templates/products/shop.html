@@ -2727,7 +2727,7 @@ function showToast(message, type = 'success') {
     let container = document.querySelector('.toast-container');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.className = 'toast-container';
         container.style.zIndex = '1050';
         document.body.appendChild(container);
     }
@@ -2737,22 +2737,31 @@ function showToast(message, type = 'success') {
         container.removeChild(container.firstElementChild);
     }
 
+    const icons = {
+      success: 'check-circle-fill',
+      danger: 'x-circle-fill',
+      error: 'x-circle-fill',
+      warning: 'exclamation-triangle-fill',
+      info: 'info-circle-fill'
+    };
+    const icon = icons[type] || 'check-circle-fill';
+    const toastType = type === 'error' ? 'danger' : type;
+
     const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+    toast.className = `toast-notification ${toastType}`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
     toast.setAttribute('aria-atomic', 'true');
-    toast.setAttribute('data-bs-delay', '3000');
 
     toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
+        <div class="toast-icon"><i class="bi bi-${icon}"></i></div>
+        <div class="toast-body">${message}</div>
+        <button type="button" class="toast-close" data-bs-dismiss="toast" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+        <div class="toast-progress"></div>
     `;
 
     container.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast);
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
     bsToast.show();
 
     toast.addEventListener('hidden.bs.toast', () => {

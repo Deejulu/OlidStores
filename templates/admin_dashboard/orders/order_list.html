@@ -934,6 +934,79 @@
     .bulk-btn {
         width: 100%;
     }
+    
+    .pagination-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+    
+    [data-theme="dark"] .pagination-wrapper {
+        background: #1a202c;
+        border-color: #4a5568;
+    }
+    
+    .pagination-info {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #4a5568 !important;
+    }
+    
+    [data-theme="dark"] .pagination-info {
+        color: #cbd5e0 !important;
+    }
+    
+    .pagination {
+        gap: 0.25rem;
+        margin: 0;
+    }
+    
+    .page-item {
+        display: inline-flex;
+    }
+    
+    .page-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        padding: 0 0.75rem;
+        background: #f8f9fa;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        color: #1a202c !important;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 200ms ease;
+    }
+    
+    [data-theme="dark"] .page-link {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #f7fafc !important;
+    }
+    
+    .page-link:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--accent);
+        color: var(--text-primary);
+    }
+    
+    .page-item.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
 }
 </style>
 {% endblock %}
@@ -960,22 +1033,24 @@
 (function() {
     const AJAX_URL = "{% url 'admin_dashboard:order_list_ajax' %}";
 
-    function getAjaxUrl(status, search) {
+    function getAjaxUrl(status, search, page) {
         const url = new URL(AJAX_URL, window.location.origin);
         if (status) url.searchParams.set('status', status);
         if (search) url.searchParams.set('search', search);
+        if (page) url.searchParams.set('page', page);
         return url.toString();
     }
 
-    function getPageUrl(status, search) {
+    function getPageUrl(status, search, page) {
         const url = new URL(window.location.pathname, window.location.href);
         if (status) url.searchParams.set('status', status);
         if (search) url.searchParams.set('search', search);
+        if (page) url.searchParams.set('page', page);
         return url.toString();
     }
 
-    function fetchOrders(status, search, push) {
-        const ajaxUrl = getAjaxUrl(status, search);
+    function fetchOrders(status, search, page, push) {
+        const ajaxUrl = getAjaxUrl(status, search, page);
         fetch(ajaxUrl, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             credentials: 'same-origin',
@@ -997,22 +1072,23 @@
             }
 
             if (push) {
-                const pageUrl = getPageUrl(status, currentSearch);
-                history.pushState({ status: status || '', search: currentSearch }, '', pageUrl);
+                const pageUrl = getPageUrl(status, currentSearch, page);
+                history.pushState({ status: status || '', search: currentSearch, page: page || 1 }, '', pageUrl);
             }
 
             attachOrderListeners();
+            attachPaginationListeners();
         })
         .catch(function(err) {
             console.error('fetchOrders failed:', err);
-            const pageUrl = getPageUrl(status, search);
+            const pageUrl = getPageUrl(status, search, page);
             window.location.assign(pageUrl);
         });
     }
 
-    window.filterOrders = function(status) {
+    window.filterOrders = function(status, page) {
         const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
-        fetchOrders(status, search, true);
+        fetchOrders(status, search, page || 1, true);
     };
 
     function attachOrderListeners() {
@@ -1038,6 +1114,18 @@
         }
         orderCheckboxes.forEach(function(cb) {
             cb.addEventListener('change', updateBulkActions);
+        });
+    }
+
+    function attachPaginationListeners() {
+        const pageLinks = document.querySelectorAll('.page-link[data-page]');
+        pageLinks.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const page = parseInt(this.getAttribute('data-page'), 10);
+                const currentStatus = new URL(window.location).searchParams.get('status') || '';
+                const currentSearch = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
+                fetchOrders(currentStatus, currentSearch, page, true);
+            });
         });
     }
 
@@ -1086,7 +1174,7 @@
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = '';
         const currentStatus = new URL(window.location).searchParams.get('status') || '';
-        fetchOrders(currentStatus, '', true);
+        fetchOrders(currentStatus, '', 1, true);
     };
 
     document.addEventListener('keydown', function(e) {
@@ -1103,7 +1191,7 @@
             e.preventDefault();
             const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
             const currentStatus = new URL(window.location).searchParams.get('status') || '';
-            fetchOrders(currentStatus, search, true);
+            fetchOrders(currentStatus, search, 1, true);
         });
     }
 
@@ -1111,10 +1199,12 @@
         const url = new URL(window.location);
         const status = url.searchParams.get('status') || '';
         const search = url.searchParams.get('search') || '';
-        fetchOrders(status, search, false);
+        const page = parseInt(url.searchParams.get('page') || '1', 10);
+        fetchOrders(status, search, page, false);
     });
 
     attachOrderListeners();
+    attachPaginationListeners();
 })();
 </script>
 {% endblock %}

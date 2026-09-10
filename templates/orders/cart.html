@@ -704,40 +704,169 @@
     ======================================== */
     .toast-container {
         position: fixed;
-        top: 20px;
-        right: 20px;
+        top: var(--space-lg);
+        right: var(--space-lg);
         z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        pointer-events: none;
     }
     
-    .toast {
-        background: white;
-        border-radius: 8px;
-        box-shadow: var(--shadow-lg);
-        border: none;
-        min-width: 250px;
-    }
-    
-    .toast.text-bg-success {
-        background: linear-gradient(135deg, var(--success-color), var(--success-dark)) !important;
-    }
-    
-    .toast.text-bg-danger {
-        background: linear-gradient(135deg, var(--danger-color), var(--danger-dark)) !important;
-    }
-    
-    .toast.text-bg-warning {
-        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-    }
-    
-    .toast.text-bg-info {
-        background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-    }
-    
-    .toast-body {
+    .toast-notification {
+        pointer-events: auto;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md) var(--space-lg);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06);
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
+        gap: var(--space-md);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        min-width: 320px;
+        max-width: 420px;
+        animation: toastSlideInRight 450ms cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .toast-notification.success {
+        border-left: 4px solid var(--success);
+        color: #065f46;
+        background: linear-gradient(135deg, rgba(240, 253, 244, 0.97), rgba(220, 252, 231, 0.97));
+    }
+    .toast-notification.success .toast-icon {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .toast-notification.danger,
+    .toast-notification.error {
+        border-left: 4px solid var(--error);
+        color: #991b1b;
+        background: linear-gradient(135deg, rgba(254, 242, 242, 0.97), rgba(254, 226, 226, 0.97));
+    }
+    .toast-notification.danger .toast-icon,
+    .toast-notification.error .toast-icon {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+    
+    .toast-notification.warning {
+        border-left: 4px solid var(--warning);
+        color: #92400e;
+        background: linear-gradient(135deg, rgba(255, 251, 235, 0.97), rgba(254, 243, 199, 0.97));
+    }
+    .toast-notification.warning .toast-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    
+    .toast-notification.info {
+        border-left: 4px solid var(--info);
+        color: #1e40af;
+        background: linear-gradient(135deg, rgba(239, 246, 255, 0.97), rgba(219, 234, 254, 0.97));
+    }
+    .toast-notification.info .toast-icon {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+    }
+    
+    .toast-notification .toast-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-full);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .toast-notification .toast-body {
+        flex: 1;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: 0.01em;
+    }
+    
+    .toast-notification .toast-close {
+        background: rgba(0, 0, 0, 0.06);
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: var(--radius-full);
+        opacity: 0.7;
+        transition: all 200ms ease;
+        font-size: 1rem;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: inherit;
+    }
+    .toast-notification .toast-close:hover {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.12);
+        transform: scale(1.05);
+    }
+    
+    .toast-notification .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        opacity: 0.35;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        animation: toastProgress 3s linear forwards;
+    }
+    
+    .toast-notification.hiding {
+        animation: toastSlideOutRight 300ms ease forwards;
+    }
+    
+    [data-theme="dark"] .toast-notification {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(26, 32, 44, 0.95);
+        color: #e2e8f0;
+    }
+    [data-theme="dark"] .toast-notification.success {
+        background: linear-gradient(135deg, rgba(6, 78, 59, 0.95), rgba(6, 95, 70, 0.95));
+        color: #d1fae5;
+        border-left-color: #34d399;
+    }
+    [data-theme="dark"] .toast-notification.danger,
+    [data-theme="dark"] .toast-notification.error {
+        background: linear-gradient(135deg, rgba(127, 29, 29, 0.95), rgba(153, 27, 27, 0.95));
+        color: #fecaca;
+        border-left-color: #f87171;
+    }
+    [data-theme="dark"] .toast-notification.warning {
+        background: linear-gradient(135deg, rgba(120, 53, 15, 0.95), rgba(146, 64, 14, 0.95));
+        color: #fde68a;
+        border-left-color: #fbbf24;
+    }
+    [data-theme="dark"] .toast-notification.info {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(30, 64, 175, 0.95));
+        color: #bfdbfe;
+        border-left-color: #60a5fa;
+    }
+    [data-theme="dark"] .toast-notification .toast-close {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+    }
+    [data-theme="dark"] .toast-notification .toast-close:hover {
+        background: rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 1);
+    }
+    [data-theme="dark"] .toast-notification .toast-progress {
+        background: rgba(255, 255, 255, 0.35);
     }
     
     /* ========================================
@@ -1146,7 +1275,7 @@
 </button>
 
 <!-- Toast Container for Notifications -->
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2147483646;"></div>
+<div class="toast-container" style="z-index: 2147483646;"></div>
 {% endif %}
 
 {% endblock %}
@@ -1165,15 +1294,15 @@
         if (!container.length) return;
         
         // Limit to 2 visible toasts
-        while (container.children('.toast').length >= 2) {
-            container.children('.toast').first().remove();
+        while (container.children('.toast-notification').length >= 2) {
+            container.children('.toast-notification').first().remove();
         }
         
         // Icon based on type
         const icons = {
             success: 'check-circle-fill',
-            danger: 'exclamation-circle-fill',
-            error: 'exclamation-circle-fill',
+            danger: 'x-circle-fill',
+            error: 'x-circle-fill',
             warning: 'exclamation-triangle-fill',
             info: 'info-circle-fill'
         };
@@ -1181,13 +1310,15 @@
         
         const toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const toast = $(`
-            <div id="${toastId}" class="toast align-items-center text-bg-${type === 'error' ? 'danger' : type} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi bi-${icon} me-2"></i>${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <div id="${toastId}" class="toast-notification ${type === 'error' ? 'danger' : type}" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-icon">
+                    <i class="bi bi-${icon}"></i>
                 </div>
+                <div class="toast-body">${message}</div>
+                <button type="button" class="toast-close" data-bs-dismiss="toast" aria-label="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <div class="toast-progress"></div>
             </div>
         `);
         
@@ -1195,7 +1326,7 @@
         
         // Initialize Bootstrap toast if available
         if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-            const bsToast = new bootstrap.Toast(toast[0]);
+            const bsToast = new bootstrap.Toast(toast[0], { delay: 3000 });
             bsToast.show();
             
             // Remove from DOM after hidden
