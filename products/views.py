@@ -36,8 +36,11 @@ class ShopListView(ListView):
 			)
 
 		if category_slug:
-			category = get_object_or_404(Category, slug=category_slug)
-			queryset = queryset.filter(category=category)
+			try:
+				category = Category.objects.get(slug=category_slug)
+				queryset = queryset.filter(category=category)
+			except Category.DoesNotExist:
+				queryset = queryset.none()
 		if stock in ('in', 'in_stock'):
 			queryset = queryset.filter(stock__gt=0)
 		elif stock in ('out', 'out_of_stock'):

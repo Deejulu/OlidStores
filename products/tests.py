@@ -28,6 +28,14 @@ class SearchViewTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn(b'FilterProd', r.content)
 
+    def test_shop_nonexistent_category_no_404(self):
+        # Visiting shop with a category slug that doesn't exist should not 404
+        from products.models import Category
+        cat = Category.objects.create(name='FilterCat', slug='filtercat')
+        r = self.client.get('/shop/?category=nonexistent')
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b'No products found', r.content)
+
     def test_product_image_limit(self):
         from products.models import ProductImage
         # create product
