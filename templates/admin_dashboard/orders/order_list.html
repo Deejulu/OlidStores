@@ -37,7 +37,6 @@
     --accent-hover: #6d28d9;
 }
 
-/* Base Layout */
 .orders-page {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg-secondary);
@@ -45,7 +44,6 @@
     padding: 2rem 0 3rem;
 }
 
-/* Page Header */
 .page-header {
     margin-bottom: 2rem;
 }
@@ -75,7 +73,6 @@
     color: #e2e8f0 !important;
 }
 
-/* Stats Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -167,7 +164,6 @@
     color: #a5b4fc !important;
 }
 
-/* Attention Banner */
 .attention-banner {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     border: 2px solid #f59e0b;
@@ -234,7 +230,6 @@
     color: white;
 }
 
-/* Search & Filter Section */
 .controls-section {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -329,7 +324,6 @@
     display: none;
 }
 
-/* Filter Pills */
 .filter-pills {
     display: flex;
     flex-wrap: wrap;
@@ -383,7 +377,6 @@
     font-weight: 800;
 }
 
-/* Bulk Actions */
 .bulk-actions {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -473,7 +466,6 @@
     font-size: 0.9rem;
 }
 
-/* Orders Table */
 .table-wrapper {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -595,7 +587,6 @@
     font-size: 0.95rem;
 }
 
-/* Status Badges */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -659,10 +650,9 @@
     color: #fecaca !important;
 }
 
-/* ── Dark mode: prevent global gold link override ── */
 [data-theme="dark"] .order-id,
 [data-theme="dark"] .order-card-id {
-    color: #a5b4fc !important;  /* light indigo — readable on dark surfaces */
+    color: #a5b4fc !important;
 }
 
 [data-theme="dark"] .action-btn,
@@ -671,7 +661,6 @@
     background: var(--accent);
 }
 
-/* ── Active filter pill count: ensure contrast in both modes ── */
 .filter-pill.active .filter-count {
     background: rgba(0, 0, 0, 0.25);
     color: #ffffff;
@@ -728,7 +717,6 @@
     transform: translateY(-1px);
 }
 
-/* Mobile Cards */
 .orders-mobile {
     display: none;
 }
@@ -842,7 +830,6 @@
     color: #e2e8f0 !important;
 }
 
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -870,7 +857,6 @@
     line-height: 1.45;
 }
 
-/* Responsive */
 @media (max-width: 992px) {
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -961,456 +947,174 @@
             <p class="page-subtitle">View and manage all customer orders</p>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <a href="{% url 'admin_dashboard:order_list' %}{% if search_query %}?search={{ search_query }}{% endif %}" 
-               class="stat-card {% if not current_filter %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-grid"></i></div>
-                <div class="stat-value">{{ total_count }}</div>
-                <div class="stat-label">Total Orders</div>
-            </a>
-
-            <a href="?status=attention{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="stat-card {% if current_filter == 'attention' %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="stat-value">{{ attention_count }}</div>
-                <div class="stat-label">Need Attention</div>
-            </a>
-            
-            <a href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="stat-card {% if current_filter == 'Pending' %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
-                <div class="stat-value">{{ pending_count }}</div>
-                <div class="stat-label">Pending</div>
-            </a>
-            
-            <a href="?status=Processing{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="stat-card {% if current_filter == 'Processing' %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
-                <div class="stat-value">{{ processing_count }}</div>
-                <div class="stat-label">Processing</div>
-            </a>
-            
-            <a href="?status=Shipped{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="stat-card {% if current_filter == 'Shipped' %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-truck"></i></div>
-                <div class="stat-value">{{ shipped_count }}</div>
-                <div class="stat-label">Shipped</div>
-            </a>
-            
-            <a href="?status=Delivered{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="stat-card {% if current_filter == 'Delivered' %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
-                <div class="stat-value">{{ delivered_count }}</div>
-                <div class="stat-label">Delivered</div>
-            </a>
-            
-            <a href="?status=Cancelled{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="stat-card {% if current_filter == 'Cancelled' %}active{% endif %}">
-                <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
-                <div class="stat-value">{{ cancelled_count }}</div>
-                <div class="stat-label">Cancelled</div>
-            </a>
+        <!-- Dynamic content (replaced by AJAX on tab switch) -->
+        <div id="ordersDynamic">
+            {% include 'admin_dashboard/orders/order_list_ajax_partial.html' %}
         </div>
-
-        <!-- Attention Banner -->
-        {% if attention_count > 0 and not current_filter %}
-        <div class="attention-banner">
-            <div class="attention-icon">
-                <i class="bi bi-bell-fill"></i>
-            </div>
-            <div class="attention-content">
-                <h4>{{ attention_count }} Order{{ attention_count|pluralize }} Need{{ attention_count|pluralize:',s' }} Your Attention</h4>
-                <p>
-                    {% if pending_count > 0 %}{{ pending_count }} pending{% endif %}
-                    {% if pending_count > 0 and processing_count > 0 %} & {% endif %}
-                    {% if processing_count > 0 %}{{ processing_count }} processing{% endif %}
-                </p>
-            </div>
-            <a href="?status=attention" class="attention-link">
-                View Orders <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-        {% endif %}
-
-        <!-- Search & Filter -->
-        <div class="controls-section">
-            <form method="get" id="searchForm">
-                {% if current_filter %}
-                <input type="hidden" name="status" value="{{ current_filter }}">
-                {% endif %}
-                
-                <div class="search-wrapper">
-                    <i class="bi bi-search search-icon"></i>
-                    <input 
-                        type="text" 
-                        name="search" 
-                        class="search-input" 
-                        id="searchInput"
-                        placeholder="Search by order ID, customer name, or email..."
-                        value="{{ search_query }}"
-                        autocomplete="off"
-                    >
-                        <button type="button" class="search-clear-btn {% if not search_query %}is-hidden{% endif %}" id="clearSearch" 
-                            onclick="clearSearch()" 
-                            >
-                        <i class="bi bi-x-circle-fill"></i>
-                    </button>
-                    <span class="search-kbd">Ctrl+K</span>
-                </div>
-
-                <div class="filter-pills">
-                    <button type="button" class="filter-pill {% if not current_filter %}active{% endif %}" 
-                            onclick="filterOrders('')">
-                        <i class="bi bi-grid"></i>
-                        All Orders
-                        <span class="filter-count">{{ total_count }}</span>
-                    </button>
-                    
-                    <button type="button" class="filter-pill {% if current_filter == 'attention' %}active{% endif %}" 
-                            onclick="filterOrders('attention')">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        Needs Attention
-                        <span class="filter-count">{{ attention_count }}</span>
-                    </button>
-                    
-                    <button type="button" class="filter-pill {% if current_filter == 'Pending' %}active{% endif %}" 
-                            onclick="filterOrders('Pending')">
-                        <i class="bi bi-hourglass-split"></i>
-                        Pending
-                        <span class="filter-count">{{ pending_count }}</span>
-                    </button>
-                    
-                    <button type="button" class="filter-pill {% if current_filter == 'Processing' %}active{% endif %}" 
-                            onclick="filterOrders('Processing')">
-                        <i class="bi bi-arrow-repeat"></i>
-                        Processing
-                        <span class="filter-count">{{ processing_count }}</span>
-                    </button>
-                    
-                    <button type="button" class="filter-pill {% if current_filter == 'Shipped' %}active{% endif %}" 
-                            onclick="filterOrders('Shipped')">
-                        <i class="bi bi-truck"></i>
-                        Shipped
-                        <span class="filter-count">{{ shipped_count }}</span>
-                    </button>
-                    
-                    <button type="button" class="filter-pill {% if current_filter == 'Delivered' %}active{% endif %}" 
-                            onclick="filterOrders('Delivered')">
-                        <i class="bi bi-check2-circle"></i>
-                        Delivered
-                        <span class="filter-count">{{ delivered_count }}</span>
-                    </button>
-                    
-                    <button type="button" class="filter-pill {% if current_filter == 'Cancelled' %}active{% endif %}" 
-                            onclick="filterOrders('Cancelled')">
-                        <i class="bi bi-x-circle"></i>
-                        Cancelled
-                        <span class="filter-count">{{ cancelled_count }}</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Bulk Actions -->
-        <form method="post" id="bulkForm">
-            {% csrf_token %}
-            <div class="bulk-actions">
-                <div class="bulk-select-wrapper">
-                    <select name="bulk_action" id="bulkAction" class="bulk-select" required>
-                        <option value="">Select Action</option>
-                        <option value="mark_processing">Mark as Processing</option>
-                        <option value="mark_shipped">Mark as Shipped</option>
-                        <option value="mark_delivered">Mark as Delivered</option>
-                        <option value="mark_cancelled">Cancel Orders</option>
-                        <option value="delete">Delete Orders</option>
-                    </select>
-                    <i class="bi bi-chevron-down bulk-arrow"></i>
-                </div>
-                
-                <button type="submit" class="bulk-btn" id="bulkBtn" onclick="return confirmBulk()" disabled>
-                    <i class="bi bi-check2"></i>
-                    Apply
-                </button>
-                
-                <div class="selected-count" id="selectedCount" style="display: none;">
-                    <i class="bi bi-check2-square"></i>
-                    <span id="countValue">0</span> selected
-                </div>
-            </div>
-
-            <!-- Desktop Table -->
-            <div class="table-wrapper">
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">
-                                <input type="checkbox" id="selectAll" class="table-checkbox">
-                            </th>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in orders %}
-                        <tr class="{% if order.status == 'Pending' or order.status == 'Processing' %}needs-attention{% endif %}">
-                            <td>
-                                <input type="checkbox" name="order_ids" value="{{ order.id }}" class="table-checkbox order-checkbox">
-                            </td>
-                            <td>
-                                <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="order-id">#{{ order.id }}</a>
-                            </td>
-                            <td>
-                                <div class="customer-info">
-                                    <span class="customer-name">{{ order.full_name }}</span>
-                                    {% if order.user %}
-                                    <span class="customer-email">{{ order.user.email }}</span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="order-amount">₦{{ order.grand_total|floatformat:2 }}</span>
-                            </td>
-                            <td>
-                                {% if order.status == 'Pending' %}
-                                <span class="status-badge status-pending">
-                                    <i class="bi bi-hourglass-split"></i> Pending
-                                </span>
-                                {% elif order.status == 'Processing' %}
-                                <span class="status-badge status-processing">
-                                    <i class="bi bi-arrow-repeat"></i> Processing
-                                </span>
-                                {% elif order.status == 'Shipped' %}
-                                <span class="status-badge status-shipped">
-                                    <i class="bi bi-truck"></i> Shipped
-                                </span>
-                                {% elif order.status == 'Delivered' %}
-                                <span class="status-badge status-delivered">
-                                    <i class="bi bi-check2-circle"></i> Delivered
-                                </span>
-                                {% elif order.status == 'Completed' %}
-                                <span class="status-badge status-completed">
-                                    <i class="bi bi-check-all"></i> Completed
-                                </span>
-                                {% elif order.status == 'Cancelled' %}
-                                <span class="status-badge status-cancelled">
-                                    <i class="bi bi-x-circle"></i> Cancelled
-                                </span>
-                                {% else %}
-                                <span class="status-badge">
-                                    {{ order.status }}
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="order-date">
-                                    <span class="date">{{ order.created_at|date:'M d, Y' }}</span>
-                                    <span class="time">{{ order.created_at|date:'H:i' }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="action-btn">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7">
-                                <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
-                                    <h3>No orders found</h3>
-                                    <p>
-                                        {% if current_filter %}
-                                            No orders with status "{{ current_filter }}"
-                                        {% elif search_query %}
-                                            No orders matching "{{ search_query }}"
-                                        {% else %}
-                                            There are no orders yet
-                                        {% endif %}
-                                    </p>
-                                    {% if current_filter or search_query %}
-                                    <a href="{% url 'admin_dashboard:order_list' %}" class="filter-pill">
-                                        <i class="bi bi-arrow-left"></i> Clear Filters
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile Cards -->
-            <div class="orders-mobile">
-                {% for order in orders %}
-                <div class="order-card {% if order.status == 'Pending' or order.status == 'Processing' %}needs-attention{% endif %}">
-                    <div class="order-card-header">
-                        <div class="order-card-checkbox">
-                            <input type="checkbox" name="order_ids" value="{{ order.id }}" class="table-checkbox order-checkbox">
-                            <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="order-card-id">#{{ order.id }}</a>
-                        </div>
-                        <span class="order-card-amount">₦{{ order.grand_total|floatformat:2 }}</span>
-                    </div>
-                    
-                    <div class="order-card-body">
-                        <div class="order-card-customer">
-                            <span class="order-card-name">{{ order.full_name }}</span>
-                            {% if order.user %}
-                            <span class="order-card-email">{{ order.user.email }}</span>
-                            {% endif %}
-                        </div>
-                        
-                        {% if order.status == 'Pending' %}
-                        <span class="status-badge status-pending">
-                            <i class="bi bi-hourglass-split"></i> Pending
-                        </span>
-                        {% elif order.status == 'Processing' %}
-                        <span class="status-badge status-processing">
-                            <i class="bi bi-arrow-repeat"></i> Processing
-                        </span>
-                        {% elif order.status == 'Shipped' %}
-                        <span class="status-badge status-shipped">
-                            <i class="bi bi-truck"></i> Shipped
-                        </span>
-                        {% elif order.status == 'Delivered' %}
-                        <span class="status-badge status-delivered">
-                            <i class="bi bi-check2-circle"></i> Delivered
-                        </span>
-                        {% elif order.status == 'Completed' %}
-                        <span class="status-badge status-completed">
-                            <i class="bi bi-check-all"></i> Completed
-                        </span>
-                        {% elif order.status == 'Cancelled' %}
-                        <span class="status-badge status-cancelled">
-                            <i class="bi bi-x-circle"></i> Cancelled
-                        </span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="order-card-footer">
-                        <span class="order-date">
-                            <i class="bi bi-calendar3"></i> {{ order.created_at|date:'M d, Y H:i' }}
-                        </span>
-                        <a href="{% url 'admin_dashboard:order_detail' order.id %}" class="action-btn">
-                            <i class="bi bi-eye"></i> View
-                        </a>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    <h3>No orders found</h3>
-                    <p>
-                        {% if current_filter %}
-                            No orders with status "{{ current_filter }}"
-                        {% elif search_query %}
-                            No orders matching "{{ search_query }}"
-                        {% else %}
-                            There are no orders yet
-                        {% endif %}
-                    </p>
-                    {% if current_filter or search_query %}
-                    <a href="{% url 'admin_dashboard:order_list' %}" class="filter-pill active">
-                        <i class="bi bi-arrow-left"></i> Clear Filters
-                    </a>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </form>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-// Filter function
-function filterOrders(status) {
-    const url = new URL(window.location);
-    if (status) {
-        url.searchParams.set('status', status);
-    } else {
-        url.searchParams.delete('status');
+(function() {
+    const AJAX_URL = "{% url 'admin_dashboard:order_list_ajax' %}";
+
+    function getAjaxUrl(status, search) {
+        const url = new URL(AJAX_URL, window.location.origin);
+        if (status) url.searchParams.set('status', status);
+        if (search) url.searchParams.set('search', search);
+        return url.toString();
     }
-    window.location = url.toString();
-}
 
-// Clear search
-function clearSearch() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('searchForm').submit();
-}
-
-// Show/hide clear button
-const searchInput = document.getElementById('searchInput');
-const clearBtn = document.getElementById('clearSearch');
-if (searchInput) {
-    searchInput.addEventListener('input', function() {
-        clearBtn.style.display = this.value ? 'block' : 'none';
-    });
-}
-
-// Keyboard shortcut Ctrl+K
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        document.getElementById('searchInput').focus();
+    function getPageUrl(status, search) {
+        const url = new URL(window.location.pathname, window.location.href);
+        if (status) url.searchParams.set('status', status);
+        if (search) url.searchParams.set('search', search);
+        return url.toString();
     }
-});
 
-// Select all checkboxes
-const selectAll = document.getElementById('selectAll');
-const orderCheckboxes = document.querySelectorAll('.order-checkbox');
-const bulkBtn = document.getElementById('bulkBtn');
-const selectedCount = document.getElementById('selectedCount');
-const countValue = document.getElementById('countValue');
+    function fetchOrders(status, search, push) {
+        const ajaxUrl = getAjaxUrl(status, search);
+        fetch(ajaxUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        })
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(data) {
+            const dynamicEl = document.getElementById('ordersDynamic');
+            if (!dynamicEl) throw new Error('Missing #ordersDynamic');
 
-if (selectAll) {
-    selectAll.addEventListener('change', function() {
-        orderCheckboxes.forEach(cb => cb.checked = this.checked);
-        updateBulkActions();
-    });
-}
+            const currentSearch = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
+            dynamicEl.innerHTML = data.html;
 
-orderCheckboxes.forEach(cb => {
-    cb.addEventListener('change', updateBulkActions);
-});
+            const newSearchInput = document.getElementById('searchInput');
+            if (newSearchInput && currentSearch) {
+                newSearchInput.value = currentSearch;
+            }
 
-function updateBulkActions() {
-    const checked = document.querySelectorAll('.order-checkbox:checked').length;
-    bulkBtn.disabled = checked === 0;
-    if (checked > 0) {
-        selectedCount.style.display = 'inline-flex';
-        countValue.textContent = checked;
-    } else {
-        selectedCount.style.display = 'none';
+            if (push) {
+                const pageUrl = getPageUrl(status, currentSearch);
+                history.pushState({ status: status || '', search: currentSearch }, '', pageUrl);
+            }
+
+            attachOrderListeners();
+        })
+        .catch(function(err) {
+            console.error('fetchOrders failed:', err);
+            const pageUrl = getPageUrl(status, search);
+            window.location.assign(pageUrl);
+        });
     }
-    selectAll.checked = checked === orderCheckboxes.length && checked > 0;
-}
 
-// Confirm bulk action
-function confirmBulk() {
-    const action = document.getElementById('bulkAction').value;
-    const count = document.querySelectorAll('.order-checkbox:checked').length;
-    
-    if (!action) {
-        alert('Please select an action');
-        return false;
-    }
-    
-    const actionText = {
-        'mark_processing': 'mark as Processing',
-        'mark_shipped': 'mark as Shipped',
-        'mark_delivered': 'mark as Delivered',
-        'mark_cancelled': 'cancel',
-        'delete': 'delete'
+    window.filterOrders = function(status) {
+        const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
+        fetchOrders(status, search, true);
     };
-    
-    return confirm(`Are you sure you want to ${actionText[action]} ${count} order(s)?`);
-}
+
+    function attachOrderListeners() {
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        if (searchInput) {
+            if (clearBtn) {
+                clearBtn.style.display = searchInput.value ? 'block' : 'none';
+            }
+            searchInput.addEventListener('input', function() {
+                const btn = document.getElementById('clearSearch');
+                if (btn) btn.style.display = this.value ? 'block' : 'none';
+            });
+        }
+
+        const selectAll = document.getElementById('selectAll');
+        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                orderCheckboxes.forEach(function(cb) { cb.checked = this.checked; });
+                updateBulkActions();
+            });
+        }
+        orderCheckboxes.forEach(function(cb) {
+            cb.addEventListener('change', updateBulkActions);
+        });
+    }
+
+    window.updateBulkActions = function() {
+        const bulkBtn = document.getElementById('bulkBtn');
+        const selectedCount = document.getElementById('selectedCount');
+        const countValue = document.getElementById('countValue');
+        const checked = document.querySelectorAll('.order-checkbox:checked').length;
+
+        if (bulkBtn) bulkBtn.disabled = checked === 0;
+        if (selectedCount && countValue) {
+            if (checked > 0) {
+                selectedCount.style.display = 'inline-flex';
+                countValue.textContent = checked;
+            } else {
+                selectedCount.style.display = 'none';
+            }
+        }
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = checked === document.querySelectorAll('.order-checkbox').length && checked > 0;
+        }
+    };
+
+    window.confirmBulk = function() {
+        const action = document.getElementById('bulkAction').value;
+        const count = document.querySelectorAll('.order-checkbox:checked').length;
+
+        if (!action) {
+            alert('Please select an action');
+            return false;
+        }
+
+        const actionText = {
+            'mark_processing': 'mark as Processing',
+            'mark_shipped': 'mark as Shipped',
+            'mark_delivered': 'mark as Delivered',
+            'mark_cancelled': 'cancel',
+            'delete': 'delete'
+        };
+
+        return confirm('Are you sure you want to ' + actionText[action] + ' ' + count + ' order(s)?');
+    };
+
+    window.clearSearch = function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = '';
+        const currentStatus = new URL(window.location).searchParams.get('status') || '';
+        fetchOrders(currentStatus, '', true);
+    };
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.focus();
+        }
+    });
+
+    const searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
+            const currentStatus = new URL(window.location).searchParams.get('status') || '';
+            fetchOrders(currentStatus, search, true);
+        });
+    }
+
+    window.addEventListener('popstate', function(e) {
+        const url = new URL(window.location);
+        const status = url.searchParams.get('status') || '';
+        const search = url.searchParams.get('search') || '';
+        fetchOrders(status, search, false);
+    });
+
+    attachOrderListeners();
+})();
 </script>
 {% endblock %}

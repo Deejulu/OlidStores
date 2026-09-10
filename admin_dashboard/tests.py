@@ -547,3 +547,96 @@ class UnifiedSampleDataTest(TransactionTestCase):
         resp = self.client.get(reverse('admin_dashboard:delete_sample_data_full'))
         self.assertEqual(resp.status_code, 302)  # redirect
 
+
+class OrderListAjaxTest(TestCase):
+    """Tests for the AJAX tab-switching endpoint on the admin order list page."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.admin = User.objects.create_superuser(username='ajaxadmin', email='ajax@example.com', password='pass')
+        self.admin.role = 'admin'
+        self.admin.is_staff = True
+        self.admin.is_superuser = True
+        self.admin.save()
+        self.client = Client()
+        self.client.force_login(self.admin)
+        from orders.models import Order
+        self.o1 = Order.objects.create(full_name='Alice', phone='111', email='alice@example.com', delivery_address='A', total=100, status='Pending')
+        self.o2 = Order.objects.create(full_name='Bob', phone='222', email='bob@example.com', delivery_address='B', total=200, status='Processing')
+        self.o3 = Order.objects.create(full_name='Carol', phone='333', email='carol@example.com', delivery_address='C', total=300, status='Shipped')
+
+    def test_ajax_get_returns_json(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), {'status': 'Pending'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(resp.status_code, 200)
+        import json
+        data = json.loads(resp.content)
+        self.assertIn('html', data)
+        self.assertIn('counts', data)
+        self.assertIn('current_filter', data)
+        self.assertEqual(data['current_filter'], 'Pending')
+        self.assertEqual(data['counts']['pending'], 1)
+        self.assertEqual(data['counts']['total'], 3)
+
+    def test_non_ajax_get_redirects(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), {'status': 'Pending'})
+        self.assertEqual(resp.status_code, 302)
+
+    def test_post_returns_405(self):
+        resp = self.client.post(reverse('admin_dashboard:order_list_ajax'), {'status': 'Pending'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(resp.status_code, 405)
+
+    def test_ajax_html_contains_order_data(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), {'status': 'Shipped'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        import json
+        data = json.loads(resp.content)
+        self.assertIn('Carol', data['html'])
+        self.assertIn('300', data['html'])
+
+    def test_ajax_all_orders(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        import json
+        data = json.loads(resp.content)
+        self.assertEqual(data['current_filter'], '')
+        self.assertEqual(data['counts']['total'], 3)
+        self.assertIn('html', data)
+
+    def test_ajax_attention_filter(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), {'status': 'attention'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        import json
+        data = json.loads(resp.content)
+        self.assertEqual(data['current_filter'], 'attention')
+        self.assertEqual(data['counts']['attention'], 2)
+        self.assertIn('Alice', data['html'])
+        self.assertIn('Bob', data['html'])
+        self.assertNotIn('Carol', data['html'])
+
+    def test_ajax_search_filter(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), {'search': 'Alice'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        import json
+        data = json.loads(resp.content)
+        self.assertIn('Alice', data['html'])
+        self.assertNotIn('Bob', data['html'])
+
+    def test_ajax_counts_are_total_not_filtered(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list_ajax'), {'status': 'Shipped'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        import json
+        data = json.loads(resp.content)
+        self.assertEqual(data['counts']['total'], 3)
+        self.assertEqual(data['counts']['shipped'], 1)
+        self.assertEqual(data['counts']['pending'], 1)
+        self.assertEqual(data['counts']['processing'], 1)
+
+    def test_order_list_page_contains_ajax_script(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list'))
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode()
+        self.assertIn('/admin-dashboard/orders/ajax/', content)
+        self.assertIn('filterOrders', content)
+        self.assertIn('X-Requested-With', content)
+
+    def test_order_list_page_has_orders_dynamic_container(self):
+        resp = self.client.get(reverse('admin_dashboard:order_list'))
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode()
+        self.assertIn('id="ordersDynamic"', content)
+
