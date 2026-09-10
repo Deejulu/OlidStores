@@ -4768,7 +4768,23 @@
                     toastElement.remove();
                 });
             };
-            
+
+            // Toast close button handler — Bootstrap's data-bs-dismiss="toast" looks for a
+            // .toast ancestor, but our toasts use the .toast-notification class. This
+            // delegation handler finds the parent toast-notification and hides/removes it.
+            document.addEventListener('click', function(e) {
+                var closeBtn = e.target.closest('.toast-close');
+                if (!closeBtn) return;
+                var toastEl = closeBtn.closest('.toast-notification');
+                if (!toastEl) return;
+                var bsToast = bootstrap.Toast.getInstance(toastEl);
+                if (bsToast) {
+                    bsToast.hide();
+                } else {
+                    toastEl.remove();
+                }
+            });
+
             // Global Add to Cart Click Handler
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.btn-add-to-cart');
