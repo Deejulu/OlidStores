@@ -45,7 +45,12 @@ def admin_role_required(view_func):
     @login_required
     def _wrapped_view(request, *args, **kwargs):
         if request.user.is_superuser or getattr(request.user, 'role', None) == 'admin':
-            return view_func(request, *args, **kwargs)
+            response = view_func(request, *args, **kwargs)
+            if hasattr(response, 'headers'):
+                response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+                response['Pragma'] = 'no-cache'
+                response['Expires'] = '0'
+            return response
         security_logger.warning(
             'Unauthorized admin access attempt: user=%s, role=%s, ip=%s, path=%s',
             request.user.username if request.user.is_authenticated else 'anonymous',
@@ -55,6 +60,8 @@ def admin_role_required(view_func):
         )
         return redirect('core:home')
     return _wrapped_view
+
+@admin_role_required
 def feedback_list(request):
     if request.method == 'POST':
         if 'resolve_id' in request.POST:
@@ -381,6 +388,7 @@ User = get_user_model()
 # ...existing code...
 
 
+@admin_role_required
 def test_admin_dashboard(request):
 	return HttpResponse('Admin Dashboard app is working!')
 
@@ -727,12 +735,14 @@ def _get_order_list_context(request):
     search_query = request.GET.get('search', '')
     if search_query:
         from django.db.models import Q
-        orders = orders.filter(
-            Q(id__icontains=search_query) |
+        q = (
             Q(user__username__icontains=search_query) |
             Q(full_name__icontains=search_query) |
             Q(status__icontains=search_query)
         )
+        if search_query.isdigit():
+            q |= Q(id=int(search_query))
+        orders = orders.filter(q)
 
     from django.utils.dateparse import parse_date
     date_filter = request.GET.get('date', '')
@@ -758,18 +768,20 @@ def _get_order_list_context(request):
     else:
         orders = orders.order_by('-created_at')
 
+    from django.db.models import Count, Q
+
     cache_key = 'order_tab_counts'
     counts = cache.get(cache_key)
     if counts is None:
-        counts = {
-            'total': all_orders.count(),
-            'pending': all_orders.filter(status='Pending').count(),
-            'processing': all_orders.filter(status='Processing').count(),
-            'shipped': all_orders.filter(status='Shipped').count(),
-            'delivered': all_orders.filter(status='Delivered').count(),
-            'cancelled': all_orders.filter(status='Cancelled').count(),
-            'attention': all_orders.filter(status__in=['Pending', 'Processing']).count(),
-        }
+        counts = all_orders.aggregate(
+            total=Count('id'),
+            pending=Count('id', filter=Q(status='Pending')),
+            processing=Count('id', filter=Q(status='Processing')),
+            shipped=Count('id', filter=Q(status='Shipped')),
+            delivered=Count('id', filter=Q(status='Delivered')),
+            cancelled=Count('id', filter=Q(status='Cancelled')),
+            attention=Count('id', filter=Q(status__in=['Pending', 'Processing'])),
+        )
         cache.set(cache_key, counts, 60)
 
     page = max(1, int(request.GET.get('page', 1) or 1))
@@ -867,7 +879,11 @@ def order_list_ajax(request):
         return redirect('admin_dashboard:order_list')
 
     context = _get_order_list_context(request)
-    html = render_to_string('admin_dashboard/orders/order_list_ajax_partial.html', context, request=request)
+
+    from django.middleware.csrf import get_token
+    context['csrf_token'] = get_token(request)
+
+    html = render_to_string('admin_dashboard/orders/order_list_ajax_partial.html', context)
 
     return JsonResponse({
         'html': html,
@@ -934,6 +950,7 @@ def order_detail(request, pk):
                 )
             messages.success(request, 'Order updated successfully.')
             clear_admin_notification_cache()
+            cache.delete('order_tab_counts')
             return redirect('admin_dashboard:order_list')
         else:
             # Always redirect after POST to prevent resubmission on Back

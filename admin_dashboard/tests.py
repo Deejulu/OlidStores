@@ -640,3 +640,128 @@ class OrderListAjaxTest(TestCase):
         content = resp.content.decode()
         self.assertIn('id="ordersDynamic"', content)
 
+
+class PostLogoutAdminAccessTest(TestCase):
+    """Verify admin-only views are inaccessible after logout or for non-admin users."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.admin = User.objects.create_superuser(username='secadmin', email='secadmin@example.com', password='pass')
+        self.admin.role = 'admin'
+        self.admin.is_staff = True
+        self.admin.is_superuser = True
+        self.admin.save()
+        self.customer = User.objects.create_user(username='customer', email='cust@example.com', password='pass', role='customer')
+        self.client = Client()
+
+    def test_feedback_list_requires_admin(self):
+        resp = self.client.get(reverse('admin_dashboard:feedback_list'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('login', resp.url)
+
+    def test_feedback_list_blocks_customer(self):
+        self.client.force_login(self.customer)
+        resp = self.client.get(reverse('admin_dashboard:feedback_list'))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_feedback_list_allows_admin(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse('admin_dashboard:feedback_list'))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_post_logout_feedback_list_redirects(self):
+        self.client.force_login(self.admin)
+        self.client.post(reverse('users:logout'))
+        resp = self.client.get(reverse('admin_dashboard:feedback_list'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('login', resp.url)
+
+    def test_post_logout_admin_views_redirect(self):
+        admin_urls = [
+            'admin_dashboard:dashboard_home',
+            'admin_dashboard:product_list',
+            'admin_dashboard:order_list',
+            'admin_dashboard:customer_list',
+            'admin_dashboard:analytics_dashboard',
+            'admin_dashboard:content_manage',
+            'admin_dashboard:chat_list',
+            'admin_dashboard:payments_dashboard',
+        ]
+        self.client.force_login(self.admin)
+        self.client.post(reverse('users:logout'))
+        for url_name in admin_urls:
+            resp = self.client.get(reverse(url_name))
+            self.assertEqual(resp.status_code, 302, msg=f'{url_name} did not redirect after logout')
+            self.assertIn('login', resp.url, msg=f'{url_name} did not redirect to login after logout')
+
+
+class SessionInvalidationTest(TestCase):
+    """Verify logout fully destroys the session and clears the session cookie."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username='sessionuser', email='s@example.com', password='pass', role='customer')
+        self.client = Client()
+
+    def test_logout_clears_session_data(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.session.get('_auth_user_id'), str(self.user.pk))
+        resp = self.client.post(reverse('users:logout'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsNone(self.client.session.get('_auth_user_id'))
+
+    def test_logout_clears_session_cookie(self):
+        self.client.force_login(self.user)
+        resp = self.client.post(reverse('users:logout'))
+        self.assertEqual(resp.status_code, 200)
+        cookie = self.client.cookies.get('sessionid')
+        self.assertIsNotNone(cookie)
+        self.assertEqual(cookie.value, '')
+        self.assertIn('1970', cookie.get('expires', ''))
+
+    def test_old_session_cannot_be_reused_after_logout(self):
+        self.client.force_login(self.user)
+        old_session_id = self.client.session.session_key
+        self.client.post(reverse('users:logout'))
+        self.client = Client()
+        self.client.cookies['sessionid'] = old_session_id
+        resp = self.client.get(reverse('core:home'))
+        self.assertFalse(resp.context['user'].is_authenticated)
+
+
+class CustomerFacingPostLogoutTest(TestCase):
+    """Customer-facing pages must not retain logged-in state after logout."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.customer = User.objects.create_user(username='custlogout', email='cl@example.com', password='pass', role='customer')
+        self.client = Client()
+
+    def test_profile_redirects_after_logout(self):
+        self.client.force_login(self.customer)
+        self.client.post(reverse('users:logout'))
+        resp = self.client.get(reverse('users:profile'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('login', resp.url)
+
+    def test_dashboard_redirects_after_logout(self):
+        self.client.force_login(self.customer)
+        self.client.post(reverse('users:logout'))
+        resp = self.client.get(reverse('users:dashboard'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('login', resp.url)
+
+    def test_orders_history_redirects_after_logout(self):
+        self.client.force_login(self.customer)
+        self.client.post(reverse('users:logout'))
+        resp = self.client.get(reverse('users:order_history'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('login', resp.url)
+
+    def test_admin_dashboard_blocks_customer_after_logout(self):
+        self.client.force_login(self.customer)
+        self.client.post(reverse('users:logout'))
+        resp = self.client.get(reverse('admin_dashboard:dashboard_home'))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('login', resp.url)
+

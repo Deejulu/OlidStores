@@ -96,9 +96,13 @@ def admin_notifications(request):
 
         # 2. Shipped orders at risk of late delivery
         #    delivery_option: '24h' = 24 hours, '2d' = 48 hours
+        #    Only fetch orders shipped within the last 50 hours to avoid scanning
+        #    the entire shipped orders table on every cache miss.
+        now = timezone.now()
         shipped_orders = Order.objects.filter(
             status='Shipped',
             shipped_at__isnull=False,
+            shipped_at__gte=now - timedelta(hours=50),
         ).order_by('shipped_at')
         for o in shipped_orders:
             if o.delivery_option == '24h':
@@ -121,11 +125,12 @@ def admin_notifications(request):
                 })
             elif hours_left < 6:
                 # Running out of time
+                hours_left_int = int(hours_left)
                 order_alerts.append({
                     'type': 'at_risk',
                     'severity': 'warning',
                     'icon': 'bi-clock-history',
-                    'message': f'Order #{o.id} ({o.full_name}) — only {int(hours_left)}h left to deliver ({o.get_delivery_option_display()})',
+                    'message': f'Order #{o.id} ({o.full_name}) — only {hours_left_int}h left to deliver ({o.get_delivery_option_display()})',
                     'order_id': o.id,
                 })
 

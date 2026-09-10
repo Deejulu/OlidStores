@@ -4,6 +4,7 @@ import json
 import requests
 import logging
 from decimal import Decimal
+from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils import timezone
@@ -190,6 +191,7 @@ def checkout_view(request):
 				except Exception:
 					pass
 			cart.items.all().delete()
+			cache.delete('order_tab_counts')
 			messages.success(request, 'Manual payment submitted. Your order will be confirmed within 24 hours.')
 			return redirect('orders:order_confirmation', order_id=order.id, token=order.confirmation_token)
 		elif payment_method == 'pay_on_delivery':
@@ -258,6 +260,7 @@ def checkout_view(request):
 				except Exception:
 					pass
 			cart.items.all().delete()
+			cache.delete('order_tab_counts')
 			messages.success(request, 'Pay on Delivery order submitted. Our team will contact you shortly.')
 			return redirect('orders:order_confirmation', order_id=order.id, token=order.confirmation_token)
 		elif payment_method == 'paystack' and paystack_reference:
@@ -341,15 +344,16 @@ def checkout_view(request):
 						payment_method=payment_channel,
 						raw_response=data
 					)
-				cart.items.all().delete()
-				# Track activity
-				user = request.user
-				if user.is_authenticated:
-					try:
-						from users.models_activity import Activity
-						Activity.objects.create(user=user, activity_type='order', order_id=order.id)
-					except Exception:
-						pass
+			cart.items.all().delete()
+			cache.delete('order_tab_counts')
+			# Track activity
+			user = request.user
+			if user.is_authenticated:
+				try:
+					from users.models_activity import Activity
+					Activity.objects.create(user=user, activity_type='order', order_id=order.id)
+				except Exception:
+					pass
 			messages.success(request, 'Payment verified and order created. Thank you!')
 			return redirect('orders:order_confirmation', order_id=order.id, token=order.confirmation_token)
 		else:

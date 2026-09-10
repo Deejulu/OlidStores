@@ -975,10 +975,13 @@
                     
                     <div class="dropdown-user-divider"></div>
                     
-                    <a href="/admin-dashboard/logout/" class="dropdown-user-item">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Logout</span>
-                    </a>
+                    <form action="{% url 'users:logout' %}" method="post" style="display:contents">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-user-item">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1081,6 +1084,13 @@
                     }
                 });
             }
+
+            // Prevent back/forward cache from showing stale authenticated pages
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
         });
     </script>
     
