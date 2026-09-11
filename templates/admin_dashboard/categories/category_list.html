@@ -537,6 +537,7 @@
                     {% if user.is_superuser %}
                     <form method="post" action="{% url 'admin_dashboard:category_populate_sample' %}" style="display:inline" id="populate-form-cat" onsubmit="return startSampleTask(this, 'category-populate', 'populate-loading-overlay-cat', 'populate-btn-cat', 'Creating sample categories… please wait', '{% url 'admin_dashboard:sample_task_status' 'category-populate' %}')">
                         {% csrf_token %}
+                        <input type="hidden" name="confirmation" value="CONFIRM">
                         <button type="submit" class="btn-add-category btn-secondary" id="populate-btn-cat">
                             <i class="bi bi-tags"></i>
                             Populate Sample Categories
@@ -544,6 +545,7 @@
                     </form>
                     <form method="post" action="{% url 'admin_dashboard:category_remove_sample' %}" style="display:inline" onsubmit="return startSampleTask(this, 'category-remove', 'populate-loading-overlay-cat', 'populate-btn-cat', 'Removing sample categories… please wait', '{% url 'admin_dashboard:sample_task_status' 'category-remove' %}')">
                         {% csrf_token %}
+                        <input type="hidden" name="confirmation" value="CONFIRM">
                         <button type="submit" class="btn-add-category btn-danger" id="remove-btn-cat">
                             <i class="bi bi-trash3"></i>
                             Remove Sample Categories
@@ -722,15 +724,16 @@ function startSampleTask(form, taskName, overlayId, buttonId, loadingText, statu
         if (data && data.task_key) {
             pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, loadingText);
         } else {
+            const errorMsg = (data && data.message) ? data.message : 'The sample-data task could not be started. Please try again.';
+            alert(errorMsg);
             if (overlay) overlay.style.display = 'none';
             if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
-            window.location.reload();
         }
     })
     .catch(() => {
+        alert('Network error while starting the sample-data task. Please try again.');
         if (overlay) overlay.style.display = 'none';
         if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
-        window.location.reload();
     });
     return false;
 }

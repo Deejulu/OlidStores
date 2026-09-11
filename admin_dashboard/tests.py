@@ -765,3 +765,70 @@ class CustomerFacingPostLogoutTest(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn('login', resp.url)
 
+
+class PopulateDeleteSampleCycleTest(TestCase):
+    """Verify populate sample and delete sample work correctly end-to-end."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.admin = User.objects.create_superuser(username='sampleadmin', email='sampleadmin@example.com', password='pass')
+        self.admin.role = 'admin'
+        self.admin.is_staff = True
+        self.admin.is_superuser = True
+        self.admin.save()
+        self.client = Client()
+        self.client.force_login(self.admin)
+
+    def test_populate_sample_creates_120_products_with_is_sample_true(self):
+        from admin_dashboard.populate_tasks import do_populate_sample_data_full
+        from products.models import Product
+
+        initial_products = Product.objects.count()
+        result = do_populate_sample_data_full()
+
+        total_products = Product.objects.count()
+        sample_products = Product.objects.filter(is_sample=True)
+        self.assertEqual(sample_products.count(), 120)
+        self.assertEqual(result['products'], 120)
+        self.assertEqual(total_products, initial_products + 120)
+        for p in sample_products[:5]:
+            self.assertTrue(p.is_sample)
+
+    def test_delete_sample_removes_all_sample_products(self):
+        from admin_dashboard.populate_tasks import do_populate_sample_data_full, do_delete_sample_data_full
+        from products.models import Product, Category
+
+        do_populate_sample_data_full()
+        sample_count_before = Product.objects.filter(is_sample=True).count()
+        self.assertGreater(sample_count_before, 0)
+
+        result = do_delete_sample_data_full()
+
+        sample_count_after = Product.objects.filter(is_sample=True).count()
+        self.assertEqual(sample_count_after, 0)
+        self.assertIn('products', result)
+        self.assertEqual(result['products'], sample_count_before)
+
+    def test_delete_sample_removes_sample_categories_without_products(self):
+        from admin_dashboard.populate_tasks import do_populate_sample_data_full, do_delete_sample_data_full
+        from products.models import Category
+
+        do_populate_sample_data_full()
+        sample_cats_before = Category.objects.filter(is_sample=True).count()
+        self.assertGreater(sample_cats_before, 0)
+
+        do_delete_sample_data_full()
+
+        sample_cats_after = Category.objects.filter(is_sample=True).count()
+        self.assertEqual(sample_cats_after, 0)
+
+    def test_populate_then_delete_returns_to_original_product_count(self):
+        from admin_dashboard.populate_tasks import do_populate_sample_data_full, do_delete_sample_data_full
+        from products.models import Product
+
+        initial_count = Product.objects.filter(is_sample=False).count()
+        do_populate_sample_data_full()
+        do_delete_sample_data_full()
+        final_count = Product.objects.filter(is_sample=False).count()
+        self.assertEqual(final_count, initial_count)
+

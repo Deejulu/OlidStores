@@ -789,12 +789,14 @@
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items-end;">
                 <form method="post" action="{% url 'admin_dashboard:populate_sample_data_full' %}" onsubmit="return startSampleTask(this, 'full-populate', 'populate-loading-overlay-full', 'populate-btn-full', 'Populating sample data… please wait', '{% url 'admin_dashboard:sample_task_status' 'full-populate' %}')" style="display: inline;">
                     {% csrf_token %}
+                    <input type="hidden" name="confirmation" value="CONFIRM">
                     <button type="submit" id="populate-btn-full" class="admin-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                         <span><i class="fas fa-magic"></i> Populate Sample Data</span>
                     </button>
                 </form>
                 <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" onsubmit="return startSampleTask(this, 'full-delete', 'populate-loading-overlay-full', 'delete-btn-full', 'Removing sample data… please wait', '{% url 'admin_dashboard:sample_task_status' 'full-delete' %}')" style="display: inline;">
                     {% csrf_token %}
+                    <input type="hidden" name="confirmation" value="CONFIRM">
                     <button type="submit" id="delete-btn-full" class="admin-btn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                         <span><i class="fas fa-trash-alt"></i> Delete Sample Data</span>
                     </button>
@@ -843,21 +845,22 @@
                 if (data && data.task_key) {
                     pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusText, data.message || loadingText);
                 } else {
+                    const errorMsg = (data && data.message) ? data.message : 'The sample-data task could not be started. Please try again.';
+                    alert(errorMsg);
                     if (overlay) overlay.style.display = 'none';
                     if (btn) {
                         btn.disabled = false;
                         btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
                     }
-                    window.location.reload();
                 }
             })
             .catch(() => {
+                alert('Network error while starting the sample-data task. Please try again.');
                 if (overlay) overlay.style.display = 'none';
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
                 }
-                window.location.reload();
             });
             return false;
         }

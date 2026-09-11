@@ -789,22 +789,24 @@
                              <i class="bi bi-boxes"></i>
                              Bulk Add Products
                          </a>
-                          {% if user.is_superuser %}
-                         <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return startSampleTask(this, 'product-populate', 'populate-loading-overlay', 'populate-btn', 'Creating sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-populate' %}')">
-                             {% csrf_token %}
-                             <button type="submit" class="btn-add-product btn-secondary" id="populate-btn">
-                                 <i class="bi bi-box-seam"></i>
-                                 Populate Sample Products
-                             </button>
-                         </form>
-                         <form method="post" action="{% url 'admin_dashboard:product_remove_sample' %}" style="display:inline" onsubmit="return startSampleTask(this, 'product-remove', 'populate-loading-overlay', 'populate-btn', 'Removing sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-remove' %}')">
-                             {% csrf_token %}
-                             <button type="submit" class="btn-add-product btn-danger">
-                                 <i class="bi bi-trash3"></i>
-                                 Remove Sample Products
-                             </button>
-                         </form>
-                         {% endif %}
+                           {% if user.is_superuser %}
+                          <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return startSampleTask(this, 'product-populate', 'populate-loading-overlay', 'populate-btn', 'Creating sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-populate' %}')">
+                              {% csrf_token %}
+                              <input type="hidden" name="confirmation" value="CONFIRM">
+                              <button type="submit" class="btn-add-product btn-secondary" id="populate-btn">
+                                  <i class="bi bi-box-seam"></i>
+                                  Populate Sample Products
+                              </button>
+                          </form>
+                          <form method="post" action="{% url 'admin_dashboard:product_remove_sample' %}" style="display:inline" onsubmit="return startSampleTask(this, 'product-remove', 'populate-loading-overlay', 'populate-btn', 'Removing sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-remove' %}')">
+                              {% csrf_token %}
+                              <input type="hidden" name="confirmation" value="CONFIRM">
+                              <button type="submit" class="btn-add-product btn-danger">
+                                  <i class="bi bi-trash3"></i>
+                                  Remove Sample Products
+                              </button>
+                          </form>
+                          {% endif %}
                     </div>
             </div>
         </div>
@@ -1151,15 +1153,16 @@ function startSampleTask(form, taskName, overlayId, buttonId, loadingText, statu
         if (data && data.task_key) {
             pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, loadingText);
         } else {
+            const errorMsg = (data && data.message) ? data.message : 'The sample-data task could not be started. Please try again.';
+            alert(errorMsg);
             if (overlay) overlay.style.display = 'none';
             if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
-            window.location.reload();
         }
     })
     .catch(() => {
+        alert('Network error while starting the sample-data task. Please try again.');
         if (overlay) overlay.style.display = 'none';
         if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
-        window.location.reload();
     });
     return false;
 }
