@@ -22,7 +22,7 @@ print("="*70)
 test_email = "testcustomer@example.com"
 User.objects.filter(email=test_email).delete()
 
-print("\n1️⃣  CREATING TEST CUSTOMER")
+print("\n1. CREATING TEST CUSTOMER")
 print("-"*70)
 user = User.objects.create_user(
     username='testcustomer',
@@ -43,16 +43,16 @@ otp = OTPVerification.create_otp(
     user=user,
     expiry_minutes=30
 )
-print(f"✓ OTP created: {otp.otp_code}")
+print(f"[OK] OTP created: {otp.otp_code}")
 print(f"   Expires at: {otp.expires_at}")
 
 print("\n3️⃣  SENDING OTP EMAIL")
 print("-"*70)
 success, error = send_email_otp(user.email, otp.otp_code, purpose='email_verification')
 if success:
-    print(f"✓ Email sent successfully to {user.email}")
+    print(f"[OK] Email sent successfully to {user.email}")
 else:
-    print(f"✗ Email failed: {error}")
+    print(f"[FAIL] Email failed: {error}")
 
 print("\n4️⃣  TESTING OTP VERIFICATION")
 print("-"*70)
@@ -71,7 +71,7 @@ print(f"Test correct code ({otp.otp_code}): Valid={is_valid}, Message='{message}
 if is_valid:
     user.email_verified = True
     user.save()
-    print(f"\n✓ Customer verified successfully!")
+    print(f"\n[OK] Customer verified successfully!")
     print(f"   {user.username} - email_verified: {user.email_verified}")
 
 print("\n5️⃣  TESTING EXPIRED OTP")
@@ -88,16 +88,16 @@ is_valid, message = expired_otp.verify('999999')
 print(f"Expired OTP test: Valid={is_valid}, Message='{message}'")
 
 print("\n" + "="*70)
-print("✅ ALL TESTS PASSED!")
+print("[PASS] ALL TESTS PASSED!")
 print("="*70)
 print("\nSUMMARY:")
-print("  ✓ Customer creation works")
-print("  ✓ OTP generation works")
-print("  ✓ Email sending works (check daveed0011@gmail.com for test email)")
-print("  ✓ OTP verification rejects wrong codes")
-print("  ✓ OTP verification accepts correct codes")
-print("  ✓ Expired OTP detection works")
-print("\n🎉 OTP system is fully functional!")
+print("  [OK] Customer creation works")
+print("  [OK] OTP generation works")
+print("  [OK] Email sending works (check daveed0011@gmail.com for test email)")
+print("  [OK] OTP verification rejects wrong codes")
+print("  [OK] OTP verification accepts correct codes")
+print("  [OK] Expired OTP detection works")
+print("\n[PASS] OTP system is fully functional!")
 print("="*70)
 
 # Cleanup

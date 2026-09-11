@@ -672,7 +672,7 @@ class GuestCheckoutTests(TestCase):
 		self.assertNotIn("'bank',", content)
  
 	def test_guest_can_place_manual_order(self):
-		"""Manual payment is no longer available on checkout."""
+		"""Guest users should be able to place manual orders and be redirected to confirmation."""
 		# Add item to cart
 		session = self.client.session
 		session.save()
@@ -688,10 +688,11 @@ class GuestCheckoutTests(TestCase):
 			'delivery_option': '2d',
 		}, HTTP_X_FORWARDED_PROTO='https')
 		self.assertEqual(r.status_code, 302)
-		self.assertIn('checkout', r.url)
+		self.assertIn('confirmation', r.url)
 
-		# Verify no order was created
-		self.assertEqual(Order.objects.count(), 0)
+		# Verify order was created
+		self.assertEqual(Order.objects.count(), 1)
+		self.product.refresh_from_db()
 		self.assertEqual(self.product.stock, 8)  # 10 - 2 = 8
 
 	def test_guest_cart_persists_in_session(self):
@@ -761,8 +762,8 @@ class OrderConfirmationTests(TestCase):
 			'delivery_option': '2d',
 		})
 		self.assertEqual(response.status_code, 302)
-		self.assertIn('checkout', response.url)
-		self.assertEqual(Order.objects.count(), 0)
+		self.assertIn('confirmation', response.url)
+		self.assertEqual(Order.objects.count(), 1)
 
 	def test_paystack_order_redirects_to_confirmation(self):
 		self.client.force_login(self.user)
@@ -809,8 +810,8 @@ class OrderConfirmationTests(TestCase):
 			'delivery_option': '2d',
 		})
 		self.assertEqual(response.status_code, 302)
-		self.assertIn('checkout', response.url)
-		self.assertEqual(Order.objects.count(), 0)
+		self.assertIn('confirmation', response.url)
+		self.assertEqual(Order.objects.count(), 1)
 
 	def test_confirmation_page_shows_order_details(self):
 		self.client.force_login(self.user)

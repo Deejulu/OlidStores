@@ -27,13 +27,13 @@ print(f"  Type: {'LIVE' if secret_key.startswith('sk_live_') else 'TEST'}")
 # Verify both are live keys
 if public_key.startswith('pk_live_') and secret_key.startswith('sk_live_'):
     print("\n" + "=" * 60)
-    print("✅ SUCCESS! Live Paystack keys are properly configured!")
+    print("[PASS] SUCCESS! Live Paystack keys are properly configured!")
     print("=" * 60)
-    print("\n⚠️  WARNING: You are using LIVE keys - real money will be charged!")
-    print("💡 TIP: Test with a small amount first (e.g., ₦100)")
+    print("\n[WARN] WARNING: You are using LIVE keys - real money will be charged!")
+    print("[INFO] TIP: Test with a small amount first (e.g., N100)")
 else:
     print("\n" + "=" * 60)
-    print("⚠️  WARNING: You are still using TEST keys")
+    print("[WARN] WARNING: You are still using TEST keys")
     print("=" * 60)
 
 print("\nNext steps:")

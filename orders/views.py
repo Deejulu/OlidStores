@@ -27,10 +27,10 @@ def checkout_view(request):
 	total = 0
 	# load admin-configured fees (fallback to settings or CheckoutSettings) - cached for 5 minutes
 	from django.core.cache import cache
-	cs = cache.get('checkout_settings')
+	cache.delete('checkout_settings')
+	cs = CheckoutSettings.objects.order_by('-updated_at').first()
 	if cs is None:
-		cs = CheckoutSettings.objects.first()
-		cache.set('checkout_settings', cs, 300)
+		cs = CheckoutSettings.objects.create(delivery_fee_24h=0.00, delivery_fee_2d=0.00)
 	delivery_fee_24h = cs.delivery_fee_24h if cs else getattr(settings, 'DELIVERY_FEE_24H', 0)
 	delivery_fee_2d = cs.delivery_fee_2d if cs else getattr(settings, 'DELIVERY_FEE_2D', 0)
 
@@ -145,9 +145,9 @@ def checkout_view(request):
 			if not enable_manual:
 				messages.error(request, 'Manual bank transfer is not available right now.')
 				return redirect('orders:checkout')
-			# Manual payment: check stock availability (do NOT reduce yet)
-			# Stock will be reduced when admin confirms payment (status -> 'Processing')
+			# Manual payment: check stock availability and reduce stock
 			from django.db import transaction
+			from .models import OrderAuditLog
 			with transaction.atomic():
 				for item in items:
 					if item.variant:
@@ -155,11 +155,15 @@ def checkout_view(request):
 						if pv.stock < item.quantity:
 							messages.error(request, f'Insufficient stock for {pv.name}.')
 							return redirect('orders:checkout')
+						pv.stock -= item.quantity
+						pv.save(update_fields=['stock'])
 					else:
 						p = Product.objects.select_for_update().get(id=item.product.id)
 						if p.stock < item.quantity:
 							messages.error(request, f'Insufficient stock for {p.name}.')
 							return redirect('orders:checkout')
+						p.stock -= item.quantity
+						p.save(update_fields=['stock', 'updated_at'])
 				order = Order.objects.create(
 					user=request.user if request.user.is_authenticated else None,
 					full_name=full_name,
@@ -182,6 +186,16 @@ def checkout_view(request):
 						quantity=item.quantity,
 						price=item.price
 					)
+				OrderAuditLog.objects.create(
+					order=order,
+					action='stock_reduction',
+					changes={
+						'reduced': True,
+						'payment_method': 'manual',
+						'triggering_status': 'Pending',
+						'previous_status': None,
+					}
+				)
 			# Track order placement activity
 			user = request.user
 			if user.is_authenticated:

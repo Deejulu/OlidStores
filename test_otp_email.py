@@ -26,11 +26,11 @@ success, error = send_email_otp('daveed0011@gmail.com', '123456', 'email_verific
 
 print("\n" + "="*60)
 if success:
-    print("✅ SUCCESS! Email sent successfully!")
+    print("[PASS] SUCCESS! Email sent successfully!")
     print("\nCheck your inbox at: daveed0011@gmail.com")
     print("Subject: Your Olid Stores Verification Code: 123456")
 else:
-    print("❌ FAILED to send email!")
+    print("[FAIL] FAILED to send email!")
     print(f"\nError: {error}")
     print("\nPossible issues:")
     print("  1. Email backend not configured")

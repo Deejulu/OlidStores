@@ -128,7 +128,7 @@ def reduce_stock_on_payment_confirmation(order, old_status, new_status):
                         )
                         continue
                     variant.stock -= item.quantity
-                    variant.save(update_fields=['stock', 'updated_at'])
+                    variant.save(update_fields=['stock'])
                 else:
                     product = Product.objects.select_for_update().get(id=item.product.id)
                     if product.stock < item.quantity:

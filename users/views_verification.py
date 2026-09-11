@@ -357,6 +357,12 @@ def account_recovery(request):
         username = request.POST.get('username', '').strip()
         answers = request.POST.getlist('answer', [])
 
+        # Support legacy answer_{id} format if no 'answer' fields were posted
+        if not answers:
+            answer_keys = [k for k in request.POST if k.startswith('answer_')]
+            if answer_keys:
+                answers = [request.POST.get(k, '').strip() for k in sorted(answer_keys, key=lambda x: int(x.split('_', 1)[1]))]
+
         # Step 2: Validate answers if submitted
         if answers and username:
             try:

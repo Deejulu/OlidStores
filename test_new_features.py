@@ -27,7 +27,7 @@ print("-" * 60)
 try:
     # Check if ProductReview model exists
     review_count = ProductReview.objects.count()
-    print(f"✓ ProductReview model exists")
+    print("[OK] ProductReview model exists")
     print(f"  Total reviews in database: {review_count}")
     
     # Check if products have review methods
@@ -36,7 +36,7 @@ try:
         avg_rating = product.average_rating()
         review_count = product.review_count()
         needs_restock = product.needs_restock()
-        print(f"✓ Product methods working")
+        print(f"[OK] Product methods working")
         print(f"  Sample product: {product.name}")
         print(f"  - Average rating: {avg_rating}")
         print(f"  - Review count: {review_count}")
@@ -45,7 +45,7 @@ try:
     else:
         print("⚠ No products in database to test")
     
-    print("✅ Product Reviews: WORKING")
+    print("[PASS] Product Reviews: WORKING")
 except Exception as e:
     print(f"❌ Product Reviews: FAILED - {str(e)}")
 
@@ -56,19 +56,19 @@ try:
     # Check products
     total_products = Product.objects.count()
     editable_products = Product.objects.filter(is_editable=True).count()
-    print(f"✓ Products ready for bulk actions")
+    print(f"[OK] Products ready for bulk actions")
     print(f"  Total products: {total_products}")
     print(f"  Editable products: {editable_products}")
     
     # Check orders
     total_orders = Order.objects.count()
     orders_by_status = Order.objects.values('status').annotate(count=Count('id'))
-    print(f"✓ Orders ready for bulk actions")
+    print(f"[OK] Orders ready for bulk actions")
     print(f"  Total orders: {total_orders}")
     for status in orders_by_status:
         print(f"  - {status['status']}: {status['count']}")
     
-    print("✅ Bulk Actions: READY (UI tested manually)")
+    print("[PASS] Bulk Actions: READY (UI tested manually)")
 except Exception as e:
     print(f"❌ Bulk Actions: FAILED - {str(e)}")
 
@@ -82,7 +82,7 @@ try:
     low_stock = Product.objects.filter(stock__lte=F('reorder_level'), stock__gt=0)
     out_of_stock = Product.objects.filter(stock=0)
     
-    print(f"✓ Low stock detection working")
+    print(f"[OK] Low stock detection working")
     print(f"  Low stock products: {low_stock.count()}")
     if low_stock.exists():
         for p in low_stock[:3]:
@@ -99,7 +99,7 @@ try:
     print(f"  Admin emails for alerts: {len(admin_emails)}")
     print(f"    {', '.join(admin_emails[:3])}")
     
-    print("✅ Low Stock Alerts: WORKING")
+    print("[PASS] Low Stock Alerts: WORKING")
     print("   Run: python manage.py check_low_stock --send-email")
 except Exception as e:
     print(f"❌ Low Stock Alerts: FAILED - {str(e)}")
@@ -116,7 +116,7 @@ try:
     else:
         abandonment_rate = 0
     
-    print(f"✓ Cart Abandonment tracking")
+    print(f"[OK] Cart Abandonment tracking")
     print(f"  Abandoned carts: {carts_with_items}")
     print(f"  Completed orders: {completed_orders}")
     print(f"  Abandonment rate: {abandonment_rate}%")
@@ -134,7 +134,7 @@ try:
     else:
         clv = 0
     
-    print(f"✓ Customer Lifetime Value")
+    print(f"[OK] Customer Lifetime Value")
     print(f"  Customers with orders: {customers_with_orders.count()}")
     print(f"  Total revenue: ₦{total_revenue}")
     print(f"  CLV per customer: ₦{clv}")
@@ -151,12 +151,12 @@ try:
     
     repeat_rate = round((float(repeat_customers) / users_ever_ordered) * 100, 2) if users_ever_ordered else 0
     
-    print(f"✓ Repeat Purchase Rate")
+    print(f"[OK] Repeat Purchase Rate")
     print(f"  Users who ordered: {users_ever_ordered}")
     print(f"  Repeat customers: {repeat_customers}")
     print(f"  Repeat rate: {repeat_rate}%")
     
-    print("✅ Enhanced Analytics: WORKING")
+    print("[PASS] Enhanced Analytics: WORKING")
 except Exception as e:
     print(f"❌ Enhanced Analytics: FAILED - {str(e)}")
 
@@ -164,7 +164,7 @@ except Exception as e:
 print("\n" + "=" * 60)
 print("TEST SUMMARY")
 print("=" * 60)
-print("✅ All backend features are working!")
+print("[PASS] All backend features are working!")
 print("\nNext steps:")
 print("1. Visit product page to test review form")
 print("2. Go to /admin-dashboard/products/ to test bulk actions")

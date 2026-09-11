@@ -144,6 +144,14 @@ def reverse_order_stock(order):
 	from .models import OrderItem, OrderAuditLog
 	from products.models import Product, ProductVariant
 	
+	# Guard against double-reversal
+	if OrderAuditLog.objects.filter(order=order, action='stock_reversal').exists():
+		return {
+			'success': True,
+			'message': 'Stock already reversed for this order',
+			'reversed_items': []
+		}
+	
 	try:
 		with transaction.atomic():
 			reversed_items = []
@@ -169,7 +177,7 @@ def reverse_order_stock(order):
 				if item.variant:
 					variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
 					variant.stock += item.quantity
-					variant.save(update_fields=['stock', 'updated_at'])
+					variant.save(update_fields=['stock'])
 					
 					reversed_items.append({
 						'variant_id': item.variant.id,
