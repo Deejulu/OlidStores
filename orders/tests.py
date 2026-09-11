@@ -249,6 +249,18 @@ class PaystackIntegrationTests(TestCase):
 		data = r.json()
 		self.assertEqual(int(data.get('quantity')), 0)
 
+	def test_cart_quantity_controls_are_touch_safe(self):
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+
+		response = self.client.get('/cart/')
+		content = response.content.decode()
+		self.assertIn('touch-action: manipulation', content)
+		self.assertIn('const cartUpdateQueues = {};', content)
+		self.assertNotIn("$('.btn, .quantity-btn').on('touchstart'", content)
+
 	def test_delivery_fee_from_checkout_settings_manual(self):
 		# configure admin checkout settings
 		from .models import CheckoutSettings
@@ -1160,4 +1172,3 @@ class StockReductionOnPaymentTest(TestCase):
         # Stock should remain unchanged (Paystack handles stock differently)
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, initial_stock)
-

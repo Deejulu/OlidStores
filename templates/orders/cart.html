@@ -224,8 +224,8 @@
         font-size: 1.125rem;
     }
     
-    /* ========================================
-       7. Quantity Controls
+/* ========================================
+        7. Quantity Controls
     ======================================== */
     .quantity-controls {
         display: flex;
@@ -241,14 +241,18 @@
     .quantity-btn {
         background: white;
         border: 1px solid var(--gray-300);
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
         transition: var(--transition-base);
         color: var(--gray-600);
     }
@@ -277,19 +281,23 @@
         font-size: 0.9375rem;
     }
     
-    /* ========================================
-       8. Remove Button
+/* ========================================
+        8. Remove Button
     ======================================== */
     .btn-remove {
         background: linear-gradient(135deg, var(--danger-color), var(--danger-dark));
         color: white;
         border: none;
-        padding: 0.5rem 1rem;
+        padding: 0.625rem 1.125rem;
         border-radius: 8px;
         font-weight: 600;
         font-size: 0.8125rem;
         transition: var(--transition-base);
         box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25);
+        min-height: 44px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
     }
     
     .btn-remove:hover {
@@ -1363,10 +1371,28 @@
     // ========================================
     // AJAX Cart Update
     // ========================================
+    const cartUpdateQueues = {};
+
     function updateCartAjax(itemId, action, button) {
+        const queue = cartUpdateQueues[itemId] || (cartUpdateQueues[itemId] = []);
+        queue.push({ action: action, button: button });
+
+        if (queue.length > 1) return;
+        processNextCartUpdate(itemId);
+    }
+
+    function processNextCartUpdate(itemId) {
+        const queue = cartUpdateQueues[itemId];
+        if (!queue || !queue.length) {
+            delete cartUpdateQueues[itemId];
+            return;
+        }
+
+        const queuedUpdate = queue[0];
+        const action = queuedUpdate.action;
+        const button = queuedUpdate.button;
         // Add loading state
         const originalContent = button ? button.html() : '';
-        const originalText = button ? button.text() : '';
         
         if (button) {
             button.prop('disabled', true);
@@ -1426,6 +1452,8 @@
                     button.prop('disabled', false);
                     button.html(originalContent);
                 }
+                queue.shift();
+                processNextCartUpdate(itemId);
             }
         });
     }
@@ -1550,29 +1578,102 @@
         }
 
         // ========================================
+        // Touch/Click Helper
+        // ========================================
+        function bindTap(element, handler) {
+            let touchHandled = false;
+            element.on('touchstart', function(e) {
+                touchHandled = true;
+            });
+            element.on('touchend', function(e) {
+                if (touchHandled) {
+                    e.preventDefault();
+                    handler.call(this, e);
+                }
+                touchHandled = false;
+            });
+            element.on('click', function(e) {
+                if (!touchHandled) {
+                    handler.call(this, e);
+                }
+            });
+        }
+        
+        // ========================================
+        // Remove Confirmation Modal
+        // ========================================
+        function showRemoveConfirmModal(itemId, button) {
+            return new Promise((resolve) => {
+                // Remove existing modal if any
+                $('#remove-confirm-modal').remove();
+                
+                const modal = $(`
+                    <div id="remove-confirm-modal" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm">
+                            <div class="modal-content">
+                                <div class="modal-header border-0 pb-0">
+                                    <h5 class="modal-title fw-bold">Remove Item</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body pt-0">
+                                    <p class="mb-0">Are you sure you want to remove this item from your cart?</p>
+                                </div>
+                                <div class="modal-footer border-0 pt-0 justify-content-center gap-2">
+                                    <button type="button" class="btn btn-outline-secondary fw-medium" data-bs-dismiss="modal" id="remove-cancel-btn">
+                                        Cancel
+                                    </button>
+                                    <button type="button" class="btn btn-danger fw-medium" id="remove-confirm-btn">
+                                        <i class="bi bi-trash3 me-1"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                $('body').append(modal);
+                const bsModal = new bootstrap.Modal(modal[0], { backdrop: true, keyboard: true });
+                bsModal.show();
+                
+                modal.find('#remove-confirm-btn').one('click', function() {
+                    bsModal.hide();
+                    resolve(true);
+                });
+                
+                modal.find('#remove-cancel-btn, .btn-close').one('click', function() {
+                    bsModal.hide();
+                    resolve(false);
+                });
+                
+                modal.on('hidden.bs.modal', function() {
+                    modal.remove();
+                });
+            });
+        }
+        
+        // ========================================
         // Event Listeners
         // ========================================
         
         // Increment quantity
-        $('.cart-increment').click(function() {
+        bindTap($('.cart-increment'), function() {
             const itemId = $(this).data('item-id');
             updateCartAjax(itemId, 'increment', $(this));
         });
         
         // Decrement quantity
-        $('.cart-decrement').click(function() {
+        bindTap($('.cart-decrement'), function() {
             const itemId = $(this).data('item-id');
             updateCartAjax(itemId, 'decrement', $(this));
         });
         
         // Remove item
-        $('.cart-remove').click(function() {
+        bindTap($('.cart-remove'), async function() {
             const itemId = $(this).data('item-id');
             const button = $(this);
             
-            if (!confirm('Are you sure you want to remove this item from your cart?')) {
-                return;
-            }
+            const confirmed = await showRemoveConfirmModal(itemId, button);
+            if (!confirmed) return;
             
             updateCartAjax(itemId, 'remove', button);
             
@@ -1594,13 +1695,13 @@
         });
         
         // Desktop checkout button
-        $('#desktop-checkout-btn').click(function(e) {
+        bindTap($('#desktop-checkout-btn'), function(e) {
             e.preventDefault();
             handleCheckout($(this));
         });
         
         // Mobile checkout button
-        $('#mobile-checkout-btn, #floating-checkout-top').click(function(e) {
+        bindTap($('#mobile-checkout-btn, #floating-checkout-top'), function(e) {
             e.preventDefault();
             const $btn = $(this);
             if ($btn.data('processing')) return;
@@ -1640,13 +1741,6 @@
         // ========================================
         initQuantityEdit();
         initSmoothScroll();
-        
-        // ========================================
-        // Prevent Double-tap Zoom on Buttons
-        // ========================================
-        $('.btn, .quantity-btn').on('touchstart', function(e) {
-            e.preventDefault();
-        });
         
         // ========================================
         // Handle Orientation Change
