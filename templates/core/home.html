@@ -807,6 +807,10 @@
     }
     
     /* Staggered animation for cards */
+    .product-card {
+        animation: fadeInUpProduct 0.6s ease-out backwards;
+        animation-fill-mode: both;
+    }
     .product-card:nth-child(1) { animation-delay: 0.1s; }
     .product-card:nth-child(2) { animation-delay: 0.15s; }
     .product-card:nth-child(3) { animation-delay: 0.2s; }
@@ -1062,8 +1066,8 @@
         position: absolute;
         top: 0.5rem;
         right: 0.5rem;
-        width: 36px;
-        height: 36px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.75);
         border: 1px solid rgba(255, 255, 255, 0.25);
@@ -1079,6 +1083,8 @@
         -webkit-tap-highlight-color: rgba(220, 53, 69, 0.2);
         touch-action: manipulation;
         pointer-events: auto;
+        min-width: 44px;
+        min-height: 44px;
     }
     
     @media (min-width: 768px) {
@@ -1540,9 +1546,9 @@
     
     .cta-button {
         flex: 1;
-        padding: 0.5rem 0.4rem;
+        padding: 0.6rem 0.5rem;
         font-weight: 700;
-        font-size: 0.65rem;
+        font-size: 0.7rem;
         border-radius: 8px;
         border: none;
         cursor: pointer;
@@ -1554,6 +1560,7 @@
         white-space: nowrap;
         text-decoration: none;
         -webkit-tap-highlight-color: rgba(139, 115, 85, 0.2);
+        min-height: 44px;
     }
     
     @media (min-width: 480px) {
@@ -2091,6 +2098,30 @@
         .newsletter-subtitle { font-size: 0.9rem; }
         .btn { padding: 0.75rem 1.25rem; font-size: 0.9rem; max-width: 100%; }
         .products-grid { gap: 0.5rem; }
+    }
+    
+    /* Accessibility: respect reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+        .hero-content,
+        .hero-badge,
+        .hero-actions,
+        .hero-features,
+        .product-card,
+        .stat-card,
+        .category-card,
+        .newsletter-container {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
     }
     
     /* Utility Classes */
@@ -2850,28 +2881,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Animate on scroll
+    // Animate on scroll — only for elements without CSS entry animations
     const observerOptions = {
         threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
+        rootMargin: '0px 0px -80px 0px'
     };
     
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.classList.add('in-view');
+                observer.unobserve(entry.target);
             }
         });
     }, observerOptions);
     
-    // Observe elements
-    document.querySelectorAll('.product-card, .stat-card, .category-card, .newsletter-container').forEach(el => {
+    // Observe elements that don't already have CSS animations
+    document.querySelectorAll('.stat-card, .category-card, .newsletter-container').forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
+    
+    // CSS class for scroll-triggered reveal
+    const style = document.createElement('style');
+    style.textContent = `
+        .in-view { opacity: 1 !important; transform: translateY(0) !important; }
+    `;
+    document.head.appendChild(style);
     
     // Add to Cart functionality for Featured Products
     function getCookie(name) {

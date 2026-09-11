@@ -124,12 +124,29 @@
   .pd-price { font-size: 1.25rem; }
   .pd-thumb { width: 52px; height: 52px; }
 }
+
+/* Accessibility: respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Quantity stepper — minimum 44×44 touch targets */
 .qty-stepper button {
   min-width: 44px; min-height: 44px;
   width: 44px; height: 44px;
 }
 .qty-stepper input { min-height: 44px; height: 44px; }
+
+/* Lightbox accessibility */
+#pd-lightbox { cursor: zoom-out; }
+#pd-lightbox.open .lb-close:focus-visible { outline: 3px solid var(--theme-accent, #D4AF37); outline-offset: 4px; }
 </style>
 {% endblock %}
 
