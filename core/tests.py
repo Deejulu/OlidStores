@@ -604,3 +604,57 @@ class ChatDuplicationTests(TestCase):
         # Each distinct message id rendered exactly once.
         all_ids = [m['id'] for m in (p1 + p2) if m['id']]
         self.assertEqual(len(rendered), len(set(all_ids)))
+
+
+class ChatStalePollingTests(TestCase):
+    """Polling a stale or non-existent chat ID should return 404, not hang or 500.
+
+    This is the server-side contract that the frontend relies on: a 404 tells
+    the JS that the conversation is no longer valid (user logged out, session
+    expired, conversation deleted), so it should stop polling and clear state.
+    """
+
+    def setUp(self):
+        from core.models import ChatConversation, ChatAutoReply
+        ChatAutoReply.objects.filter(is_active=True).update(is_active=False)
+
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.user_a = User.objects.create_user(
+            username='user_a', email='a@example.com', password='pass123'
+        )
+        self.user_b = User.objects.create_user(
+            username='user_b', email='b@example.com', password='pass123'
+        )
+
+        self.conv_a = ChatConversation.objects.create(
+            user=self.user_a, subject='Chat A', status='open'
+        )
+
+        self.client_a = Client()
+        self.client_a.force_login(self.user_a)
+        self.client_b = Client()
+        self.client_b.force_login(self.user_b)
+
+    def test_poll_nonexistent_conversation_returns_404(self):
+        """Polling a conversation ID that doesn't exist should return 404."""
+        r = self.client_a.get('/chat/poll/999999/')
+        self.assertEqual(r.status_code, 404)
+        data = json.loads(r.content)
+        self.assertFalse(data['success'])
+
+    def test_poll_other_user_conversation_returns_404(self):
+        """User B polling User A's conversation should return 404 (not leak data)."""
+        r = self.client_b.get('/chat/poll/%d/' % self.conv_a.pk)
+        self.assertEqual(r.status_code, 404)
+        data = json.loads(r.content)
+        self.assertFalse(data['success'])
+
+    def test_poll_valid_conversation_returns_200(self):
+        """Polling own conversation should return 200 with success=True."""
+        r = self.client_a.get('/chat/poll/%d/' % self.conv_a.pk)
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertTrue(data['success'])
+        self.assertIn('messages', data)
+        self.assertIn('status', data)

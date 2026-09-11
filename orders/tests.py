@@ -644,7 +644,21 @@ class GuestCheckoutTests(TestCase):
 
 		r = self.client.get(reverse('orders:checkout'), HTTP_X_FORWARDED_PROTO='https')
 		self.assertEqual(r.status_code, 200)
-
+	def test_checkout_page_requests_all_paystack_channels(self):
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
+ 
+		r = self.client.get(reverse('orders:checkout'), HTTP_X_FORWARDED_PROTO='https')
+		self.assertEqual(r.status_code, 200)
+		content = r.content.decode()
+		self.assertIn("'card'", content)
+		self.assertIn("'bank_transfer'", content)
+		self.assertIn("'ussd'", content)
+		self.assertIn("'qr'", content)
+		self.assertNotIn("'bank',", content)
+ 
 	def test_guest_can_place_manual_order(self):
 		"""Manual payment is no longer available on checkout."""
 		# Add item to cart

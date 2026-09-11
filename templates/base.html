@@ -3723,9 +3723,12 @@
         // ── Load full history ─────────────────────────────────
         function loadHistory() {
             fetch('/chat/history/' + convId + '/')
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) { resetToStart(); return null; }
+                    return r.json();
+                })
                 .then(data => {
-                    if (!data.success) { resetToStart(); return; }
+                    if (!data || !data.success) { resetToStart(); return; }
                     showMessagesScreen();
                     messagesBody.innerHTML = '';
                      renderedMsgIds.clear();
@@ -3944,6 +3947,22 @@
         });
 
         // ── Polling ───────────────────────────────────────────
+        function resetChat() {
+            // Clear stale state so polling never repeats against a dead conv id.
+            stopPolling();
+            stopBgPolling();
+            convId = null;
+            localStorage.removeItem(STORAGE_KEY);
+            lastMsgAt = null;
+            if (isPanelOpen) {
+                showStartScreen();
+                messagesBody.innerHTML = '';
+                renderedMsgIds.clear();
+                renderedCustomerTexts.clear();
+                headerSub.innerHTML = '<span style="display:inline-block;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>Typically replies instantly';
+            }
+        }
+
         function startPolling() {
             stopPolling();
             pollInterval = setInterval(pollMessages, 4000);
@@ -3965,19 +3984,21 @@
             const after = localStorage.getItem(LAST_SEEN_KEY + convId) || '';
             const url = '/chat/poll/' + convId + '/' + (after ? '?after=' + encodeURIComponent(after) : '');
             fetch(url)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) { resetChat(); return null; }
+                    return r.json();
+                })
                 .then(data => {
-                    if (!data.success) return;
+                    if (!data || !data.success) { resetChat(); return; }
                     const adminMsgs = (data.messages || []).filter(m => m.sender_type === 'admin');
                     if (adminMsgs.length) {
                         bumpUnread(adminMsgs.length);
-                        // Update last_seen to after these new messages so we don't recount
                         const last = data.messages[data.messages.length - 1];
                         if (last) localStorage.setItem(LAST_SEEN_KEY + convId, last.created_at);
                     }
                     if (data.status === 'closed') stopBgPolling();
                 })
-                .catch(function () {});
+                .catch(function () { resetChat(); });
         }
 
         function pollMessages() {
@@ -3988,9 +4009,12 @@
             isPolling = true;
             const url = '/chat/poll/' + convId + '/' + (lastMsgAt ? '?after=' + encodeURIComponent(lastMsgAt) : '');
             fetch(url)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) { resetChat(); return null; }
+                    return r.json();
+                })
                 .then(data => {
-                    if (!data.success) return;
+                    if (!data || !data.success) { resetChat(); return; }
                     if (data.messages && data.messages.length) {
                         data.messages.forEach(function (m) {
                             appendMessage(m);
@@ -4002,7 +4026,7 @@
                     updateConvStatus(data.status);
                     if (data.status === 'closed') stopPolling();
                 })
-                .catch(function () {})
+                .catch(function () { resetChat(); })
                 .finally(function () { isPolling = false; });
         }
 
@@ -4037,17 +4061,28 @@
             const after = localStorage.getItem(LAST_SEEN_KEY + convId) || '';
             const url = '/chat/poll/' + convId + '/' + (after ? '?after=' + encodeURIComponent(after) : '');
             fetch(url)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) { resetChat(); return null; }
+                    return r.json();
+                })
                 .then(data => {
-                    if (!data.success) return;
+                    if (!data || !data.success) { resetChat(); return; }
                     const adminMsgs = (data.messages || []).filter(m => m.sender_type === 'admin');
                     if (adminMsgs.length) {
                         bumpUnread(adminMsgs.length);
                     }
                     if (data.status !== 'closed') startBgPolling();
                 })
-                .catch(function () {});
+                .catch(function () { resetChat(); });
         })();
+
+        // ── Clear chat state on logout ─────────────────────────
+        var logoutForm = document.getElementById('logoutForm');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function() {
+                resetChat();
+            });
+        }
 
     })();
     </script>
