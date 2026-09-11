@@ -2091,7 +2091,7 @@
                         lastname: fullName.split(' ').slice(1).join(' ') || '',
                         amount: amount,
                         currency: 'NGN',
-                        channels: ['card', 'bank_transfer', 'ussd', 'qr'],
+                        channels: ['card', 'bank', 'bank_transfer', 'ussd', 'qr'],
                         ref: paystackRef,
                         label: fullName,
                         metadata: {
@@ -2162,7 +2162,28 @@
                         return;
                     }
 
+                    // Log the transaction parameters the SDK will send to Paystack.
+                    // If the channels shown in the Paystack modal do not match
+                    // paystackConfig.channels, the most likely cause is that those
+                    // channels are restricted on the Paystack merchant account
+                    // (test-mode settings, country, business category, etc.).
                     try {
+                        const txnParams = handler.defaults || {};
+                        console.log('[Paystack] transaction params sent to iframe:', {
+                            key: txnParams.key,
+                            email: txnParams.email,
+                            amount: txnParams.amount,
+                            currency: txnParams.currency,
+                            channels: txnParams.channels,
+                            ref: txnParams.ref,
+                            mode: txnParams.mode,
+                        });
+                    } catch (logErr) {
+                        console.warn('[Paystack] could not read transaction params:', logErr);
+                    }
+
+                    try {
+                        console.log('[Paystack] opening iframe with channels:', paystackConfig.channels);
                         handler.openIframe();
                     } catch (paystackErr) {
                         console.error('[Paystack] openIframe error:', paystackErr);
