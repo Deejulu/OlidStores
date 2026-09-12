@@ -125,6 +125,7 @@ def do_delete_sample_data_full():
     from django.contrib.auth import get_user_model
     from orders.models import PaymentTransaction, OrderItem, Order
     from products.models import Product, Category
+    from django.core.cache import cache
 
     User = get_user_model()
     summary = {}
@@ -146,6 +147,13 @@ def do_delete_sample_data_full():
 
     category_count, _ = Category.objects.filter(is_sample=True, products__isnull=True).delete()
     summary['categories'] = category_count
+
+    cache.delete('shop_sidebar_categories')
+    cache.delete('shop_suggested_products')
+    cache.delete('footer_categories')
+    cache.delete('homepage_featured_products')
+    cache.delete('homepage_banner_images')
+    cache.delete('homepage_hero_images')
 
     return summary
 

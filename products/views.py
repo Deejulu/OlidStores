@@ -14,6 +14,13 @@ class ShopListView(ListView):
 	context_object_name = 'products'
 	paginate_by = 24
 
+	def dispatch(self, request, *args, **kwargs):
+		response = super().dispatch(request, *args, **kwargs)
+		response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+		response['Pragma'] = 'no-cache'
+		response['Expires'] = '0'
+		return response
+
 	def get_queryset(self):
 		queryset = Product.objects.all().defer('description').select_related('category').prefetch_related('variants', 'images').annotate(
 			avg_rating=Avg('reviews__rating'),
@@ -172,6 +179,13 @@ class ProductDetailView(DetailView):
 	context_object_name = 'product'
 	slug_field = 'slug'
 	slug_url_kwarg = 'slug'
+
+	def dispatch(self, request, *args, **kwargs):
+		response = super().dispatch(request, *args, **kwargs)
+		response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+		response['Pragma'] = 'no-cache'
+		response['Expires'] = '0'
+		return response
 
 	def get_queryset(self):
 		from .models import ProductReview

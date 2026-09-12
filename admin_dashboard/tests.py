@@ -832,3 +832,33 @@ class PopulateDeleteSampleCycleTest(TestCase):
         final_count = Product.objects.filter(is_sample=False).count()
         self.assertEqual(final_count, initial_count)
 
+    def test_delete_sample_removes_products_from_shop_page(self):
+        """After Delete Sample Data, the customer-facing Shop page should not show deleted sample products."""
+        from admin_dashboard.populate_tasks import do_populate_sample_data_full, do_delete_sample_data_full
+        from products.models import Product
+        from django.test import Client
+
+        # Populate sample data
+        do_populate_sample_data_full()
+        sample_products = list(Product.objects.filter(is_sample=True).values_list('name', flat=True))
+        self.assertGreater(len(sample_products), 0)
+
+        # Verify shop page shows sample products before delete
+        client = Client()
+        resp = client.get('/shop/')
+        self.assertEqual(resp.status_code, 200)
+        for name in sample_products[:5]:  # Check first 5 to avoid too many assertions
+            self.assertIn(name.encode(), resp.content)
+
+        # Delete sample data
+        do_delete_sample_data_full()
+
+        # Verify sample products are gone from database
+        self.assertEqual(Product.objects.filter(is_sample=True).count(), 0)
+
+        # Verify shop page no longer shows deleted sample products
+        resp = client.get('/shop/')
+        self.assertEqual(resp.status_code, 200)
+        for name in sample_products[:5]:
+            self.assertNotIn(name.encode(), resp.content)
+
