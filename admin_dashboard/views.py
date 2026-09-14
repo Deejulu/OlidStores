@@ -563,6 +563,12 @@ def product_create(request):
             product = form.save(commit=False)
             product.is_sample = False
             product.save()
+            cache.delete('shop_sidebar_categories')
+            cache.delete('shop_suggested_products')
+            cache.delete('footer_categories')
+            cache.delete('homepage_featured_products')
+            cache.delete('homepage_banner_images')
+            cache.delete('homepage_hero_images')
             for field in ['image1', 'image2', 'image3']:
                 img = form.cleaned_data.get(field)
                 if img:
@@ -609,6 +615,12 @@ def product_bulk_create(request):
                     is_sample=False,
                 )
                 product.save()
+                cache.delete('shop_sidebar_categories')
+                cache.delete('shop_suggested_products')
+                cache.delete('footer_categories')
+                cache.delete('homepage_featured_products')
+                cache.delete('homepage_banner_images')
+                cache.delete('homepage_hero_images')
                 saved += 1
             if saved:
                 messages.success(
@@ -639,6 +651,12 @@ def product_edit(request, pk):
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             product = form.save()
+            cache.delete('shop_sidebar_categories')
+            cache.delete('shop_suggested_products')
+            cache.delete('footer_categories')
+            cache.delete('homepage_featured_products')
+            cache.delete('homepage_banner_images')
+            cache.delete('homepage_hero_images')
             # Remove old images if any new are uploaded
             new_images = [form.cleaned_data.get(f) for f in ['image1', 'image2', 'image3'] if form.cleaned_data.get(f)]
             if new_images:
@@ -658,6 +676,12 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
         product.delete()
+        cache.delete('shop_sidebar_categories')
+        cache.delete('shop_suggested_products')
+        cache.delete('footer_categories')
+        cache.delete('homepage_featured_products')
+        cache.delete('homepage_banner_images')
+        cache.delete('homepage_hero_images')
         return redirect('admin_dashboard:product_list')
     return render(request, 'admin_dashboard/products/product_confirm_delete.html', {'product': product})
 
@@ -668,6 +692,12 @@ def product_toggle(request, pk):
     if request.method == 'POST':
         product.is_editable = not product.is_editable
         product.save()
+        cache.delete('shop_sidebar_categories')
+        cache.delete('shop_suggested_products')
+        cache.delete('footer_categories')
+        cache.delete('homepage_featured_products')
+        cache.delete('homepage_banner_images')
+        cache.delete('homepage_hero_images')
     return redirect('admin_dashboard:product_list')
 
 
@@ -683,6 +713,12 @@ def category_create(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
+            cache.delete('shop_sidebar_categories')
+            cache.delete('shop_suggested_products')
+            cache.delete('footer_categories')
+            cache.delete('homepage_featured_products')
+            cache.delete('homepage_banner_images')
+            cache.delete('homepage_hero_images')
             return redirect('admin_dashboard:category_list')
     else:
         form = CategoryForm()
@@ -696,6 +732,12 @@ def category_edit(request, pk):
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
+            cache.delete('shop_sidebar_categories')
+            cache.delete('shop_suggested_products')
+            cache.delete('footer_categories')
+            cache.delete('homepage_featured_products')
+            cache.delete('homepage_banner_images')
+            cache.delete('homepage_hero_images')
             return redirect('admin_dashboard:category_list')
     else:
         form = CategoryForm(instance=category)
@@ -707,6 +749,12 @@ def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
         category.delete()
+        cache.delete('shop_sidebar_categories')
+        cache.delete('shop_suggested_products')
+        cache.delete('footer_categories')
+        cache.delete('homepage_featured_products')
+        cache.delete('homepage_banner_images')
+        cache.delete('homepage_hero_images')
         return redirect('admin_dashboard:category_list')
     return render(request, 'admin_dashboard/categories/category_confirm_delete.html', {'category': category})
 
@@ -717,6 +765,12 @@ def category_toggle(request, pk):
     if request.method == 'POST':
         category.is_editable = not category.is_editable
         category.save()
+        cache.delete('shop_sidebar_categories')
+        cache.delete('shop_suggested_products')
+        cache.delete('footer_categories')
+        cache.delete('homepage_featured_products')
+        cache.delete('homepage_banner_images')
+        cache.delete('homepage_hero_images')
     return redirect('admin_dashboard:category_list')
 
 
