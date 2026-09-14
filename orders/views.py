@@ -911,12 +911,12 @@ def download_order_pdf(request, order_id, token):
         name = it.product.name
         if it.variant:
             name += ' (%s)' % it.variant.name
-        unit = money(it.subtotal / it.quantity) if it.quantity else money(it.subtotal)
+        unit = money(it.subtotal() / it.quantity) if it.quantity else money(it.subtotal())
         data.append([
             Paragraph(name, cell),
             str(it.quantity),
             Paragraph(unit, cell),
-            Paragraph(money(it.subtotal), cell),
+            Paragraph(money(it.subtotal()), cell),
         ])
     items_tbl = Table(data, colWidths=[90 * mm, 18 * mm, 33 * mm, 33 * mm], repeatRows=1)
     items_tbl.setStyle(TableStyle([
@@ -939,7 +939,7 @@ def download_order_pdf(request, order_id, token):
     totals = [['Subtotal', money(order.total)]]
     if order.delivery_fee:
         totals.append(['Delivery Fee (%s)' % delivery_option, money(order.delivery_fee)])
-    totals.append(['Grand Total', money(order.grand_total)])
+    totals.append(['Grand Total', money(order.grand_total())])
     tot_tbl = Table(totals, colWidths=[120 * mm, 54 * mm])
     tot_tbl.setStyle(TableStyle([
         ('FONT', (0, 0), (-1, -1), 'Helvetica', 9.5),

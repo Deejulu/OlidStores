@@ -849,6 +849,33 @@ class OrderConfirmationTests(TestCase):
 		self.assertContains(response, '2-day')
 		self.assertContains(response, 'Payment Confirmed')
 
+	def test_order_confirmation_pdf_downloads(self):
+		self.client.force_login(self.user)
+		order = Order.objects.create(
+			user=self.user,
+			full_name='John Doe',
+			phone='08000000000',
+			email='john@example.com',
+			delivery_address='123 Street',
+			total=Decimal('220.00'),
+			delivery_fee=Decimal('300.00'),
+			payment_method='paystack',
+			status='Processing',
+		)
+		OrderItem.objects.create(
+			order=order,
+			product=self.product,
+			variant=self.variant,
+			quantity=2,
+			price=Decimal('110.00'),
+		)
+		url = reverse('orders:order_confirmation_pdf', kwargs={'order_id': order.id, 'token': order.confirmation_token})
+		response = self.client.get(url)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response['Content-Type'], 'application/pdf')
+		self.assertTrue(response.content.startswith(b'%PDF'))
+		self.assertIn('attachment;', response['Content-Disposition'])
+
 	def test_confirmation_page_guest_access(self):
 		self.guest_client = Client()
 		# Create a session first so the client has a session key
