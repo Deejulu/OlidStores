@@ -99,11 +99,6 @@ class ShopListView(ListView):
 			cache.set('shop_sidebar_categories', cats, 3600)
 		# Take up to 11, and if fewer exist, repeat existing ones to pad to 11 (keeps UI stable in tests)
 		cats_display = cats[:11]
-		if len(cats_display) < 11 and cats:
-			i = 0
-			while len(cats_display) < 11:
-				cats_display.append(cats[i % len(cats)])
-				i += 1
 		context['categories'] = cats_display
 		for c in context['categories']:
 			c.product_count = getattr(c, 'product_count', 0)
