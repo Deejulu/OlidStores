@@ -197,6 +197,7 @@
                     </th>
                     <th>Order ID</th>
                     <th>Customer</th>
+                    <th>Items</th>
                     <th>Amount</th>
                     <th>Status</th>
                     <th>Date</th>
@@ -218,6 +219,17 @@
                             {% if order.user %}
                             <span class="customer-email">{{ order.user.email }}</span>
                             {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="order-items-inline">
+                            {% for item in order.items.all %}
+                            <span class="order-item-inline">
+                                {{ item.quantity }}x {{ item.product.name|default:"Unknown" }}
+                            </span>{% if not forloop.last %},{% endif %}
+                            {% empty %}
+                            <span class="text-muted">No items</span>
+                            {% endfor %}
                         </div>
                     </td>
                     <td>
@@ -268,7 +280,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="empty-state">
                             <i class="bi bi-inbox"></i>
                             <h3>No orders found</h3>
@@ -313,7 +325,17 @@
                     <span class="order-card-email">{{ order.user.email }}</span>
                     {% endif %}
                 </div>
-                
+
+                <div class="order-items-inline">
+                    {% for item in order.items.all %}
+                    <span class="order-item-inline">
+                        {{ item.quantity }}x {{ item.product.name|default:"Unknown" }}
+                    </span>{% if not forloop.last %},{% endif %}
+                    {% empty %}
+                    <span class="text-muted">No items</span>
+                    {% endfor %}
+                </div>
+
                 {% if order.status == 'Pending' %}
                 <span class="status-badge status-pending">
                     <i class="bi bi-hourglass-split"></i> Pending

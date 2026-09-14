@@ -816,6 +816,35 @@
     gap: 1rem;
 }
 
+.order-items-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.order-item-inline {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .order-item-inline {
+    background: #374151;
+    color: #d1d5db;
+}
+
+.order-items-inline .text-muted {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 .order-card-footer .order-date {
     font-size: 0.85rem;
     color: #1a202c !important;

@@ -793,7 +793,7 @@ def _get_order_list_context(request):
     start = (page - 1) * page_size
     end = start + page_size
 
-    paginated_orders = orders.select_related('user')[start:end]
+    paginated_orders = orders.select_related('user').prefetch_related('items')[start:end]
 
     return {
         'orders': paginated_orders,
