@@ -92,26 +92,12 @@ def _run_in_thread(func, *args, **kwargs):
     t.start()
 
 
-def do_product_populate_sample():
-    try:
-        call_command('populate_sample')
-    except Exception as e:
-        logger.error(f'Background product populate failed: {e}', exc_info=True)
-        raise
-
-
 def do_category_populate_sample():
     try:
         call_command('populate_sample')
     except Exception as e:
         logger.error(f'Background category populate failed: {e}', exc_info=True)
         raise
-
-
-def do_product_remove_sample():
-    from products.models import Product
-    deleted_count, _ = Product.objects.filter(is_sample=True).delete()
-    return {'deleted_count': deleted_count}
 
 
 def do_category_remove_sample():
@@ -379,8 +365,10 @@ def do_populate_sample_data_full():
                 sample_customers.append(username)
 
             if new_customers:
+                from django.contrib.auth.hashers import make_password
+                hashed_pw = make_password('samplepass123')
                 for user in new_customers:
-                    user.set_password('samplepass123')
+                    user.password = hashed_pw
                 User.objects.bulk_create(new_customers)
 
             sample_customers_qs = User.objects.filter(username__in=sample_customers, role='customer', is_sample=True)
