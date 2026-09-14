@@ -534,24 +534,6 @@
                         <i class="bi bi-plus-circle"></i>
                         Add New Category
                     </a>
-                    {% if user.is_superuser %}
-                    <form method="post" action="{% url 'admin_dashboard:category_populate_sample' %}" style="display:inline" id="populate-form-cat" onsubmit="return startSampleTask(this, 'category-populate', 'populate-loading-overlay-cat', 'populate-btn-cat', 'Creating sample categories… please wait', '{% url 'admin_dashboard:sample_task_status' 'category-populate' %}')">
-                        {% csrf_token %}
-                        <input type="hidden" name="confirmation" value="CONFIRM">
-                        <button type="submit" class="btn-add-category btn-secondary" id="populate-btn-cat">
-                            <i class="bi bi-tags"></i>
-                            Populate Sample Categories
-                        </button>
-                    </form>
-                    <form method="post" action="{% url 'admin_dashboard:category_remove_sample' %}" style="display:inline" onsubmit="return startSampleTask(this, 'category-remove', 'populate-loading-overlay-cat', 'populate-btn-cat', 'Removing sample categories… please wait', '{% url 'admin_dashboard:sample_task_status' 'category-remove' %}')">
-                        {% csrf_token %}
-                        <input type="hidden" name="confirmation" value="CONFIRM">
-                        <button type="submit" class="btn-add-category btn-danger" id="remove-btn-cat">
-                            <i class="bi bi-trash3"></i>
-                            Remove Sample Categories
-                        </button>
-                    </form>
-                    {% endif %}
                 </div>
             </div>
         </div>

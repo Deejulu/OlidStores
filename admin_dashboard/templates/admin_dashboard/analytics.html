@@ -1821,10 +1821,6 @@
                             <div class="empty-state-title">No Orders Yet</div>
                             <div class="empty-state-subtitle">Order status distribution will appear once customers start placing orders</div>
                             <div class="empty-state-actions">
-                                <a href="{% url 'admin_dashboard:generate_sample_data' %}" class="empty-state-btn">
-                                    <i class="bi bi-database-add"></i>
-                                    Generate Sample Data
-                                </a>
                             </div>
                         </div>
                     {% endif %}
@@ -1871,10 +1867,6 @@
                     {% endfor %}
                 </ul>
                 <div class="action-buttons">
-                    <a href="{% url 'admin_dashboard:generate_sample_data' %}" class="btn-action" title="Generate test data for development">
-                        <i class="bi bi-database-add"></i>
-                        Generate Sample Data
-                    </a>
                     <a href="{% url 'admin_dashboard:send_analytics_report' %}" class="btn-action" title="Send analytics summary to admin email">
                         <i class="bi bi-envelope-paper"></i>
                         Email Analytics Report
@@ -1949,10 +1941,6 @@
                                 <a href="/admin-dashboard/products/add/" class="empty-state-btn">
                                     <i class="bi bi-plus-circle"></i>
                                     Add Products
-                                </a>
-                                <a href="{% url 'admin_dashboard:generate_sample_data' %}" class="empty-state-btn secondary">
-                                    <i class="bi bi-database-add"></i>
-                                    Generate Sample Data
                                 </a>
                             </div>
                         </li>

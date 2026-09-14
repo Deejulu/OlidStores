@@ -22,9 +22,9 @@
 
 | Button | View | What It Creates |
 |--------|------|-----------------|
-| Populate Sample Products | `admin_dashboard/views.py:464-477` | Calls `populate_sample` management command — creates 120 sample products across 9 categories (Electronics, Fashion, Home Appliances, Cosmetics, Books, Sports, Toys, Furniture, Gaming). Marks all with `is_sample=True`. **Deletes all existing products first.** |
+| Populate Sample Products | `admin_dashboard/views.py` and `admin_dashboard/populate_tasks.py` | Creates 120 sample products across the sample catalog and marks them `is_sample=True`. Existing products are never deleted or reclassified unless they are already sample-flagged. |
 | Remove Sample Products | `admin_dashboard/views.py:479-490` | Deletes ALL products from the database. No filter — removes everything. |
-| Populate Sample Categories | `admin_dashboard/views.py:655-668` | Same as product populate — calls same `populate_sample` command. |
+| Populate Sample Categories | `admin_dashboard/views.py` and `admin_dashboard/populate_tasks.py` | Reuses matching categories without reclassifying categories created by administrators. |
 | Remove Sample Categories | `admin_dashboard/views.py:671-679` | Deletes ALL categories (cascades to products). |
 | Generate Sample Data | `admin_dashboard/views.py:1488-1561` | Creates 5 sample customers + 1-4 orders each (20 total orders) with random products, dates spanning last 60 days, weighted status distribution. |
 

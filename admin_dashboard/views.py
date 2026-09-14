@@ -14,9 +14,7 @@ import logging
 from .models import DailyMetric
 from .populate_tasks import (
     _run_in_thread,
-    do_product_populate_sample,
     do_category_populate_sample,
-    do_product_remove_sample,
     do_category_remove_sample,
     do_populate_sample_data_full,
     do_delete_sample_data_full,
@@ -562,7 +560,9 @@ def product_create(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
-            product = form.save()
+            product = form.save(commit=False)
+            product.is_sample = False
+            product.save()
             for field in ['image1', 'image2', 'image3']:
                 img = form.cleaned_data.get(field)
                 if img:
@@ -606,6 +606,7 @@ def product_bulk_create(request):
                     reorder_level=form.cleaned_data.get('reorder_level') or 5,
                     category=selected_category,
                     image=form.cleaned_data.get('image') or None,
+                    is_sample=False,
                 )
                 product.save()
                 saved += 1
@@ -2477,32 +2478,6 @@ def sample_task_status(request, task_name):
     if status is None:
         status = {'status': 'idle', 'message': 'No task is running.'}
     return JsonResponse(status)
-
-
-@admin_role_required
-def product_populate_sample(request):
-    if request.method != 'POST':
-        return redirect('admin_dashboard:product_list')
-    return _start_sample_task(
-        request,
-        'product-populate',
-        do_product_populate_sample,
-        'Creating sample products...',
-        redirect_url='admin_dashboard:product_list',
-    )
-
-
-@admin_role_required
-def product_remove_sample(request):
-    if request.method != 'POST':
-        return redirect('admin_dashboard:product_list')
-    return _start_sample_task(
-        request,
-        'product-remove',
-        do_product_remove_sample,
-        'Removing sample products...',
-        redirect_url='admin_dashboard:product_list',
-    )
 
 
 @admin_role_required

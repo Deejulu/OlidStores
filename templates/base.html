@@ -2664,19 +2664,17 @@
                                 <span>Sale Items</span>
                             </a>
                             <div class="search-suggestions-header">Categories</div>
-                            <a href="/shop/?category=dresses" class="search-suggestion-item">
-                                <i class="bi bi-handbag"></i>
-                                <span>Dresses</span>
-                            </a>
-                            <a href="/shop/?category=accessories" class="search-suggestion-item">
-                                <i class="bi bi-gem"></i>
-                                <span>Accessories</span>
-                            </a>
-                            <div class="search-quick-links">
-                                <a href="/shop/?category=tops" class="search-quick-link"><i class="bi bi-hash"></i> Tops</a>
-                                <a href="/shop/?category=shoes" class="search-quick-link"><i class="bi bi-hash"></i> Shoes</a>
-                                <a href="/shop/?category=bags" class="search-quick-link"><i class="bi bi-hash"></i> Bags</a>
-                            </div>
+                            {% for category in search_categories %}
+                                <a href="{{ shop_url }}?category={{ category.slug|urlencode }}" class="search-suggestion-item">
+                                    <i class="bi bi-tag"></i>
+                                    <span>{{ category.name }}</span>
+                                </a>
+                            {% empty %}
+                                <div class="search-suggestion-item">
+                                    <i class="bi bi-tag"></i>
+                                    <span>No categories available</span>
+                                </div>
+                            {% endfor %}
                         </div>
                     </form>
                 </div>

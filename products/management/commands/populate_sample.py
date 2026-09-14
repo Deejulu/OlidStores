@@ -159,11 +159,9 @@ class Command(BaseCommand):
         if new_cats:
             Category.objects.bulk_create(new_cats, ignore_conflicts=True)
 
-        # Get all category objects and mark existing catalog categories as sample
+        # Reuse matching categories without reclassifying categories created by a user.
         cat_objects = {c.name: c for c in Category.objects.filter(name__in=cat_names)}
-        # Mark existing categories that weren't just created as sample too
-        Category.objects.filter(name__in=cat_names, is_sample=False).update(is_sample=True)
-        self.stdout.write(self.style.SUCCESS(f'Ensured {len(cat_objects)} categories exist (all marked as sample).'))
+        self.stdout.write(self.style.SUCCESS(f'Ensured {len(cat_objects)} categories exist.'))
 
         # SAFETY FIX: Only delete existing sample products, never real products
         # Previously this was Product.objects.all().delete() which wiped real data

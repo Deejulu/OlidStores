@@ -505,24 +505,46 @@ class UnifiedSampleDataTest(TransactionTestCase):
         real_cat.refresh_from_db()
         self.assertFalse(real_cat.is_sample)
 
-    def test_buttons_render_in_template_for_admin(self):
-        """Sample Data section renders in dashboard template for admin users."""
+    def test_sample_data_controls_only_render_on_product_inventory(self):
+        """The unified sample-data controls have one canonical location."""
         resp = self.client.get(reverse('admin_dashboard:dashboard_home'))
         self.assertEqual(resp.status_code, 200)
-        content = resp.content.decode()
-        self.assertIn('Sample Data', content)
-        self.assertIn('Populate Sample Data', content)
-        self.assertIn('Delete Sample Data', content)
+        dashboard_content = resp.content.decode()
+        self.assertNotIn('Populate Sample Data', dashboard_content)
+        self.assertNotIn('Delete Sample Data', dashboard_content)
 
-    @override_settings(DEBUG=False)
-    def test_buttons_render_in_template_when_debug_false(self):
-        """Sample Data section renders for admin even when DEBUG=False."""
-        resp = self.client.get(reverse('admin_dashboard:dashboard_home'))
+        resp = self.client.get(reverse('admin_dashboard:product_list'))
         self.assertEqual(resp.status_code, 200)
+        inventory_content = resp.content.decode()
+        self.assertEqual(inventory_content.count('Populate Sample Data'), 1)
+        self.assertEqual(inventory_content.count('Delete Sample Data'), 1)
+
+    def test_dashboard_has_no_sample_task_script_or_duplicate_controls(self):
+        resp = self.client.get(reverse('admin_dashboard:dashboard_home'))
         content = resp.content.decode()
-        self.assertIn('Sample Data', content)
-        self.assertIn('Populate Sample Data', content)
-        self.assertIn('Delete Sample Data', content)
+        self.assertNotIn('populate-loading-overlay-full', content)
+        self.assertNotIn('startSampleTask', content)
+
+    def test_normal_product_form_creation_is_not_sample_and_survives_delete(self):
+        from products.models import Category, Product
+
+        category = Category.objects.create(name='Manual Products', slug='manual-products')
+        response = self.client.post(reverse('admin_dashboard:product_create'), {
+            'name': 'David Manual Product',
+            'description': 'A real product created by an administrator.',
+            'price': '49.99',
+            'stock': '7',
+            'reorder_level': '2',
+            'category': category.pk,
+            'is_editable': 'on',
+        })
+        self.assertEqual(response.status_code, 302)
+        product = Product.objects.get(name='David Manual Product')
+        self.assertFalse(product.is_sample)
+
+        from admin_dashboard.populate_tasks import do_delete_sample_data_full
+        do_delete_sample_data_full()
+        self.assertTrue(Product.objects.filter(pk=product.pk).exists())
 
     def test_buttons_do_not_render_for_non_admin(self):
         """Sample Data section does NOT render for non-admin users (redirected away)."""
@@ -861,4 +883,3 @@ class PopulateDeleteSampleCycleTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         for name in sample_products[:5]:
             self.assertNotIn(name.encode(), resp.content)
-

@@ -790,20 +790,20 @@
                              Bulk Add Products
                          </a>
                            {% if user.is_superuser %}
-                          <form method="post" action="{% url 'admin_dashboard:product_populate_sample' %}" style="display:inline" id="populate-form" onsubmit="return startSampleTask(this, 'product-populate', 'populate-loading-overlay', 'populate-btn', 'Creating sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-populate' %}')">
+                          <form method="post" action="{% url 'admin_dashboard:populate_sample_data_full' %}" style="display:inline" id="populate-form" onsubmit="return startSampleTask(this, 'full-populate', 'populate-loading-overlay', 'populate-btn', 'Populating sample data… please wait', '{% url 'admin_dashboard:sample_task_status' 'full-populate' %}')">
                               {% csrf_token %}
                               <input type="hidden" name="confirmation" value="CONFIRM">
                               <button type="submit" class="btn-add-product btn-secondary" id="populate-btn">
                                   <i class="bi bi-box-seam"></i>
-                                  Populate Sample Products
+                                Populate Sample Data
                               </button>
                           </form>
-                          <form method="post" action="{% url 'admin_dashboard:product_remove_sample' %}" style="display:inline" onsubmit="return startSampleTask(this, 'product-remove', 'populate-loading-overlay', 'populate-btn', 'Removing sample products… please wait', '{% url 'admin_dashboard:sample_task_status' 'product-remove' %}')">
+                          <form method="post" action="{% url 'admin_dashboard:delete_sample_data_full' %}" style="display:inline" onsubmit="return startSampleTask(this, 'full-delete', 'populate-loading-overlay', 'delete-btn', 'Removing sample data… please wait', '{% url 'admin_dashboard:sample_task_status' 'full-delete' %}')">
                               {% csrf_token %}
                               <input type="hidden" name="confirmation" value="CONFIRM">
-                              <button type="submit" class="btn-add-product btn-danger">
+                            <button type="submit" class="btn-add-product btn-danger" id="delete-btn">
                                   <i class="bi bi-trash3"></i>
-                                  Remove Sample Products
+                                Delete Sample Data
                               </button>
                           </form>
                           {% endif %}
@@ -1124,9 +1124,15 @@ document.querySelector('.search-input').addEventListener('keypress', function(e)
     });
 })();
 
-// Populate sample products — show loading overlay while the server processes
+// Keep the single sample-data control pair recoverable when a request or poll fails.
+function fetchSampleTaskWithTimeout(url, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
+
 function startSampleTask(form, taskName, overlayId, buttonId, loadingText, statusUrl) {
-    if (!confirm('This will create a new sample dataset. Continue?')) {
+    if (!confirm('This may take a moment. Continue?')) {
         return false;
     }
     const overlay = document.getElementById(overlayId);
@@ -1140,41 +1146,54 @@ function startSampleTask(form, taskName, overlayId, buttonId, loadingText, statu
     }
     if (statusEl) statusEl.textContent = loadingText;
 
+    const reset = (message) => {
+        if (overlay) overlay.style.display = 'none';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+        }
+        if (statusEl) statusEl.textContent = message;
+        if (message) alert(message);
+    };
     const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
     const payload = new FormData(form);
-    fetch(form.action, {
+    fetchSampleTaskWithTimeout(form.action, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
         body: payload,
         credentials: 'same-origin'
     })
-    .then(response => response.json().catch(() => ({})))
+    .then(response => {
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        return response.json();
+    })
     .then(data => {
         if (data && data.task_key) {
-            pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, loadingText);
+            pollSampleStatus(statusUrl, overlayId, buttonId, statusEl, loadingText, reset);
         } else {
-            const errorMsg = (data && data.message) ? data.message : 'The sample-data task could not be started. Please try again.';
-            alert(errorMsg);
-            if (overlay) overlay.style.display = 'none';
-            if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
+            reset((data && data.message) || 'The sample-data task could not be started. Please try again.');
         }
     })
-    .catch(() => {
-        alert('Network error while starting the sample-data task. Please try again.');
-        if (overlay) overlay.style.display = 'none';
-        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
+    .catch(error => {
+        reset(error.name === 'AbortError'
+            ? 'The sample-data request timed out. Please try again.'
+            : 'Network error while starting the sample-data task. Please try again.');
     });
     return false;
 }
 
-function pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, loadingText) {
+function pollSampleStatus(statusUrl, overlayId, buttonId, statusEl, loadingText, reset) {
     const overlay = document.getElementById(overlayId);
     const btn = document.getElementById(buttonId);
-    const poll = () => fetch(statusUrl, {
+    let attempts = 0;
+    const poll = () => fetchSampleTaskWithTimeout(statusUrl, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin'
     })
-    .then(response => response.json().catch(() => ({})))
+    .then(response => {
+        if (!response.ok) throw new Error(`Status request failed (${response.status})`);
+        return response.json();
+    })
     .then(data => {
         const status = data && data.status ? data.status : 'idle';
         const message = data && data.message ? data.message : loadingText;
@@ -1192,17 +1211,20 @@ function pollSampleStatus(taskName, statusUrl, overlayId, buttonId, statusEl, lo
             return;
         }
         if (status === 'queued' || status === 'running') {
+            attempts += 1;
+            if (attempts >= 400) {
+                reset('The sample-data task timed out. Please try again.');
+                return;
+            }
             setTimeout(poll, 1500);
         } else {
-            if (overlay) overlay.style.display = 'none';
-            if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
-            window.location.reload();
+            reset('The sample-data task ended unexpectedly. Please try again.');
         }
     })
-    .catch(() => {
-        if (overlay) overlay.style.display = 'none';
-        if (btn) { btn.disabled = false; btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML; }
-        window.location.reload();
+    .catch(error => {
+        reset(error.name === 'AbortError'
+            ? 'The sample-data status request timed out. Please try again.'
+            : 'Network error while checking sample-data status. Please try again.');
     });
     poll();
 }

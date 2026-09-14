@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from products.models import Product, Category
+import re
 
 class SearchViewTests(TestCase):
     def setUp(self):
@@ -35,6 +36,88 @@ class SearchViewTests(TestCase):
         r = self.client.get('/shop/?category=nonexistent')
         self.assertEqual(r.status_code, 200)
         self.assertIn(b'No products found', r.content)
+
+    def search_dropdown_category_slugs(self):
+        response = self.client.get('/search/')
+        self.assertEqual(response.status_code, 200)
+        dropdown = re.search(
+            r'<div class="search-suggestions" id="searchSuggestions">(.*?)</form>',
+            response.content.decode(),
+            re.DOTALL,
+        )
+        self.assertIsNotNone(dropdown)
+        return sorted(re.findall(
+            r'href="[^"]*\?category=([^"]+)"',
+            dropdown.group(1),
+        ))
+
+    def search_dropdown_category_href(self, slug):
+        response = self.client.get('/search/')
+        self.assertEqual(response.status_code, 200)
+        dropdown = re.search(
+            r'<div class="search-suggestions" id="searchSuggestions">(.*?)</form>',
+            response.content.decode(),
+            re.DOTALL,
+        )
+        self.assertIsNotNone(dropdown)
+        href = re.search(
+            rf'href="([^"]*\?category={re.escape(slug)}[^"]*)"',
+            dropdown.group(1),
+        )
+        self.assertIsNotNone(href)
+        return href.group(1)
+
+    def test_search_dropdown_category_click_opens_filtered_shop(self):
+        first = Category.objects.create(name='First Category', slug='first-category')
+        first_product = Product.objects.create(
+            name='First Category Product',
+            slug='first-category-product',
+            price=10.0,
+            category=first,
+            stock=1,
+        )
+        second = Category.objects.create(name='Second Category', slug='second-category')
+        second_product = Product.objects.create(
+            name='Second Category Product',
+            slug='second-category-product',
+            price=20.0,
+            category=second,
+            stock=1,
+        )
+
+        for category, product, other_product in (
+            (first, first_product, second_product),
+            (second, second_product, first_product),
+        ):
+            href = self.search_dropdown_category_href(category.slug)
+            response = self.client.get(href, follow=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.request['PATH_INFO'], '/shop/')
+            self.assertContains(response, product.name)
+            self.assertNotContains(response, other_product.name)
+
+    def test_main_search_dropdown_tracks_live_categories(self):
+        self.assertEqual(self.search_dropdown_category_slugs(), ['testcat'])
+
+        added = Category.objects.create(name='New Category', slug='new-category')
+        self.assertEqual(
+            self.search_dropdown_category_slugs(),
+            ['new-category', 'testcat'],
+        )
+
+        added.name = 'Renamed Category'
+        added.slug = 'renamed-category'
+        added.save()
+        renamed_response = self.client.get('/search/')
+        self.assertEqual(
+            self.search_dropdown_category_slugs(),
+            ['renamed-category', 'testcat'],
+        )
+        self.assertContains(renamed_response, '>Renamed Category</span>')
+        self.assertNotContains(renamed_response, '>New Category</span>')
+
+        added.delete()
+        self.assertEqual(self.search_dropdown_category_slugs(), ['testcat'])
 
     def test_product_image_limit(self):
         from products.models import ProductImage
