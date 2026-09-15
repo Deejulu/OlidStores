@@ -11,7 +11,21 @@
         background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 60%, #e9ecef 100%);
         min-height: 100vh;
         padding-bottom: 5rem;
+        scroll-behavior: smooth;
     }
+
+    /* Entrance animations */
+    .od-hero { animation: odFadeDown 500ms cubic-bezier(0.22,1,0.36,1) both; }
+    .od-tracker-wrap { animation: odFadeUp 500ms cubic-bezier(0.22,1,0.36,1) 100ms both; }
+    .od-card { animation: odFadeUp 480ms cubic-bezier(0.22,1,0.36,1) both; animation-fill-mode: both; }
+    .od-card:nth-of-type(1) { animation-delay: 150ms; }
+    .od-card:nth-of-type(2) { animation-delay: 220ms; }
+    .od-card:nth-of-type(3) { animation-delay: 290ms; }
+    .od-card:nth-of-type(4) { animation-delay: 360ms; }
+    .od-card:nth-of-type(n+5) { animation-delay: 420ms; }
+    .od-mobile-bar { animation: odFadeUp 350ms cubic-bezier(0.22,1,0.36,1) 400ms both; }
+    @keyframes odFadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes odFadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
 
     /* ── Hero Banner ── */
     .od-hero {
@@ -186,6 +200,7 @@
         border-bottom: 1px solid #f3f4f6; align-items: flex-start;
     }
     .od-item-card:last-child { border-bottom: none; }
+    .od-item-card:active { background: #f9fafc; transition: background-color 150ms ease; }
     .od-item-card-info { flex: 1; min-width: 0; }
     .od-item-card-name { font-weight: 700; font-size: 0.93rem; color: #1f2937; }
     .od-item-card-meta { font-size: 0.78rem; color: #6b7280; margin-top: 0.2rem; }
@@ -260,7 +275,13 @@
 
     /* ── Action Buttons ── */
     .od-actions { display: flex; flex-direction: column; gap: 0.7rem; }
-    .od-actions .btn { border-radius: 999px; font-weight: 700; padding: 0.72rem 1.25rem; }
+    .od-actions .btn { border-radius: 999px; font-weight: 700; padding: 0.72rem 1.25rem; transition: all 200ms ease; }
+    .od-actions .btn:active { transform: scale(0.97); }
+    .od-actions .btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
+    .od-actions .btn-outline-success:active { background: #ecfdf5; }
+    .od-actions .btn-outline-secondary:active { background: #f3f4f6; }
+    .od-actions .btn-outline-info:active { background: #eff6ff; }
+    .od-actions .btn-outline-primary:active { background: #eff6ff; }
 
     /* ── Mobile Sticky Bar ── */
     .od-mobile-bar {
@@ -269,8 +290,12 @@
         border-top: 1px solid rgba(0,0,0,0.07);
         box-shadow: 0 -6px 24px rgba(0,0,0,0.09);
         padding: 0.875rem 1rem;
+        transform: translateY(0);
+        transition: transform 250ms cubic-bezier(0.4,0,0.2,1);
     }
-    .od-mobile-bar .btn { border-radius: 999px; font-weight: 700; }
+    .od-mobile-bar .btn { border-radius: 999px; font-weight: 700; transition: all 200ms ease; }
+    .od-mobile-bar .btn:active { transform: scale(0.96); }
+    .od-mobile-bar .btn-primary:active { box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
 
     /* ── Right col sticky on desktop ── */
     @media (min-width: 992px) {
@@ -283,14 +308,14 @@
 
     /* ── Tablet / large phone (< 768px) ── */
     @media (max-width: 767.98px) {
-        .od-hero { padding: 1.4rem 0 2.5rem; }
+        .od-hero { padding: 1.4rem 0 2.5rem; animation-duration: 400ms; }
         .od-hero h1 { font-size: 1.65rem; }
-        .od-tracker-wrap { padding: 1.3rem 1rem 1.1rem; border-radius: 0 0 14px 14px; }
+        .od-tracker-wrap { padding: 1.3rem 1rem 1.1rem; border-radius: 0 0 14px 14px; animation-duration: 380ms; }
         .od-tracker-dot { width: 36px; height: 36px; font-size: 0.88rem; }
         .od-tracker-label { font-size: 0.7rem; }
         .od-card-body { padding: 1rem 1.1rem; }
         .od-items-desktop { display: none; }
-        .od-items-mobile  { display: block; }
+        .od-items-mobile { display: block; animation: odFadeUp 350ms cubic-bezier(0.22,1,0.36,1) both; }
         body { padding-bottom: 76px !important; }
     }
 
@@ -302,6 +327,9 @@
         .od-card-header { padding: 0.9rem 1rem; }
         .od-card-body { padding: 0.85rem 1rem; }
         .od-summary-total .stvalue { font-size: 1.3rem; }
+        .od-item-card { padding: 0.85rem 1rem; gap: 0.65rem; transition: background-color 150ms ease; }
+        .od-item-card:active { background: #f9fafb; }
+        .od-mobile-bar { padding: 0.75rem 0.875rem; }
     }
 
     /* ── Dark mode ─────────────────────────────────────────────── */

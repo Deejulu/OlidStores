@@ -80,7 +80,15 @@
         margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
         transition: all 300ms cubic-bezier(0.4,0,0.2,1);
         overflow: hidden; position: relative;
+        animation: odCardSlideIn 400ms cubic-bezier(0.22,1,0.36,1) both;
     }
+    .order-card:nth-child(1) { animation-delay: 0ms; }
+    .order-card:nth-child(2) { animation-delay: 60ms; }
+    .order-card:nth-child(3) { animation-delay: 120ms; }
+    .order-card:nth-child(4) { animation-delay: 180ms; }
+    .order-card:nth-child(5) { animation-delay: 240ms; }
+    .order-card:nth-child(n+6) { animation-delay: 300ms; }
+    @keyframes odCardSlideIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
     .order-card::before {
         content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
         background: linear-gradient(90deg, #3b82f6, #60a5fa); opacity: 0; transition: opacity 300ms;
@@ -89,7 +97,15 @@
     .order-card:hover::before { opacity: 1; }
 
     /* card collapsed state */
-    .order-card.collapsed .order-card-body { display: none; }
+    .order-card.collapsed .order-card-body {
+        max-height: 0; opacity: 0; overflow: hidden; padding-top: 0; padding-bottom: 0;
+        margin-top: 0; margin-bottom: 0;
+        transition: max-height 350ms cubic-bezier(0.4,0,0.2,1), opacity 250ms ease, padding 350ms ease, margin 350ms ease;
+    }
+    .order-card .order-card-body {
+        max-height: 3000px; opacity: 1;
+        transition: max-height 350ms cubic-bezier(0.4,0,0.2,1), opacity 250ms ease, padding 350ms ease, margin 350ms ease;
+    }
 
     /* â”€â”€ Order Header â”€â”€ */
     .order-header {
@@ -198,8 +214,11 @@
         .orders-header h1 { font-size: 1.6rem; }
         .order-info-grid { grid-template-columns: repeat(2,1fr); gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 1rem; }
         .order-info-value { font-size: 0.97rem; }
-        .filter-strip { gap: 0.4rem; padding: 0.7rem 0.875rem; }
+        .filter-strip { gap: 0.4rem; padding: 0.7rem 0.875rem; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .filter-strip::-webkit-scrollbar { display: none; }
         .order-card { padding: 1.1rem; }
+        .order-card.collapsed .order-card-body { max-height: 0; }
+        .order-card .order-card-body { max-height: 3000px; }
         .order-header { margin-bottom: 1rem; padding-bottom: 0.875rem; }
     }
     @media (max-width: 479px) {
@@ -207,6 +226,8 @@
         .order-info-grid { grid-template-columns: 1fr 1fr; gap: 0.625rem; }
         .order-action-btn { font-size: 0.8rem; }
         .order-header { flex-wrap: wrap; }
+        .order-card { padding: 1rem; }
+        .filter-strip { padding: 0.6rem 0.75rem; }
     }
 
     /* â•â•â•â•â•â•â•â•â•â•â•â•â•â• DARK MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
