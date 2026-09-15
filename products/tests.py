@@ -195,6 +195,49 @@ class SearchViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.p1.name)
 
+    def test_quick_view_gallery_supports_thumbnail_selection(self):
+        image_urls = [
+            'products/gallery-one.jpg',
+            'products/gallery-two.jpg',
+            'products/gallery-three.jpg',
+        ]
+        for image_url in image_urls:
+            ProductImage.objects.create(product=self.p1, image=image_url)
+
+        response = self.client.get(
+            f'/shop/{self.p1.id}/quick-view/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        html = response.json()['html']
+        thumbnails = re.findall(
+            r'<img[^>]+class="quick-view-thumb[^"]*"[^>]*>',
+            html,
+        )
+        self.assertEqual(len(thumbnails), len(image_urls))
+        self.assertIn('id="quickViewMainImage"', html)
+        self.assertIn('class="quick-view-thumb active"', html)
+        self.assertIn('aria-pressed="true"', html)
+        self.assertIn('data-quick-view-close', html)
+        for thumbnail in thumbnails:
+            self.assertIn('data-full=', thumbnail)
+            self.assertIn('role="button"', thumbnail)
+            self.assertIn('tabindex="0"', thumbnail)
+        for image_url in image_urls:
+            self.assertIn(f'data-full="/media/{image_url}"', html)
+
+        shop_html = self.client.get('/shop/').content.decode()
+        self.assertIn('function selectQuickViewImage', shop_html)
+        self.assertIn('mainImage.src = source', shop_html)
+        self.assertIn("item.classList.toggle('active', isSelected)", shop_html)
+        self.assertIn("event.key === 'Escape'", shop_html)
+        self.assertIn('visibility: hidden', shop_html)
+        self.assertIn('pointer-events: none', shop_html)
+        self.assertIn('transform: translateY(100%)', shop_html)
+        self.assertIn('quick-view-loading', shop_html)
+        self.assertNotIn('thumbnail.scrollIntoView', shop_html)
+
     def test_product_detail_variant_stock_handling(self):
         # Create a product with variants, one in stock and one out of stock
         from products.models import ProductVariant

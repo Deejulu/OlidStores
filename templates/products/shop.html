@@ -1603,19 +1603,21 @@
         font-weight: 700;
     }
 
-    /* Quick View Modal */
     .quick-view-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(10px);
-        z-index: 1003;
-        display: none;
+        z-index: 200000;
+        display: flex;
         align-items: center;
         justify-content: center;
-        padding: 1rem;
+        padding: clamp(0.5rem, 3vw, 2rem);
+        background: rgba(15, 15, 15, 0.74);
+        backdrop-filter: blur(12px);
+        visibility: hidden;
         opacity: 0;
-        transition: opacity var(--transition-base);
+        pointer-events: none;
+        transition: opacity var(--transition-base), visibility 0s linear var(--transition-base);
+        will-change: opacity;
     }
 
     /* Mobile Navigation - enhanced phone-only bar (filters/search/cart) */
@@ -1665,72 +1667,537 @@
     }
 
     .quick-view-overlay.active {
-        display: flex;
+        visibility: visible;
         opacity: 1;
+        pointer-events: auto;
+        transition-delay: 0s;
     }
 
     .quick-view-content {
-        background: var(--surface-1);
-        border-radius: var(--border-radius-lg);
-        max-width: 800px;
-        width: 100%;
-        max-height: 90vh;
+        width: min(100%, 900px);
+        max-height: min(90vh, 900px);
         overflow-y: auto;
-        transform: translateY(20px);
-        opacity: 0;
-        transition: all var(--transition-base);
+        overflow-x: hidden;
+        background: var(--surface-1);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: var(--border-radius-xl);
+        box-shadow: var(--shadow-2xl);
+        transform: translateY(16px) scale(0.985);
+        opacity: 1;
+        transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+        overscroll-behavior: contain;
+        will-change: transform, opacity;
     }
 
     .quick-view-overlay.active .quick-view-content {
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
         opacity: 1;
     }
 
-    .quick-view-gallery {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
+    .quick-view-modal-content {
+        min-width: 0;
     }
 
-    .quick-view-main-img {
+    .quick-view-loading {
+        position: relative;
+        display: flex;
+        min-height: min(420px, calc(100vh - 2rem));
+        min-height: min(420px, calc(100dvh - 2rem));
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        padding: 3rem 1.5rem 1.5rem;
+        text-align: center;
+    }
+
+    .quick-view-loading-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-width: 0.25em;
+    }
+
+    .quick-view-loading p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+    }
+
+    .quick-view-loading .quick-view-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .quick-view-header {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.75rem);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .quick-view-heading {
+        min-width: 0;
+    }
+
+    .product-category {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0.25rem 0.7rem;
+        border: 1px solid rgba(139, 115, 85, 0.22);
+        border-radius: var(--border-radius-full);
+        background: rgba(139, 115, 85, 0.08);
+        color: var(--primary-dark);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .product-title {
+        max-width: 100%;
+        margin: 0.55rem 0 0;
+        color: var(--text-primary);
+        font-family: var(--font-heading);
+        font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+        font-weight: 700;
+        line-height: 1.22;
+        letter-spacing: -0.02em;
+        overflow-wrap: anywhere;
+    }
+
+    .quick-view-close {
+        display: inline-flex;
+        flex: 0 0 40px;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        background: var(--surface-2);
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .quick-view-close:hover,
+    .quick-view-close:focus-visible {
+        border-color: var(--primary);
+        background: rgba(139, 115, 85, 0.1);
+        color: var(--primary-dark);
+        transform: rotate(90deg);
+        outline: none;
+    }
+
+    .quick-view-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.95fr);
+        gap: clamp(1.25rem, 3vw, 2rem);
+        align-items: start;
+        padding: clamp(1rem, 3vw, 1.75rem);
+    }
+
+    .quick-view-gallery {
+        min-width: 0;
+    }
+
+    .quick-view-main-image-frame {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        max-height: 400px;
-        object-fit: contain;
+        aspect-ratio: 1 / 1;
+        max-height: 430px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.07);
         border-radius: var(--border-radius);
         background: var(--surface-2);
     }
 
+    .quick-view-main-img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-height: 430px;
+        object-fit: contain;
+        user-select: none;
+        transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .quick-view-main-img.is-changing {
+        opacity: 0.25;
+        transform: scale(0.985);
+    }
+
+    .quick-view-main-img.is-selecting {
+        transform: scale(1.025);
+    }
+
+    .quick-view-no-image {
+        aspect-ratio: 4 / 3;
+        color: var(--text-tertiary);
+    }
+
+    .quick-view-no-image .bi {
+        font-size: 3rem;
+        opacity: 0.45;
+    }
+
+    .quick-view-no-image p {
+        margin: 0.5rem 0 0;
+        font-size: 0.9rem;
+    }
+
     .quick-view-thumbs {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.6rem;
+        margin-top: 0.75rem;
         overflow-x: auto;
-        padding-bottom: 0.25rem;
+        overflow-y: hidden;
+        padding: 0.15rem 0.15rem 0.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-light) transparent;
+    }
+
+    .quick-view-thumbs::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .quick-view-thumbs::-webkit-scrollbar-track {
+        border-radius: var(--border-radius-full);
+        background: var(--surface-2);
+    }
+
+    .quick-view-thumbs::-webkit-scrollbar-thumb {
+        border-radius: var(--border-radius-full);
+        background: var(--primary-light);
     }
 
     .quick-view-thumb {
+        flex: 0 0 64px;
         width: 64px;
         height: 64px;
+        padding: 2px;
         object-fit: cover;
-        border-radius: var(--border-radius-sm);
         border: 2px solid transparent;
+        border-radius: 10px;
+        background: var(--surface-2);
         cursor: pointer;
-        transition: all var(--transition-base);
-        flex-shrink: 0;
+        opacity: 0.72;
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-user-drag: none;
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+        -webkit-tap-highlight-color: transparent;
     }
 
     .quick-view-thumb:hover,
-    .quick-view-thumb:focus {
+    .quick-view-thumb:focus-visible {
         border-color: var(--primary);
-        transform: scale(1.05);
+        opacity: 1;
+        outline: none;
+        transform: translateY(-2px) scale(1.04);
     }
 
-    @media (max-width: 480px) {
-        .quick-view-main-img {
-            max-height: 260px;
+    .quick-view-thumb.active {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.16);
+        opacity: 1;
+    }
+
+    .quick-view-details {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.9rem;
+        min-width: 0;
+        padding-top: 0.15rem;
+    }
+
+    .product-description {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.72;
+    }
+
+    .product-price {
+        color: var(--primary-dark);
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+
+    .product-stock {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--border-radius-full);
+        font-size: 0.84rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .in-stock {
+        background: rgba(16, 185, 129, 0.12);
+        color: #087f5b;
+    }
+
+    .out-of-stock {
+        background: rgba(239, 68, 68, 0.1);
+        color: #c92a2a;
+    }
+
+    .stock-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 0.45rem;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .product-rating {
+        padding-top: 0.15rem;
+        color: var(--text-tertiary);
+        font-size: 0.84rem;
+        line-height: 1.5;
+    }
+
+    .quick-view-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0 clamp(1rem, 3vw, 1.75rem) clamp(1rem, 3vw, 1.5rem);
+        border-top: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .quick-view-details-btn {
+        min-height: 44px;
+        padding: 0.7rem 1.35rem;
+        font-size: 0.92rem;
+    }
+
+    [data-theme="dark"] .quick-view-overlay {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    [data-theme="dark"] .quick-view-content {
+        border-color: rgba(255, 255, 255, 0.09);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    }
+
+    [data-theme="dark"] .quick-view-header,
+    [data-theme="dark"] .quick-view-footer {
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .quick-view-heading .product-category {
+        border-color: rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: #e8e8e8;
+    }
+
+    [data-theme="dark"] .quick-view-heading .product-title {
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .quick-view-close {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #262626;
+        color: #e8e8e8;
+    }
+
+    [data-theme="dark"] .quick-view-close:hover,
+    [data-theme="dark"] .quick-view-close:focus-visible {
+        border-color: var(--theme-accent);
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .quick-view-main-image-frame {
+        border-color: rgba(255, 255, 255, 0.08);
+        background: #1e1e1e;
+    }
+
+    [data-theme="dark"] .quick-view-thumb {
+        border-color: rgba(255, 255, 255, 0.08);
+        background: #262626;
+    }
+
+    [data-theme="dark"] .quick-view-thumb:hover,
+    [data-theme="dark"] .quick-view-thumb:focus-visible {
+        border-color: var(--theme-accent);
+    }
+
+    [data-theme="dark"] .quick-view-thumb.active {
+        border-color: var(--theme-accent);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .product-description {
+        color: #d0d0d0;
+    }
+
+    [data-theme="dark"] .product-price {
+        color: var(--theme-accent);
+    }
+
+    [data-theme="dark"] .in-stock {
+        background: rgba(52, 211, 153, 0.14);
+        color: #6ee7b7;
+    }
+
+    [data-theme="dark"] .out-of-stock {
+        background: rgba(251, 113, 133, 0.14);
+        color: #fda4af;
+    }
+
+    [data-theme="dark"] .product-rating {
+        color: #b8b8b8;
+    }
+
+    @media (max-width: 899px) {
+        .quick-view-body {
+            grid-template-columns: minmax(0, 1fr) minmax(230px, 0.85fr);
         }
+    }
+
+    @media (max-width: 767px) {
+        .quick-view-overlay {
+            align-items: flex-end;
+            padding: 0.5rem;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .quick-view-content {
+            max-height: calc(100vh - 1rem);
+            max-height: calc(100dvh - 1rem);
+            border-radius: 18px 18px 14px 14px;
+            transform: translateY(100%);
+        }
+
+        .quick-view-loading {
+            min-height: calc(100vh - 1rem);
+            min-height: calc(100dvh - 1rem);
+        }
+
+        .quick-view-header {
+            padding: 1rem 1rem 0.9rem;
+        }
+
+        .quick-view-body {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .quick-view-main-image-frame {
+            aspect-ratio: 1 / 1;
+            max-height: 320px;
+        }
+
+        .quick-view-main-img {
+            max-height: 320px;
+        }
+
+        .quick-view-thumbs {
+            gap: 0.5rem;
+            margin-top: 0.55rem;
+        }
+
         .quick-view-thumb {
+            flex-basis: 52px;
+            width: 52px;
+            height: 52px;
+            border-radius: 9px;
+        }
+
+        .quick-view-details {
+            gap: 0.8rem;
+        }
+
+        .product-description {
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+
+        .quick-view-footer {
+            padding: 0 1rem 1rem;
+        }
+
+        .quick-view-details-btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 374px) {
+        .quick-view-header {
+            gap: 0.65rem;
+        }
+
+        .quick-view-close {
+            flex-basis: 36px;
+            width: 36px;
+            height: 36px;
+        }
+
+        .product-category {
+            max-width: 100%;
+            font-size: 0.68rem;
+        }
+
+        .product-title {
+            font-size: 1.25rem;
+        }
+
+        .quick-view-main-image-frame {
+            max-height: 280px;
+        }
+
+        .quick-view-main-img {
+            max-height: 280px;
+        }
+
+        .quick-view-thumb {
+            flex-basis: 48px;
             width: 48px;
             height: 48px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .quick-view-overlay {
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .quick-view-overlay,
+        .quick-view-content,
+        .quick-view-thumb,
+        .quick-view-close {
+            transition: none;
+        }
+
+        .quick-view-close:hover,
+        .quick-view-close:focus-visible {
+            transform: none;
+        }
+
+        .quick-view-thumb:hover,
+        .quick-view-thumb:focus-visible {
+            transform: none;
         }
     }
 
@@ -1826,6 +2293,29 @@
             width: 28px;
             height: 28px;
             font-size: 0.8rem;
+        }
+    }
+
+    /* Keep the quick-view sheet readable after compact product-card rules apply. */
+    @media (max-width: 479px) {
+        .quick-view-content .product-category {
+            display: inline-flex;
+            font-size: 0.68rem;
+        }
+
+        .quick-view-content .product-title {
+            font-size: 1.25rem;
+            line-height: 1.22;
+            margin: 0.55rem 0 0;
+        }
+
+        .quick-view-content .product-price {
+            font-size: 1.5rem;
+        }
+
+        .quick-view-content .product-rating {
+            display: block;
+            font-size: 0.84rem;
         }
 
         /* smaller badges */
@@ -2378,12 +2868,6 @@
     </div>
 </div>
 
-<!-- Quick View Modal -->
-<div class="quick-view-overlay" onclick="closeQuickView()">
-    <div class="quick-view-content" onclick="event.stopPropagation()">
-        <!-- Quick view content loaded via AJAX -->
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -2623,24 +3107,38 @@ function toggleWishlist(productId) {
     });
 }
 
+let quickViewLastFocusedElement = null;
+let quickViewPreviousOverflow = '';
+let quickViewRequest = 0;
+
 // Quick view
 function quickView(productId) {
     const overlay = document.querySelector('.quick-view-overlay');
-    const content = overlay.querySelector('.quick-view-content');
-    
-    // Show loading state
+    const content = overlay ? overlay.querySelector('.quick-view-content') : null;
+    if (!overlay || !content) return;
+
+    const requestId = ++quickViewRequest;
+    quickViewLastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    quickViewPreviousOverflow = document.body.style.overflow;
+
     content.innerHTML = `
-        <div class="p-5 text-center">
-            <div class="spinner-border text-primary mb-3"></div>
-            <p>Loading product details...</p>
+        <div class="quick-view-modal-content">
+            <div class="quick-view-loading" role="status" aria-live="polite">
+                <div class="quick-view-loading-icon spinner-border text-primary" aria-hidden="true"></div>
+                <p>Loading product details...</p>
+                <button type="button" class="quick-view-close" data-quick-view-close aria-label="Close quick view">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
     `;
-    
+
     overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    
-    const quickViewUrl = "{% url 'products:quick_view' 0 %}".replace('/0/', `/${productId}/`);
-    fetch(quickViewUrl)
+
+    const quickViewUrl = "{% url 'products:quick_view' 0 %}".replace('/0/', `/${encodeURIComponent(productId)}/`);
+    fetch(quickViewUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(response => {
         if (!response.ok) {
             if (response.status === 404) {
@@ -2650,10 +3148,25 @@ function quickView(productId) {
         }
         return response.text();
     })
+    .then(body => {
+        let html = body;
+        try {
+            const data = JSON.parse(body);
+            html = data.html || body;
+        } catch (error) {
+            html = body;
+        }
+        return html;
+    })
     .then(html => {
+        if (requestId !== quickViewRequest || !overlay.classList.contains('active')) return;
         content.innerHTML = html;
+        content.scrollTop = 0;
+        const closeButton = content.querySelector('[data-quick-view-close]');
+        if (closeButton) closeButton.focus({ preventScroll: true });
     })
     .catch(error => {
+        if (requestId !== quickViewRequest) return;
         console.error('Quick view fetch error:', error);
         const message = error.message === 'Product not found'
             ? 'Sorry, that product is no longer available.'
@@ -2663,19 +3176,145 @@ function quickView(productId) {
                 <i class="bi bi-exclamation-triangle text-danger fs-1 mb-3"></i>
                 <h5>${message}</h5>
                 <p>Please try again later</p>
-                <button class="btn btn-primary mt-3" onclick="closeQuickView()">
+                <button type="button" class="btn btn-primary mt-3" data-quick-view-close>
                     Close
                 </button>
             </div>
         `;
+        const closeButton = content.querySelector('[data-quick-view-close]');
+        if (closeButton) closeButton.focus({ preventScroll: true });
     });
+}
+
+function selectQuickViewImage(thumbnail) {
+    const content = thumbnail.closest('.quick-view-content');
+    const mainImage = content ? content.querySelector('.quick-view-main-img') : null;
+    const source = thumbnail.dataset.full || thumbnail.currentSrc || thumbnail.src;
+    if (!mainImage || !source) return;
+
+    const alt = thumbnail.dataset.alt || thumbnail.alt || mainImage.alt;
+    const currentSource = mainImage.currentSrc || mainImage.src;
+    content.querySelectorAll('.quick-view-thumb').forEach(item => {
+        const isSelected = item === thumbnail;
+        item.classList.toggle('active', isSelected);
+        item.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        item.setAttribute('aria-current', isSelected ? 'true' : 'false');
+    });
+
+    mainImage.classList.add('is-selecting');
+    window.setTimeout(() => mainImage.classList.remove('is-selecting'), 180);
+
+    if (source !== currentSource) {
+        mainImage.classList.add('is-changing');
+        mainImage.setAttribute('aria-busy', 'true');
+        const showImage = () => {
+            mainImage.classList.remove('is-changing');
+            mainImage.removeAttribute('aria-busy');
+        };
+        mainImage.addEventListener('load', showImage, { once: true });
+        mainImage.addEventListener('error', showImage, { once: true });
+        window.setTimeout(showImage, 600);
+        mainImage.src = source;
+        mainImage.alt = alt;
+    } else {
+        mainImage.alt = alt;
+    }
+
+    const imageRect = mainImage.getBoundingClientRect();
+    const contentRect = content.getBoundingClientRect();
+    if (imageRect.top < contentRect.top || imageRect.bottom > contentRect.bottom) {
+        const targetScroll = content.scrollTop + imageRect.top - contentRect.top - 8;
+        content.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+    }
+
+    const strip = thumbnail.parentElement;
+    const thumbRect = thumbnail.getBoundingClientRect();
+    const stripRect = strip ? strip.getBoundingClientRect() : null;
+    if (strip && stripRect) {
+        let horizontalShift = 0;
+        if (thumbRect.left < stripRect.left) {
+            horizontalShift = thumbRect.left - stripRect.left - 8;
+        } else if (thumbRect.right > stripRect.right) {
+            horizontalShift = thumbRect.right - stripRect.right + 8;
+        }
+        if (horizontalShift) strip.scrollLeft += horizontalShift;
+    }
 }
 
 function closeQuickView() {
     const overlay = document.querySelector('.quick-view-overlay');
+    if (!overlay) return;
+
+    const wasActive = overlay.classList.contains('active');
+    quickViewRequest += 1;
     overlay.classList.remove('active');
-    document.body.style.overflow = '';
+    overlay.setAttribute('aria-hidden', 'true');
+    if (wasActive) document.body.style.overflow = quickViewPreviousOverflow;
+
+    const previousFocus = quickViewLastFocusedElement;
+    quickViewLastFocusedElement = null;
+    if (previousFocus && typeof previousFocus.focus === 'function') {
+        previousFocus.focus({ preventScroll: true });
+    }
 }
+
+function handleQuickViewKeydown(event) {
+    const overlay = document.querySelector('.quick-view-overlay');
+    if (!overlay || !overlay.classList.contains('active')) return;
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        closeQuickView();
+        return;
+    }
+
+    const thumbnail = event.target instanceof Element ? event.target.closest('.quick-view-thumb') : null;
+    if (thumbnail && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        selectQuickViewImage(thumbnail);
+        return;
+    }
+
+    if (event.key === 'Tab') {
+        const content = overlay.querySelector('.quick-view-content');
+        if (!content) return;
+        const focusable = Array.from(content.querySelectorAll('a[href], button:not([disabled]), img[role="button"][tabindex="0"], [tabindex]:not([tabindex="-1"])'))
+            .filter(element => element.offsetParent !== null || element === document.activeElement);
+        if (!focusable.length) {
+            event.preventDefault();
+            content.focus();
+            return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+}
+
+const quickViewOverlay = document.querySelector('.quick-view-overlay');
+if (quickViewOverlay) {
+    quickViewOverlay.addEventListener('click', event => {
+        if (event.target === quickViewOverlay) closeQuickView();
+    });
+}
+
+document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest('[data-quick-view-close]')) {
+        closeQuickView();
+        return;
+    }
+    const thumbnail = event.target.closest('.quick-view-thumb');
+    if (thumbnail) selectQuickViewImage(thumbnail);
+});
+
+document.addEventListener('keydown', handleQuickViewKeydown);
 
 // Mobile filters
 function toggleMobileFilters() {

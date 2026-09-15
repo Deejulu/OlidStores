@@ -394,10 +394,21 @@ def quick_view_product(request, pk):
         image for image in product.images.all()
         if image.image and getattr(image.image, 'name', None)
     ]
+    primary_image = product.primary_image
+    gallery_images = []
+    seen_image_urls = set()
+    for image in [primary_image] + images if primary_image else images:
+        gallery_image = getattr(image, 'image', image)
+        image_url = getattr(gallery_image, 'url', None)
+        if image_url and image_url not in seen_image_urls:
+            gallery_images.append(gallery_image)
+            seen_image_urls.add(image_url)
+
     context = {
         'product': product,
         'images': images,
-        'primary_image': product.primary_image,
+        'gallery_images': gallery_images,
+        'primary_image': primary_image,
         'category': product.category,
         'price': product.price,
         'stock': product.display_stock if hasattr(product, 'display_stock') else product.stock,
