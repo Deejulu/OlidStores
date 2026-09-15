@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from products.models import Product, Category
+from products.models import Product, Category, ProductImage
 import re
 
 class SearchViewTests(TestCase):
@@ -174,6 +174,27 @@ class SearchViewTests(TestCase):
         self.assertNotIn(b'onclick="addToCart(', r.content)
         self.assertIn(b'btn-add-to-cart', r.content)
 
+    def test_quick_view_returns_html_for_complete_product(self):
+        response = self.client.get(f'/shop/{self.p1.id}/quick-view/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.p1.name)
+        self.assertContains(response, 'View Full Details')
+
+    def test_quick_view_ignores_incomplete_image_records(self):
+        ProductImage.objects.create(product=self.p1, image='')
+
+        response = self.client.get(f'/shop/{self.p1.id}/quick-view/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.p1.name)
+
+    def test_quick_view_legacy_products_route_is_supported(self):
+        response = self.client.get(f'/products/{self.p1.id}/quick-view/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.p1.name)
+
     def test_product_detail_variant_stock_handling(self):
         # Create a product with variants, one in stock and one out of stock
         from products.models import ProductVariant
@@ -241,4 +262,3 @@ class ProductFilterTests(TestCase):
 		self.assertIn(b'Cheap Shoe', r.content)
 		self.assertIn(b'Expensive Shoe', r.content)
 		self.assertIn(b'Mid Range', r.content)
-

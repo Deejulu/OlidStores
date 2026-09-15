@@ -383,16 +383,20 @@ from django.http import Http404
 def quick_view_product(request, pk):
     """AJAX quick view for a product (modal)"""
     try:
-        product = Product.objects.get(pk=pk)
+        product = Product.objects.select_related('category').prefetch_related('variants', 'images', 'reviews').get(pk=pk)
     except Product.DoesNotExist:
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax'):
             return JsonResponse({'error': 'not_found'}, status=404)
         raise Http404("Product does not exist")
 
     # You can customize the context as needed
+    images = [
+        image for image in product.images.all()
+        if image.image and getattr(image.image, 'name', None)
+    ]
     context = {
         'product': product,
-        'images': list(product.images.all()),
+        'images': images,
         'primary_image': product.primary_image,
         'category': product.category,
         'price': product.price,

@@ -9,11 +9,14 @@ from django.views.generic import TemplateView
 
 # Import the checkout view directly so /checkout/ serves the checkout page
 from orders.views import checkout_view
+from products.views import quick_view_product
 
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	path('', include(('core.urls', 'core'), namespace='core')),
 	path('shop/', include(('products.urls', 'products'), namespace='products')),
+	# Backwards-compatible quick-view endpoint used by older shop-page JavaScript.
+	path('products/<int:pk>/quick-view/', quick_view_product, name='product_quick_view_compat'),
 	path('cart/', include(('orders.urls', 'orders'), namespace='orders')),
 	# Search is a top-level URL used by the header search form
 	path('search/', include(('products.urls_search', 'products'), namespace='products_search')),

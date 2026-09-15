@@ -2639,7 +2639,8 @@ function quickView(productId) {
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
     
-    fetch(`/products/${productId}/quick-view/`)
+    const quickViewUrl = "{% url 'products:quick_view' 0 %}".replace('/0/', `/${productId}/`);
+    fetch(quickViewUrl)
     .then(response => {
         if (!response.ok) {
             if (response.status === 404) {
