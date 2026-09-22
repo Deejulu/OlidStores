@@ -1,4 +1,6 @@
 from django.test import TestCase, Client
+from django.core.cache import cache
+from django.db.models import Count
 from products.models import Product, Category, ProductImage
 import re
 
@@ -28,6 +30,32 @@ class SearchViewTests(TestCase):
         r = self.client.get('/shop/?category=filtercat')
         self.assertEqual(r.status_code, 200)
         self.assertIn(b'FilterProd', r.content)
+
+    def test_shop_category_count_uses_current_products_when_cache_is_stale(self):
+        cat = Category.objects.create(name='SixProductCat', slug='six-product-cat')
+        products = [
+            Product.objects.create(
+                name=f'Six Product {index}',
+                slug=f'six-product-{index}',
+                price=index,
+                category=cat,
+                stock=1,
+            )
+            for index in range(1, 7)
+        ]
+        cached_categories = list(Category.objects.annotate(product_count=Count('products')).all())
+        next(c for c in cached_categories if c.slug == cat.slug).product_count = 5
+        cache.set('shop_sidebar_categories', cached_categories, 3600)
+
+        response = self.client.get('/shop/?category=six-product-cat')
+
+        self.assertEqual(response.context['total_products'], 6)
+        displayed_category = next(
+            c for c in response.context['categories'] if c.slug == cat.slug
+        )
+        self.assertEqual(displayed_category.product_count, 6)
+        for product in products:
+            self.assertContains(response, product.name)
 
     def test_shop_nonexistent_category_no_404(self):
         # Visiting shop with a category slug that doesn't exist should not 404

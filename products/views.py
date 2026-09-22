@@ -92,16 +92,9 @@ class ShopListView(ListView):
 		page_obj = context.get('page_obj')
 		if page_obj is not None and isinstance(page_obj, Page):
 			context['products'] = page_obj
-		# Show canonical categories list (limit to 11 for the sidebar) — cached for 1 hour
-		cats = cache.get('shop_sidebar_categories')
-		if cats is None:
-			cats = list(Category.objects.annotate(product_count=Count('products')).all())
-			cache.set('shop_sidebar_categories', cats, 3600)
-		# Take up to 11, and if fewer exist, repeat existing ones to pad to 11 (keeps UI stable in tests)
-		cats_display = cats[:11]
-		context['categories'] = cats_display
-		for c in context['categories']:
-			c.product_count = getattr(c, 'product_count', 0)
+		context['categories'] = list(
+			Category.objects.annotate(product_count=Count('products')).all()[:11]
+		)
 		# Suggested products (used when no results) — cached for 10 minutes
 		suggested = cache.get('shop_suggested_products')
 		if suggested is None:
