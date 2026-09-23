@@ -1016,8 +1016,8 @@
     }
     
     .action-btn {
-        width: 38px;
-        height: 38px;
+        width: 44px;
+        height: 44px;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.98);
         border: none;
@@ -2330,11 +2330,11 @@
                 <div class="hero-content">
                     <div class="hero-badge">
                         <i class="bi bi-star-fill"></i>
-                        {{ homepage_banner_title|default:'Premium Collection' }}
+                        {{ homepage_banner_title }}
                     </div>
                     
                     <h1 class="hero-title">
-                        {{ homepage_banner_title|default:'Elevate Your Style' }}
+                        {{ homepage_banner_title }}
                     </h1>
                     
                     {% if homepage_banner_content %}
@@ -2343,7 +2343,7 @@
                     </div>
                     {% else %}
                     <div class="hero-subtitle">
-                        Discover curated collections that blend timeless elegance with contemporary design. Experience premium quality and exceptional craftsmanship.
+                        From electronics to fashion, beauty to everyday essentials — quality products across every category, all in one store.
                     </div>
                     {% endif %}
                     
@@ -2597,69 +2597,23 @@
         </div>
         
         <div class="category-grid">
-            {% with cat=categories_preview.electronics %}
-            <a href="/shop/?category=electronics" class="category-card" style="text-decoration: none;">
+            {% for cat in categories_preview %}
+            <a href="/shop/?category={{ cat.category.slug }}" class="category-card" style="text-decoration: none;">
                 {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Electronics' }}" class="category-image" loading="lazy">
+                <img src="{{ cat.image_url }}" alt="{{ cat.category.name }}" class="category-image" loading="lazy">
                 {% else %}
                 <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-cpu" style="font-size: 4rem; color: var(--accent-light); opacity: 0.5;"></i>
+                    <i class="bi bi-grid-3x3-gap" style="font-size: 4rem; color: var(--accent-light); opacity: 0.5;"></i>
                 </div>
                 {% endif %}
                 <div class="category-content">
-                    <h3 class="category-title">{{ cat.category.name|default:'Electronics' }}</h3>
+                    <h3 class="category-title">{{ cat.category.name }}</h3>
                     <span class="category-count">{{ cat.count|default:0 }} Product{{ cat.count|pluralize }}</span>
                 </div>
             </a>
-            {% endwith %}
-            
-            {% with cat=categories_preview.fashion %}
-            <a href="/shop/?category=fashion" class="category-card" style="text-decoration: none;">
-                {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Fashion' }}" class="category-image" loading="lazy">
-                {% else %}
-                <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%); display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-bag" style="font-size: 4rem; color: var(--white); opacity: 0.5;"></i>
-                </div>
-                {% endif %}
-                <div class="category-content">
-                    <h3 class="category-title">{{ cat.category.name|default:'Fashion' }}</h3>
-                    <span class="category-count">{{ cat.count|default:0 }} Product{{ cat.count|pluralize }}</span>
-                </div>
-            </a>
-            {% endwith %}
-            
-            {% with cat=categories_preview.cosmetics %}
-            <a href="/shop/?category=cosmetics" class="category-card" style="text-decoration: none;">
-                {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Cosmetics' }}" class="category-image" loading="lazy">
-                {% else %}
-                <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-stars" style="font-size: 4rem; color: var(--white); opacity: 0.5;"></i>
-                </div>
-                {% endif %}
-                <div class="category-content">
-                    <h3 class="category-title">{{ cat.category.name|default:'Cosmetics' }}</h3>
-                    <span class="category-count">{{ cat.count|default:0 }} Product{{ cat.count|pluralize }}</span>
-                </div>
-            </a>
-            {% endwith %}
-            
-            {% with cat=categories_preview.home %}
-            <a href="/shop/?category=home" class="category-card" style="text-decoration: none;">
-                {% if cat.image_url %}
-                <img src="{{ cat.image_url }}" alt="{{ cat.category.name|default:'Home' }}" class="category-image" loading="lazy">
-                {% else %}
-                <div class="category-image category-placeholder" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-house-heart" style="font-size: 4rem; color: var(--accent-light); opacity: 0.5;"></i>
-                </div>
-                {% endif %}
-                <div class="category-content">
-                    <h3 class="category-title">{{ cat.category.name|default:'Home & Living' }}</h3>
-                    <span class="category-count">{{ cat.count|default:0 }} Product{{ cat.count|pluralize }}</span>
-                </div>
-            </a>
-            {% endwith %}
+            {% empty %}
+            <p class="section-subtitle">New categories are coming soon.</p>
+            {% endfor %}
         </div>
     </div>
 </section>
@@ -2668,22 +2622,12 @@
 <section class="stats-section">
     <div class="container">
         <div class="stats-grid">
+            {% for stat in homepage_stats %}
             <div class="stat-card">
-                <div class="stat-number">10K+</div>
-                <div class="stat-label">Happy Customers</div>
+                <div class="stat-number">{{ stat.value }}</div>
+                <div class="stat-label">{{ stat.label }}</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">500+</div>
-                <div class="stat-label">Premium Products</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Customer Support</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">Quality Guarantee</div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>

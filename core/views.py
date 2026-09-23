@@ -80,7 +80,7 @@ class HomeView(TemplateView):
         # Add homepage banner content and banner images
         from core.models import BannerImage
         banner = _get_sitecontent('homepage_banner')
-        context['homepage_banner_title'] = banner.title if banner else 'Homepage Banner'
+        context['homepage_banner_title'] = banner.title if banner and banner.title else 'Everything You Need, All in One Place'
         context['homepage_banner_content'] = banner.content if banner else ''
         context['banner_background_style'] = banner.background_style if banner else 'gradient_blue'
         context['banner_background_video'] = banner.background_video if banner else None
@@ -99,23 +99,27 @@ class HomeView(TemplateView):
             hero_images = list(HeroImage.objects.filter(is_active=True).order_by('order', '-created_at'))
             cache.set('homepage_hero_images', hero_images, 1800)
         context['hero_images'] = hero_images
-        # Category previews: try to show first product image per category for the home cards
+        # Show every current category; the homepage must not depend on a fixed slug list.
         from products.models import Category
-        slugs = ['electronics', 'cosmetics', 'fashion', 'home']
-        previews = {}
-        categories = Category.objects.filter(slug__in=slugs).prefetch_related(
+        categories = Category.objects.all().prefetch_related(
             Prefetch('products', queryset=Product.objects.filter(image__isnull=False).only('id', 'image'), to_attr='image_products')
         ).annotate(product_count=Count('products'))
-        category_map = {cat.slug: cat for cat in categories}
-        for s in slugs:
-            cat = category_map.get(s)
-            if cat:
-                prod = cat.image_products[0] if getattr(cat, 'image_products', None) else None
-                img_url = prod.image.url if prod and prod.image else None
-                previews[s] = {'category': cat, 'image_url': img_url, 'count': getattr(cat, 'product_count', 0)}
-            else:
-                previews[s] = {'category': None, 'image_url': None, 'count': 0}
+        previews = []
+        for category in categories:
+            prod = category.image_products[0] if getattr(category, 'image_products', None) else None
+            previews.append({
+                'category': category,
+                'image_url': prod.image.url if prod and prod.image else None,
+                'count': category.product_count,
+            })
         context['categories_preview'] = previews
+        context['homepage_category_count'] = len(previews)
+        context['homepage_stats'] = [
+            {'value': len(previews), 'label': banner.homepage_stat1_label if banner and banner.homepage_stat1_label else 'Categories'},
+            {'value': banner.homepage_stat2_value if banner and banner.homepage_stat2_value else '500+', 'label': banner.homepage_stat2_label if banner and banner.homepage_stat2_label else 'Premium Products'},
+            {'value': banner.homepage_stat3_value if banner and banner.homepage_stat3_value else '24/7', 'label': banner.homepage_stat3_label if banner and banner.homepage_stat3_label else 'Customer Support'},
+            {'value': banner.homepage_stat4_value if banner and banner.homepage_stat4_value else '100%', 'label': banner.homepage_stat4_label if banner and banner.homepage_stat4_label else 'Quality Guarantee'},
+        ]
         # data URI placeholder (neutral SVG)
         placeholder_svg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><rect width='100%' height='100%' fill='%23f0f0f0'/><text x='50%' y='50%' fill='%23999' font-size='24' text-anchor='middle' dy='.3em'>No image</text></svg>"
         context['placeholder_data_uri'] = placeholder_svg

@@ -8,7 +8,11 @@ class SiteContentForm(forms.ModelForm):
     class Meta:
         model = SiteContent
         fields = [
-            'title', 'content', 'announcement_text', 
+            'title', 'content', 'homepage_stat1_label',
+            'homepage_stat2_value', 'homepage_stat2_label',
+            'homepage_stat3_value', 'homepage_stat3_label',
+            'homepage_stat4_value', 'homepage_stat4_label',
+            'announcement_text',
             'announcement_bar_item1', 'announcement_bar_item2', 'announcement_bar_item3',
             'background_style', 'background_video',
             'phone', 'email', 'social_links',
@@ -27,6 +31,13 @@ class SiteContentForm(forms.ModelForm):
         labels = {
             'title': 'Section Title',
             'content': 'Main Content',
+            'homepage_stat1_label': 'Live Stat 1 Label',
+            'homepage_stat2_value': 'Stat 2 Value',
+            'homepage_stat2_label': 'Stat 2 Label',
+            'homepage_stat3_value': 'Stat 3 Value',
+            'homepage_stat3_label': 'Stat 3 Label',
+            'homepage_stat4_value': 'Stat 4 Value',
+            'homepage_stat4_label': 'Stat 4 Label',
             'announcement_text': 'Top Banner Announcement',
             'announcement_bar_item1': 'Announcement Item 1',
             'announcement_bar_item2': 'Announcement Item 2',
@@ -104,7 +115,13 @@ class SiteContentForm(forms.ModelForm):
         # Fields to conditionally show/hide
         contact_fields = ['phone', 'email', 'social_links']
         checkout_fields = ['delivery_fee_24h', 'delivery_fee_2d', 'bank_name', 'account_name', 'account_number']
-        banner_fields = ['background_style', 'background_video', 'announcement_text', 'announcement_bar_item1', 'announcement_bar_item2', 'announcement_bar_item3']
+        banner_fields = [
+            'background_style', 'background_video', 'announcement_text',
+            'announcement_bar_item1', 'announcement_bar_item2', 'announcement_bar_item3',
+            'homepage_stat1_label', 'homepage_stat2_value', 'homepage_stat2_label',
+            'homepage_stat3_value', 'homepage_stat3_label',
+            'homepage_stat4_value', 'homepage_stat4_label',
+        ]
         site_settings_fields = ['site_name', 'site_tagline', 'site_logo', 'favicon', 'footer_text', 
                                 'store_address', 'business_hours', 'free_shipping_threshold', 'return_policy_days']
         social_fields = ['twitter_handle', 'instagram_handle', 'facebook_handle', 'whatsapp_number', 'tiktok_handle', 'youtube_handle']

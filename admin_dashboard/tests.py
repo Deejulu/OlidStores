@@ -49,6 +49,8 @@ class ContentManageImagesTest(TestCase):
         # updated template — ensure banner section and quick-link are present
         self.assertIn('banner-section', resp.content.decode())
         self.assertIn('Homepage Banner', resp.content.decode())
+        self.assertIn('Live Stat 1 Label', resp.content.decode())
+        self.assertIn('Stat 2 Value', resp.content.decode())
 
     def test_ajax_save_content_returns_json(self):
         # Test that AJAX POST returns JSON success

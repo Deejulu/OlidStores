@@ -834,83 +834,7 @@
         border-color: var(--accent-color) !important;
     }
     
-    /* Map Section */
-    .map-section {
-        margin-top: 4rem;
-        margin-bottom: 5rem;
-        padding-bottom: 2rem;
-        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .map-container {
-        border-radius: var(--border-radius-lg);
-        overflow: hidden;
-        box-shadow: var(--shadow-2xl);
-        border: 4px solid white;
-        background: white;
-    }
-    
-    .map-container iframe {
-        width: 100%;
-        height: 450px;
-        border: none;
-        display: block;
-    }
-    
-    .map-info {
-        background: var(--gradient-primary);
-        color: white;
-        padding: 2rem 2.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
-    
-    .map-info .icon-wrapper {
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .map-info i {
-        color: white;
-        font-size: 1.75rem;
-    }
-    
-    .map-info .content strong {
-        display: block;
-        color: white;
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 0.375rem;
-    }
-    
-    .map-info .content .address {
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 1rem;
-        line-height: 1.5;
-    }
-    
-    /* â”€â”€ Trust Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â”€â”€ Trust Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     .contact-trust-strip {
         display: flex;
         justify-content: center;
@@ -1046,10 +970,7 @@
             color: #e2e8f0 !important;
         }
 
-        .map-container {
-            border-color: #475569 !important;
-        }
-    }
+}
 
     body.dark-mode .contact-form-card,
     body.dark-mode .contact-info-card,
@@ -1096,11 +1017,7 @@
         color: #e2e8f0 !important;
     }
 
-    body.dark-mode .map-container {
-        border-color: #475569 !important;
-    }
-
-    /* ========================================
+/* ========================================
        RESPONSIVE DESIGN
        ======================================== */
     
@@ -1184,27 +1101,7 @@
         .whatsapp-mega-btn { padding: 1rem 1.1rem; }
         .btn-icon-pulse { width: 40px; height: 40px; }
         .btn-content strong { font-size: 1rem; }
-        
-        .map-container iframe {
-            height: 240px;
-        }
-        
-        .map-info {
-            padding: 1rem 1.1rem;
-            flex-direction: column;
-            text-align: center;
-            gap: 0.75rem;
-        }
-        
-        .map-info .icon-wrapper {
-            width: 44px;
-            height: 44px;
-        }
-        
-        .map-info i {
-            font-size: 1.25rem;
-        }
-    }
+}
 
     @media (max-width: 390px) {
         .contact-hero       { padding: 2rem 0 1.5rem; }
@@ -1240,22 +1137,14 @@
             flex: 1 1 calc(50% - 0.5rem);
             justify-content: center;
         }
-        
-        .map-container iframe {
-            height: 350px;
-        }
-    }
+}
     
     /* Tablets (768px - 991px) */
     @media (min-width: 768px) and (max-width: 991px) {
         .contact-hero h1 {
             font-size: 2.5rem;
         }
-        
-        .map-container iframe {
-            height: 400px;
-        }
-    }
+}
     
     /* Large Desktops (â‰¥ 1400px) */
     @media (min-width: 1400px) {
@@ -1281,11 +1170,7 @@
         .contact-info-card {
             padding: 3rem;
         }
-        
-        .map-container iframe {
-            height: 500px;
-        }
-    }
+}
     
     /* Landscape Mode */
     @media (max-height: 700px) and (orientation: landscape) {
@@ -1308,11 +1193,7 @@
         .contact-info-card {
             padding: 2rem;
         }
-        
-        .map-container iframe {
-            height: 350px;
-        }
-    }
+}
     
     /* Reduced Motion */
     @media (prefers-reduced-motion: reduce) {
@@ -1343,11 +1224,7 @@
         .social-links {
             display: none;
         }
-        
-        .map-container iframe {
-            height: 300px;
-        }
-    }
+}
 </style>
 {% endblock %}
 
@@ -1444,9 +1321,9 @@
                     </div>
                     <div class="content">
                         <strong>Visit Our Store</strong>
-                        <a href="https://maps.google.com/?q=5.5700932,5.7433583" target="_blank" rel="noopener noreferrer" class="value" style="font-size:.97rem;line-height:1.5;display:block;">
+                        <span class="value" style="font-size:.97rem;line-height:1.5;display:block;">
                             Express Junction near BON Hotel,<br>Ekpan, Warri, Delta State, Nigeria
-                        </a>
+                        </span>
                     </div>
                 </div>
                 
@@ -1538,27 +1415,6 @@
                     <p style="color: #4a5568; line-height: 1.7; margin: 0;">
                         Absolutely! We offer a 14-day return policy on unused items in original packaging. See our <a href="{% url 'core:returns_policy' %}" style="color: var(--accent-color); text-decoration: underline;">returns policy</a> for complete details.
                     </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Map Section -->
-    <div class="map-section">
-        <div class="map-container">
-            <iframe 
-                src="https://maps.google.com/maps?q=5.5700932,5.7433583&z=15&output=embed" 
-                allowfullscreen 
-                loading="lazy"
-                title="Store Location Map"
-            ></iframe>
-            <div class="map-info">
-                <div class="icon-wrapper">
-                    <i class="bi bi-geo-alt-fill"></i>
-                </div>
-                <div class="content">
-                    <strong>Visit Our Store</strong>
-                    <div class="address">Express Junction near BON Hotel, Ekpan, Warri, Delta State, Nigeria</div>
                 </div>
             </div>
         </div>

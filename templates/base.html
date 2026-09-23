@@ -483,7 +483,7 @@
         }
         .mobile-menu-button { width: 44px; height: 44px; font-size: 1.3rem; }
         .user-actions { gap: 0.06rem; }
-        .action-item { width: 37px; height: 37px; font-size: 1rem; }
+        .action-item { width: 40px; height: 40px; font-size: 1rem; }
         /* SVG logo: fixed height lets it scale cleanly; max-width:100% (inline) still prevents overflow */
         .brand-logo svg { height: 42px !important; width: auto !important; }
 
@@ -493,6 +493,19 @@
             width: 100%;
             margin: 0.4rem 0 0.15rem 0;
             padding: 0 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Persistent "View Shop" shortcut — hidden on the Shop page (server-side) */
+        .view-shop-btn-mobile {
+            display: inline-flex;
+        }
+
+        .search-form {
+            flex: 1;
+            width: 100%;
         }
         
         .search-input-wrapper {
@@ -512,7 +525,8 @@
             top: 0;
             bottom: 0;
             margin: auto 0;
-            height: 32px;
+            height: 40px;
+            width: 40px;
         }
         
         .search-button:hover {
@@ -586,6 +600,88 @@
     
     .mobile-menu-button:focus:not(:focus-visible) {
         outline: none;
+    }
+
+    /* ===== MOBILE VIEW SHOP BUTTON (persistent shortcut) ===== */
+    .view-shop-btn-mobile {
+        display: none;
+        flex-shrink: 0;
+        height: 44px;
+        padding: 0 0.9rem;
+        background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
+        color: #ffffff;
+        border: 1px solid var(--accent-color);
+        border-radius: var(--radius-full);
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(139, 115, 85, 0.25);
+        transition: var(--transition-base);
+        white-space: nowrap;
+        touch-action: manipulation;
+    }
+    .view-shop-btn-mobile i { font-size: 1.05rem; }
+    .view-shop-btn-mobile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(139, 115, 85, 0.35);
+    }
+    .view-shop-btn-mobile:active { transform: scale(0.97); }
+
+    /* ===== HAMBURGER FIRST-VISIT HINT ===== */
+    .hamburger-hint {
+        display: none;
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        align-items: center;
+        justify-content: center;
+        z-index: 10010;
+        pointer-events: none;
+    }
+    .hamburger-hint.visible { display: inline-flex; }
+    .hamburger-hint-bubble {
+        position: absolute;
+        top: -26px;
+        right: 0;
+        background: var(--white);
+        color: var(--gray-900);
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 4px 8px;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-md);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+        opacity: 0;
+        animation: hintFadeIn 0.4s ease-out 0.2s forwards;
+        pointer-events: none;
+    }
+    .hamburger-hint-bubble::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: var(--white);
+    }
+    .hamburger-hint-dot {
+        position: relative;
+        width: 10px;
+        height: 10px;
+        flex-shrink: 0;
+        border-radius: var(--radius-full);
+        background: var(--theme-accent);
+        animation: hintPulse 1.8s ease-in-out 0.4s infinite;
+    }
+    @keyframes hintFadeIn { to { opacity: 1; } }
+    @keyframes hintPulse {
+        0%   { box-shadow: 0 0 0 0 rgba(var(--theme-accent-rgb, 255, 215, 0), 0.7); }
+        60%  { box-shadow: 0 0 0 8px rgba(var(--theme-accent-rgb, 255, 215, 0), 0); }
+        100% { box-shadow: 0 0 0 0 rgba(var(--theme-accent-rgb, 255, 215, 0), 0); }
     }
 
     /* ===== USER ACTIONS ===== */
@@ -705,8 +801,8 @@
         top: 0;
         bottom: 0;
         margin: auto 0;
-        width: 28px;
-        height: 28px;
+        width: 40px;
+        height: 40px;
         border: none;
         background: var(--gray-100);
         color: var(--gray-500);
@@ -917,8 +1013,8 @@
             margin: auto 0;
         }
         .search-button {
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             right: 6px;
             top: 0;
             bottom: 0;
@@ -942,8 +1038,8 @@
         }
         .search-clear {
             right: 2.5rem;
-            width: 24px;
-            height: 24px;
+            width: 40px;
+            height: 40px;
             font-size: 0.75rem;
             top: 0;
             bottom: 0;
@@ -2188,7 +2284,7 @@
         #darkModeToggle { display: none !important; }
 
         /* Action icons smaller to give logo more breathing room */
-        .action-item { width: 36px; height: 36px; font-size: 0.95rem; }
+        .action-item { width: 40px; height: 40px; font-size: 0.95rem; }
         .mobile-menu-button { width: 36px; height: 36px; }
         /* SVG logo at phone-friendly height */
         .brand-logo svg { height: 40px !important; width: auto !important; }
@@ -2290,7 +2386,7 @@
         /* Very small phones — shrink logo wordmark further */
         .logo-olid   { font-size: 1.25rem; }
         .logo-stores { font-size: 1.1rem; }
-        .action-item { width: 34px; height: 34px; font-size: 0.9rem; }
+        .action-item { width: 40px; height: 40px; font-size: 0.9rem; }
         .mobile-menu-button { width: 34px; height: 34px; }
         .brand-logo svg { height: 38px !important; width: auto !important; }
 
@@ -2340,7 +2436,7 @@
         }
         .logo-olid   { font-size: 1.1rem; }
         .logo-stores { font-size: 0.95rem; }
-        .action-item { width: 32px; height: 32px; font-size: 0.85rem; }
+        .action-item { width: 40px; height: 40px; font-size: 0.85rem; }
         /* Keep mobile menu at 44px minimum for touch accessibility */
         .mobile-menu-button { 
             width: 44px; 
@@ -2623,10 +2719,20 @@
                 <!-- Mobile Menu Button -->
                 <button class="mobile-menu-button" id="mobileMenuButton" aria-controls="navMenu" aria-expanded="false" aria-label="Open navigation menu">
                     <i class="bi bi-list"></i>
+                    <span class="hamburger-hint" id="hamburgerHint" aria-hidden="true">
+                        <span class="hamburger-hint-bubble">Tap here to browse</span>
+                        <span class="hamburger-hint-dot"></span>
+                    </span>
                 </button>
 
                 <!-- Enhanced Search -->
                 <div class="search-container">
+                    {% if '/shop/' not in request.path %}
+                    <a href="/shop/" class="view-shop-btn-mobile" aria-label="View Shop">
+                        <i class="bi bi-shop"></i>
+                        <span>View Shop</span>
+                    </a>
+                    {% endif %}
                     <form class="search-form" action="/search/" method="get" id="mainSearchForm">
                         <div class="search-input-wrapper">
                             <input type="search" 
@@ -3179,7 +3285,7 @@
         .fc-close-btn {
             background: rgba(255,255,255,0.15);
             border: none; color: #fff;
-            width: 30px; height: 30px;
+            width: 44px; height: 44px;
             border-radius: 50%; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem;
@@ -3287,7 +3393,7 @@
         }
         .fc-reply-input:focus { border-color: var(--primary-color, #2a2a2a); }
         .fc-reply-send-btn {
-            width: 38px; height: 38px;
+            width: 44px; height: 44px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--primary-color, #2a2a2a), var(--accent-color, #8B7355));
             color: #fff;
@@ -4293,6 +4399,37 @@
                     }
                 }, { passive: true });
             }
+
+            // ===== HAMBURGER FIRST-VISIT HINT =====
+            // Shows a soft hint once for first-time mobile visitors, pointing at the
+            // hamburger menu. Persisted in localStorage so it never nags again.
+            (function() {
+                var hint = document.getElementById('hamburgerHint');
+                if (!hint) return;
+                // The hamburger (and therefore the hint) is only rendered on mobile.
+                if (window.innerWidth >= 768) return;
+                var STORAGE_KEY = 'hamburgerHintDismissed';
+                if (localStorage.getItem(STORAGE_KEY)) return; // returning visitor -> never show
+                // Show once on the first visit (covers first page load only).
+                hint.classList.add('visible');
+                localStorage.setItem(STORAGE_KEY, '1');
+                var _hintTimer = null;
+                function dismissHint() {
+                    if (_hintTimer) { clearTimeout(_hintTimer); _hintTimer = null; }
+                    localStorage.setItem(STORAGE_KEY, '1');
+                    if (hint.parentNode) hint.classList.remove('visible');
+                }
+                // Soft auto-dismiss after a single appearance (no nagging).
+                _hintTimer = setTimeout(dismissHint, 5000);
+                // Dismiss immediately the moment the visitor opens the menu.
+                if (mobileMenuButton) {
+                    mobileMenuButton.addEventListener('click', function() {
+                        if (navMenu && navMenu.classList.contains('active')) {
+                            dismissHint();
+                        }
+                    });
+                }
+            })();
 
             // ===== ENHANCED SEARCH FUNCTIONALITY =====
             (function() {

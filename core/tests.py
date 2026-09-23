@@ -1,5 +1,7 @@
 from django.test import TestCase, Client
-from core.models import BannerImage
+from django.core.cache import cache
+from core.models import BannerImage, SiteContent
+from products.models import Category
 import json
 import os
 from unittest.mock import patch
@@ -17,6 +19,58 @@ class HomeBannerTest(TestCase):
         self.assertEqual(r.status_code, 200)
         # homepage was refactored to a hero-section; ensure hero markup is present
         self.assertIn('hero-section', r.content.decode())
+
+
+class HomepageCmsContentTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        cache.clear()
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_homepage_uses_cms_hero_copy_and_stats(self):
+        SiteContent.objects.create(
+            key='homepage_banner',
+            title='Shop Every Category You Love',
+            content='Quality products for every part of your day.',
+            homepage_stat1_label='Departments',
+            homepage_stat2_value='250+',
+            homepage_stat2_label='Products',
+            homepage_stat3_value='Daily',
+            homepage_stat3_label='Support',
+            homepage_stat4_value='Trusted',
+            homepage_stat4_label='Shopping',
+        )
+
+        response = self.client.get('/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Shop Every Category You Love')
+        self.assertContains(response, 'Quality products for every part of your day.')
+        self.assertContains(response, 'Departments')
+        self.assertContains(response, '250+')
+        self.assertNotContains(response, '10K+')
+        self.assertNotContains(response, 'Happy Customers')
+
+    def test_homepage_categories_follow_live_database_records(self):
+        category = Category.objects.create(name='Seasonal Essentials')
+
+        self.assertContains(self.client.get('/'), 'Seasonal Essentials')
+
+        category.delete()
+        cache.clear()
+
+        self.assertNotContains(self.client.get('/'), 'Seasonal Essentials')
+
+    def test_homepage_first_stat_is_live_category_count(self):
+        Category.objects.create(name='One Category')
+        Category.objects.create(name='Another Category')
+
+        response = self.client.get('/')
+
+        self.assertEqual(response.context['homepage_category_count'], 2)
+        self.assertContains(response, 'Categories')
 
 
 class BannerImageProcessingTest(TestCase):
