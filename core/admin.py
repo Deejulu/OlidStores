@@ -48,6 +48,13 @@ class SiteContentAdmin(admin.ModelAdmin):
     search_fields = ('key', 'title', 'phone', 'email')
     readonly_fields = ('updated_at',)
 
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        obj = self.get_object(request, object_id)
+        if obj and obj.key == 'homepage_banner':
+            extra_context['multipart_form'] = True
+        return super().change_view(request, object_id, form_url, extra_context)
+
     def get_fieldsets(self, request, obj=None):
         # Dynamic fieldsets for clarity
         base = [
@@ -57,6 +64,15 @@ class SiteContentAdmin(admin.ModelAdmin):
             base.append(('Contact Info', {
                 'fields': ('phone', 'email', 'social_links', 'twitter', 'instagram', 'facebook', 'whatsapp', 'map_embed'),
                 'description': 'Edit the contact information and map for the Contact page. Use the platform fields to enter handles or full URLs; handles like @yourhandle or just yourhandle are supported and will be converted to profile URLs.',
+            }))
+        if obj and obj.key == 'homepage_banner':
+            base.append(('Homepage Banner Settings', {
+                'fields': ('background_style', 'background_video', 'announcement_text',
+                           'announcement_bar_item1', 'announcement_bar_item2', 'announcement_bar_item3',
+                           'homepage_stat1_label', 'homepage_stat2_value', 'homepage_stat2_label',
+                           'homepage_stat3_value', 'homepage_stat3_label',
+                           'homepage_stat4_value', 'homepage_stat4_label'),
+                'description': 'Configure the homepage hero banner appearance and rotating announcements.',
             }))
         base.append(('Other', {'fields': ('updated_at',)}))
         return base

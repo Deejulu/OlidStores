@@ -633,8 +633,17 @@
         box-shadow: 0 3px 10px rgba(139, 115, 85, 0.35);
     }
     .view-shop-btn-mobile:active { transform: scale(0.96); }
-    @media (max-width: 767.98px) {
+    @media (max-width: 991.98px) {
         .view-shop-btn-mobile { display: inline-flex; }
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .search-form {
+            flex: 1 1 0;
+            min-width: 0;
+        }
     }
 
     /* ===== HAMBURGER FIRST-VISIT HINT ===== */
@@ -1090,6 +1099,26 @@
             right: 3rem;
             font-size: 0.65rem;
             padding: 0.15rem 0.4rem;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .brand-logo {
+            width: auto !important;
+            max-width: 220px;
+        }
+
+        .css-logo {
+            max-width: 160px;
+        }
+
+        .logo-tagline {
+            display: none;
+        }
+
+        .logo-main {
+            flex-wrap: nowrap;
+            white-space: nowrap;
         }
     }
 

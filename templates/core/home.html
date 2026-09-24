@@ -182,6 +182,15 @@
         .hero-background {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         }
+        .hero-video-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            pointer-events: none;
+        }
     {% else %}
         .hero-background {
             background: 
@@ -2319,7 +2328,7 @@
     </div>
     
     {% if banner_background_style == 'video' and banner_background_video %}
-    <video autoplay muted loop playsinline class="hero-video-bg">
+    <video autoplay muted loop playsinline class="hero-video-bg" poster="" data-fallback="true">
         <source src="{{ banner_background_video.url }}" type="video/mp4">
     </video>
     {% endif %}
@@ -3099,6 +3108,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     {% endif %}
+
+    // Video background fallback handling
+    const heroVideo = document.querySelector('.hero-video-bg');
+    if (heroVideo) {
+        // Function to hide video and show gradient fallback
+        function fallbackToGradient() {
+            heroVideo.style.display = 'none';
+            heroVideo.removeAttribute('autoplay');
+            heroVideo.pause();
+            // The .hero-background gradient is already visible behind
+            console.log('Video background failed to autoplay, falling back to gradient');
+        }
+
+        // Handle various failure scenarios
+        heroVideo.addEventListener('error', fallbackToGradient);
+        
+        // Check if autoplay was blocked
+        const playPromise = heroVideo.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(fallbackToGradient);
+        }
+
+        // Fallback for mobile browsers that don't autoplay even with muted
+        // Wait a bit to see if video starts playing
+        setTimeout(() => {
+            if (heroVideo.paused && heroVideo.readyState >= 2) {
+                // Try one more time
+                heroVideo.play().catch(fallbackToGradient);
+            } else if (heroVideo.paused && heroVideo.readyState < 2) {
+                // Video hasn't loaded enough - wait for canplay
+                heroVideo.addEventListener('canplay', () => {
+                    heroVideo.play().catch(fallbackToGradient);
+                }, { once: true });
+            }
+        }, 3000);
+
+        // Also handle visibility change (some browsers pause when tab is hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && heroVideo.paused && heroVideo.dataset.fallback !== 'true') {
+                heroVideo.play().catch(fallbackToGradient);
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

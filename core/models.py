@@ -221,6 +221,17 @@ class SiteContent(models.Model):
 	
 	updated_at = models.DateTimeField(auto_now=True)
 
+	def save(self, *args, **kwargs):
+		super().save(*args, **kwargs)
+		# Invalidate cache for this content key
+		from django.core.cache import cache
+		cache.delete(f'site_content_{self.key}')
+		# Also clear homepage-specific caches
+		if self.key == 'homepage_banner':
+			cache.delete('homepage_featured_products')
+			cache.delete('homepage_banner_images')
+			cache.delete('homepage_hero_images')
+
 	def __str__(self):
 		return self.get_key_display()
 

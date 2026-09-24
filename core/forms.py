@@ -2,6 +2,45 @@ from django import forms
 from core.models import SiteContent
 
 
+# Video upload constants
+MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB
+ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm']
+ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.webm']
+
+
+def validate_video_file(value):
+    """Validate uploaded video file."""
+    if not value:
+        return
+    
+    # Check file size
+    if value.size > MAX_VIDEO_SIZE:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(
+            f'Video file is too large. Maximum size is {MAX_VIDEO_SIZE // (1024*1024)}MB. '
+            f'Your file is {value.size // (1024*1024)}MB.'
+        )
+    
+    # Check file extension
+    import os
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext not in ALLOWED_VIDEO_EXTENSIONS:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(
+            f'Unsupported video format. Allowed formats: {", ".join(ALLOWED_VIDEO_EXTENSIONS)}. '
+            f'You uploaded: {ext}'
+        )
+    
+    # Check MIME type (content_type may not be reliable from browser)
+    if hasattr(value, 'content_type') and value.content_type:
+        if value.content_type not in ALLOWED_VIDEO_TYPES:
+            from django.core.exceptions import ValidationError
+            raise ValidationError(
+                f'Invalid video MIME type: {value.content_type}. '
+                f'Expected a video file (MP4, MOV, AVI, WebM).'
+            )
+
+
 class SiteContentForm(forms.ModelForm):
     """Form for editing SiteContent records. Fields are shown/hidden based on the content key."""
     
@@ -80,7 +119,7 @@ class SiteContentForm(forms.ModelForm):
             'announcement_bar_item2': 'Second rotating message (e.g. "Use code OLID10 for 10% off")',
             'announcement_bar_item3': 'Third rotating message (e.g. "Secure checkout guaranteed")',
             'background_style': 'Choose the background style for the homepage banner',
-            'background_video': 'Upload a video file (MP4) for video background option',
+            'background_video': 'Upload a video file (MP4 recommended, max 50MB) for video background option',
             'bank_name': 'Bank name for manual transfer payments (e.g. GTBank, Access Bank)',
             'account_name': 'Account holder name shown to customers',
             'account_number': 'Account number customers will transfer money to',
@@ -209,6 +248,13 @@ class SiteContentForm(forms.ModelForm):
             # Default: hide contact fields
             for f in contact_fields:
                 self.fields.pop(f, None)
+
+    def clean_background_video(self):
+        """Validate the background video file."""
+        video = self.cleaned_data.get('background_video')
+        if video:
+            validate_video_file(video)
+        return video
 
     def save(self, commit=True):
         instance = super().save(commit=False)
