@@ -605,29 +605,37 @@
     /* ===== MOBILE VIEW SHOP BUTTON (persistent shortcut) ===== */
     .view-shop-btn-mobile {
         display: none;
-        flex-shrink: 0;
-        height: 44px;
-        padding: 0 0.9rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        flex: 0 0 auto;
+        height: 34px;
+        min-height: 34px;
+        padding: 0 0.55rem;
         background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
         color: #ffffff;
         border: 1px solid var(--accent-color);
-        border-radius: var(--radius-full);
+        border-radius: 999px;
         font-family: var(--font-sans);
-        font-size: 0.8rem;
+        font-size: 0.68rem;
         font-weight: 600;
-        letter-spacing: 0.02em;
+        line-height: 1;
+        letter-spacing: 0.01em;
         text-decoration: none;
-        box-shadow: 0 2px 8px rgba(139, 115, 85, 0.25);
+        box-shadow: 0 2px 7px rgba(139, 115, 85, 0.25);
         transition: var(--transition-base);
         white-space: nowrap;
         touch-action: manipulation;
     }
-    .view-shop-btn-mobile i { font-size: 1.05rem; }
+    .view-shop-btn-mobile i { font-size: 0.9rem; }
     .view-shop-btn-mobile:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 14px rgba(139, 115, 85, 0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(139, 115, 85, 0.35);
     }
-    .view-shop-btn-mobile:active { transform: scale(0.97); }
+    .view-shop-btn-mobile:active { transform: scale(0.96); }
+    @media (max-width: 767.98px) {
+        .view-shop-btn-mobile { display: inline-flex; }
+    }
 
     /* ===== HAMBURGER FIRST-VISIT HINT ===== */
     .hamburger-hint {
@@ -643,8 +651,9 @@
     .hamburger-hint.visible { display: inline-flex; }
     .hamburger-hint-bubble {
         position: absolute;
-        top: -26px;
-        right: 0;
+        top: -28px;
+        left: 50%;
+        transform: translateX(-50%);
         background: var(--white);
         color: var(--gray-900);
         font-family: var(--font-sans);
@@ -2633,6 +2642,85 @@
     .text-center { text-align: center; }
     .text-muted { color: var(--gray-500); }
 
+    /* ===== RESPONSIVE HEADER SAFETY =====
+       Keep the first row stable through tablet widths, then put search on
+       its own row. The logo lockup must never wrap into separate word lines. */
+    @media (max-width: 767.98px) {
+        .header-container {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto auto;
+            column-gap: 0.35rem;
+            row-gap: 0.4rem;
+        }
+
+        .brand-logo {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .css-logo {
+            min-width: max-content;
+        }
+
+        .logo-main {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        .search-container {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .search-form {
+            min-width: 0;
+        }
+
+        .user-actions {
+            gap: 0.2rem;
+        }
+
+        .action-item {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .logo-tagline {
+            display: none;
+        }
+
+        .logo-olid {
+            font-size: clamp(1.45rem, 7vw, 1.8rem);
+        }
+
+        .logo-stores {
+            font-size: clamp(1.3rem, 6.5vw, 1.65rem);
+        }
+
+        .logo-handbag {
+            width: 36px;
+        }
+    }
+
+    @media (min-width: 576px) and (max-width: 767.98px) {
+        .logo-olid {
+            font-size: 1.85rem;
+        }
+
+        .logo-stores {
+            font-size: 1.65rem;
+        }
+
+        .logo-handbag {
+            width: 40px;
+        }
+    }
+
 </style>
 {% block extra_css %}{% endblock %}
 </head>
@@ -2727,7 +2815,7 @@
 
                 <!-- Enhanced Search -->
                 <div class="search-container">
-                    {% if '/shop/' not in request.path %}
+                    {% if request.path != '/shop/' %}
                     <a href="/shop/" class="view-shop-btn-mobile" aria-label="View Shop">
                         <i class="bi bi-shop"></i>
                         <span>View Shop</span>
