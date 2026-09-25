@@ -446,13 +446,14 @@ textarea.form-control {
     letter-spacing: 0.5px;
 }
 
-.item-image-cell,
-.item-image {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-right: 0.25rem;
-}
+                                    .item-image-cell,
+    .item-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-right: 0.25rem;
+    }
+    .thumb-link { cursor: zoom-in; }
 
 .text-center {
     text-align: center !important;
@@ -774,7 +775,7 @@ textarea.form-control {
                                 <tr>
                                     <td class="item-image-cell">
                                         {% if item.product and item.product.image %}
-                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-thumb">
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-thumb thumb-link" data-full="{{ item.product.image.url }}">
                                         {% else %}
                                             {% if item.product %}
                                                 <span class="item-thumb-placeholder">{{ item.product.name|first|upper }}</span>
@@ -803,7 +804,7 @@ textarea.form-control {
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="item-image">
                                             {% if item.product and item.product.image %}
-                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-thumb">
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-thumb thumb-link" data-full="{{ item.product.image.url }}">
                                             {% else %}
                                                 {% if item.product %}
                                                     <span class="item-thumb-placeholder">{{ item.product.name|first|upper }}</span>
@@ -950,7 +951,34 @@ textarea.form-control {
     </div>
 </div>
 
+<div class="modal fade" id="productImageViewer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-transparent shadow-none border-0">
+            <div class="modal-body p-0">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2 z-3 text-white bg-white bg-opacity-75 rounded"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+                <img src="" alt="Product image" class="img-fluid rounded" style="max-height: 85vh; width: 100%; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// Lightbox for product thumbnails in order line items.
+(function () {
+    var viewer = document.getElementById('productImageViewer');
+    if (!viewer) return;
+    var viewerImg = viewer.querySelector('img');
+    var modal = new bootstrap.Modal(viewer);
+    document.querySelectorAll('img.thumb-link[data-full]').forEach(function (img) {
+        img.addEventListener('click', function (e) {
+            e.preventDefault();
+            viewerImg.src = img.getAttribute('data-full');
+            modal.show();
+        });
+    });
+})();
+
 // Style form fields
 document.querySelectorAll('form select, form textarea, form input[type="text"], form input[type="number"]').forEach(el => {
     el.classList.add('form-control');

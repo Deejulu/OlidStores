@@ -9,8 +9,10 @@ def order_item_image(obj):
     image = getattr(product, "image", None) if product else None
     if image:
         return format_html(
-            '<img src="{}" alt="{}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">',
-            image.url, product.name,
+            '<a href="{}" target="_blank" rel="noopener noreferrer">'
+            '<img src="{}" alt="{}" style="width:48px;height:48px;'
+            'object-fit:cover;border-radius:6px;"></a>',
+            image.url, image.url, product.name,
         )
     name = getattr(product, "name", "") if product else ""
     initial = (name[:1] or "?").upper()
