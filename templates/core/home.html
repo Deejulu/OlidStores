@@ -2335,7 +2335,9 @@
     </div>
     
     {% if banner_background_style == 'video' and banner_background_video %}
-    <video autoplay muted loop playsinline class="hero-video-bg" poster="" data-fallback="true">
+    <video autoplay muted loop playsinline preload="metadata" class="hero-video-bg"
+           poster="{% with banner_images|first as first_banner %}{% if first_banner %}{% if first_banner.thumbnail %}{{ first_banner.thumbnail.url }}{% elif first_banner.image %}{{ first_banner.image.url }}{% endif %}{% endif %}{% endwith %}"
+           data-fallback="true">
         <source src="{{ banner_background_video.url }}" type="video/mp4">
     </video>
     <div class="hero-video-overlay"></div>
@@ -3120,42 +3122,64 @@ document.addEventListener('DOMContentLoaded', function() {
     // Video background fallback handling
     const heroVideo = document.querySelector('.hero-video-bg');
     if (heroVideo) {
-        // Function to hide video and show gradient fallback
+        // Hide the video and reveal the gradient ONLY on a genuine load failure.
+        // We intentionally do NOT hide the video when autoplay is blocked, because
+        // the poster (the first banner image) stays visible so mobile users always
+        // see an image instead of a black box — autoplay-block is common on mobile
+        // (iOS Safari, Chrome Data Saver, Low Power Mode) and is not a load error.
         function fallbackToGradient() {
             heroVideo.style.display = 'none';
             heroVideo.removeAttribute('autoplay');
             heroVideo.pause();
-            // The .hero-background gradient is already visible behind
-            console.log('Video background failed to autoplay, falling back to gradient');
+            console.log('Video background failed to load, falling back to gradient');
         }
-
-        // Handle various failure scenarios
         heroVideo.addEventListener('error', fallbackToGradient);
-        
-        // Check if autoplay was blocked
-        const playPromise = heroVideo.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(fallbackToGradient);
-        }
 
-        // Fallback for mobile browsers that don't autoplay even with muted
-        // Wait a bit to see if video starts playing
-        setTimeout(() => {
-            if (heroVideo.paused && heroVideo.readyState >= 2) {
-                // Try one more time
-                heroVideo.play().catch(fallbackToGradient);
-            } else if (heroVideo.paused && heroVideo.readyState < 2) {
-                // Video hasn't loaded enough - wait for canplay
-                heroVideo.addEventListener('canplay', () => {
-                    heroVideo.play().catch(fallbackToGradient);
-                }, { once: true });
+        // Autoplay (muted + playsinline) is permitted on most desktop and many
+        // mobile browsers. If the browser blocks it we don't immediately give up:
+        //  - if a poster image is set, keep the <video> in place so the poster +
+        //    dark overlay stays visible, and retry playback on the next user
+        //    interaction / when the video finishes buffering (mobile will then
+        //    play it once a real gesture occurs).
+        //  - if there is NO poster, a blocked-but-paused video would render as a
+        //    black box over the gradient, so fall back to the gradient instead.
+        function tryPlay() {
+            const playPromise = heroVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    if (!heroVideo.getAttribute('poster')) {
+                        fallbackToGradient();
+                    }
+                    /* otherwise keep the poster visible and retry later */
+                });
             }
-        }, 3000);
+        }
+        tryPlay();
 
-        // Also handle visibility change (some browsers pause when tab is hidden)
+        // A real user gesture (tap/click/key) is always allowed to play video on
+        // mobile, so use the first interaction to reveal + retry playback. If we
+        // had fallen back to the gradient (no poster, autoplay blocked), this
+        // re-shows the <video> and starts it playing for the user.
+        function onFirstInteraction() {
+            heroVideo.style.display = '';
+            heroVideo.setAttribute('autoplay', '');
+            tryPlay();
+            document.removeEventListener('touchstart', onFirstInteraction);
+            document.removeEventListener('click', onFirstInteraction);
+            document.removeEventListener('keydown', onFirstInteraction);
+        }
+        document.addEventListener('touchstart', onFirstInteraction, { once: true });
+        document.addEventListener('click', onFirstInteraction, { once: true });
+        document.addEventListener('keydown', onFirstInteraction, { once: true });
+
+        // Once enough data has buffered (slow mobile networks), retry autoplay.
+        heroVideo.addEventListener('canplay', tryPlay, { once: true });
+
+        // Resume playback when the tab returns to view — browsers pause muted
+        // background video in hidden/background tabs.
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && heroVideo.paused && heroVideo.dataset.fallback !== 'true') {
-                heroVideo.play().catch(fallbackToGradient);
+            if (!document.hidden) {
+                tryPlay();
             }
         });
     }
