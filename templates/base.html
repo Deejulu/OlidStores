@@ -1354,7 +1354,8 @@
         pointer-events: auto;
     }
 
-    /* Prevent background scroll when menu open */
+    /* Scroll is locked via JS (position:fixed on <body>) when .menu-open is
+       set, to avoid Android's overflow:hidden-on-body scroll-jump/stuck bug. */
     body.menu-open { overflow: hidden; }
 
     /* ===== DESKTOP NAVIGATION ===== */
@@ -4337,9 +4338,28 @@
             const mobileMenuClose = document.getElementById('mobileMenuClose');
             const navMenu = document.getElementById('navMenu');
 
-            // guards to prevent double-toggle or synthetic-click races on touch devices
-            let _mobileMenuLocked = false;
-            let _ignoreNextClick = false;
+            // remember page scroll position so it can be restored after the menu
+            // locks body scroll. Using position:fixed (instead of body overflow:hidden)
+            // avoids Android's known scroll-jump / stuck-scroll bug.
+            let _scrollPos = 0;
+
+            function lockBodyScroll() {
+                if (document.body.classList.contains('menu-open')) return;
+                _scrollPos = window.scrollY || document.documentElement.scrollTop;
+                document.body.style.position = 'fixed';
+                document.body.style.top = (-_scrollPos) + 'px';
+                document.body.style.width = '100%';
+                document.body.classList.add('menu-open');
+            }
+
+            function unlockBodyScroll() {
+                if (!document.body.classList.contains('menu-open')) return;
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
+                document.body.classList.remove('menu-open');
+                window.scrollTo(0, _scrollPos);
+            }
 
             function closeMobileMenu() {
                 const header = document.querySelector('.main-header');
@@ -4382,7 +4402,7 @@
                     mobileMenuButton.setAttribute('aria-expanded', 'false');
                 }
                 // restore page scroll and header interactivity
-                document.body.classList.remove('menu-open');
+                unlockBodyScroll();
                 if (header) header.classList.remove('menu-open');
                 // accessibility: return focus to the toggle
                 if (mobileMenuButton) mobileMenuButton.focus({ preventScroll: true });
@@ -4390,11 +4410,6 @@
 
             function openMobileMenu() {
                 const header = document.querySelector('.main-header');
-                // throttle rapid toggles
-                if (!_mobileMenuLocked) {
-                    _mobileMenuLocked = true;
-                    setTimeout(() => { _mobileMenuLocked = false; }, 420);
-                }
 
                 if (navMenu) {
                     // create backdrop (if not already present)
@@ -4430,7 +4445,7 @@
                     mobileMenuButton.setAttribute('aria-expanded', 'true');
                 }
                 // prevent background scrolling while nav overlay is open
-                document.body.classList.add('menu-open');
+                lockBodyScroll();
                 // temporarily disable header interaction so it doesn't block the overlay
                 if (header) header.classList.add('menu-open');
 
@@ -4456,19 +4471,11 @@
                 document.addEventListener('keydown', trapTabKey);
                 // save so we can remove on close
                 navMenu.__focusTrap = trapTabKey;
-
-                // guard against the synthetic click event fired after touch on some browsers
-                _ignoreNextClick = true;
-                setTimeout(() => { _ignoreNextClick = false; }, 40);
             }
 
             if (mobileMenuButton && navMenu) {
                 const toggleMobileMenu = function(e) {
                     if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-                    if (_mobileMenuLocked) return;
-                    // ignore the synthetic click immediately after a touch/pointer event
-                    if (_ignoreNextClick) { _ignoreNextClick = false; return; }
-
                     if (navMenu.classList.contains('active')) {
                         closeMobileMenu();
                     } else {
@@ -4478,14 +4485,6 @@
 
                 // primary click handler — stop propagation so the document 'click' outside handler won't close immediately
                 mobileMenuButton.addEventListener('click', toggleMobileMenu);
-
-                // pointer support (improves responsiveness on touch devices)
-                mobileMenuButton.addEventListener('pointerup', function(e) {
-                    if (e.pointerType !== 'mouse') {
-                        // will be ignored by the following synthetic click due to _ignoreNextClick
-                        toggleMobileMenu(e);
-                    }
-                });
 
                 // Dedicated close button — stop propagation so the toggle doesn't race with the document handler
                 if (mobileMenuClose) {
@@ -4506,8 +4505,6 @@
 
                 // Close menu when clicking outside — only act when the mobile nav is open
                 document.addEventListener('click', function(event) {
-                    if (_ignoreNextClick) { _ignoreNextClick = false; return; }
-
                     // Only close if nav overlay is currently active — prevents stealing focus on unrelated clicks
                     if (navMenu && navMenu.classList.contains('active')) {
                         if (!event.target.closest('#navMenu') && !event.target.closest('#mobileMenuButton')) {
