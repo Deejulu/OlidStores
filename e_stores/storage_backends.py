@@ -65,13 +65,6 @@ class SupabaseStorage(Storage):
         if not content_type:
             content_type = 'application/octet-stream'
         
-        # Supabase Storage buckets are often configured to reject certain MIME
-        # types (e.g. video/mp4 -> 415 invalid_mime_type). Upload with the
-        # universally-accepted octet-stream content type to bypass that
-        # restriction; the file extension in the name is retained so the
-        # browser/public CDN still serves it with the correct media type.
-        upload_content_type = 'application/octet-stream'
-        
         # Read file content
         if hasattr(content, 'read'):
             file_content = content.read()
@@ -82,7 +75,7 @@ class SupabaseStorage(Storage):
         
         # Prepare headers with content type
         upload_headers = self.headers.copy()
-        upload_headers['Content-Type'] = upload_content_type
+        upload_headers['Content-Type'] = content_type
         
         logger.info(f"Uploading file to Supabase: {cleaned_name} ({content_type})")
         
