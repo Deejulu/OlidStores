@@ -29,6 +29,7 @@
         min-height: 100vh;
         padding: 3rem 0 5rem;
         position: relative;
+        overflow-x: hidden;
     }
     
     /* Animated Background */
@@ -551,6 +552,18 @@
     @media (max-width: 480px) {
         .profile-page-wrapper {
             padding: 2rem 0 3rem;
+        }
+        .profile-page-wrapper::before {
+            width: 300px;
+            height: 300px;
+            top: -60px;
+            right: -20px;
+        }
+        .profile-page-wrapper::after {
+            width: 220px;
+            height: 220px;
+            bottom: -50px;
+            left: -20px;
         }
         
         .profile-header-card {
