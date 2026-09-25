@@ -1880,23 +1880,44 @@ def content_manage(request):
         import logging
         logger = logging.getLogger(__name__)
 
+        storage_errors = []
+
+        def _safe_save(form, label):
+            """Save a SiteContent form; surface storage failures as a form error
+            instead of a raw 500 so admins see a clear message and no data is
+            lost (the bound form re-renders with their last input)."""
+            try:
+                form.save()
+            except (IOError, OSError) as exc:
+                logger.warning("Storage error saving '%s': %s", label, exc)
+                msg = (
+                    "We could not save this section because a file upload to "
+                    "storage failed (unsupported file type or storage limit). "
+                    "Remove the file and try again, or contact support."
+                )
+                form.add_error(None, msg)
+                storage_errors.append({'section': label, 'message': msg})
+                return False
+            return True
+
         if valid:
             if present_about:
-                about_form.save()
+                _safe_save(about_form, 'about')
             if present_contact:
-                contact_form.save()
+                _safe_save(contact_form, 'contact')
             if present_banner:
-                banner_form.save()
+                if not _safe_save(banner_form, 'banner'):
+                    valid = False
             if present_checkout:
-                checkout_form.save()
+                _safe_save(checkout_form, 'checkout')
             if present_site_settings:
-                site_settings_form.save()
+                _safe_save(site_settings_form, 'site_settings')
             if present_faq:
-                faq_form.save()
+                _safe_save(faq_form, 'faq')
             if present_privacy:
-                privacy_form.save()
+                _safe_save(privacy_form, 'privacy')
             if present_terms:
-                terms_form.save()
+                _safe_save(terms_form, 'terms')
 
             # Immediately clear cached site content so changes show on the live site right away
             from django.core.cache import cache
@@ -1951,9 +1972,19 @@ def content_manage(request):
             logger.warning('Content manage validation failed: %s', validation_errors)
             # If AJAX and forms invalid, return structured errors for UI
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'success': False, 'errors': validation_errors}, status=400)
+                return JsonResponse(
+                    {'success': False, 'errors': validation_errors,
+                     'storage_errors': storage_errors},
+                    status=400,
+                )
             # Non-AJAX: surface errors to user
             messages.error(request, 'One or more sections failed validation. Please check the highlighted errors.')
+            if storage_errors:
+                messages.error(
+                    request,
+                    'A file upload could not be saved (unsupported file type '
+                    'or storage limit). Remove the offending file and try again.',
+                )
     else:
         about_form = SiteContentForm(prefix='about', instance=about)
         contact_form = SiteContentForm(prefix='contact', instance=contact)
