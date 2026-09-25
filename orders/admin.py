@@ -1,5 +1,35 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Order, OrderItem, Cart, CartItem, CheckoutSettings, PaymentSettings, PaymentTransaction, WebhookEvent
+
+
+def order_item_image(obj):
+    """Return a small thumbnail for an OrderItem's product image."""
+    product = getattr(obj, "product", None)
+    image = getattr(product, "image", None) if product else None
+    if image:
+        return format_html(
+            '<img src="{}" alt="{}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">',
+            image.url, product.name,
+        )
+    name = getattr(product, "name", "") if product else ""
+    initial = (name[:1] or "?").upper()
+    return format_html(
+        '<span style="display:inline-flex;align-items:center;justify-content:center;'
+        'width:48px;height:48px;border-radius:6px;background:var(--bg-secondary);'
+        'border:1px solid var(--border-color);font-weight:700;">{}</span>', initial
+    )
+
+class OrderItemInline(admin.TabularInline):
+	model = OrderItem
+	extra = 0
+	can_delete = False
+	fields = ('image_tag', 'product', 'variant', 'quantity', 'price', 'subtotal')
+	readonly_fields = ('image_tag', 'product', 'variant', 'quantity', 'price', 'subtotal')
+
+	def image_tag(self, obj):
+		return order_item_image(obj)
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -7,9 +37,7 @@ class OrderAdmin(admin.ModelAdmin):
 	list_filter = ('status', 'payment_method', 'created_at')
 	search_fields = ('user__email', 'id')
 	actions = ['approve_manual_payments']
-	list_filter = ('status', 'created_at')
-	search_fields = ('user__email', 'id')
-	actions = ['approve_manual_payments']
+	inlines = (OrderItemInline,)
 
 	def approve_manual_payments(self, request, queryset):
 		updated = queryset.filter(status='Pending', receipt__isnull=False).update(status='Processing')
@@ -25,8 +53,13 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-	list_display = ('order', 'product', 'quantity', 'price')
+	list_display = ('order', 'image_tag', 'product', 'quantity', 'price', 'subtotal')
+	list_display_links = ('product',)
 	search_fields = ('order__id', 'product__name')
+
+	def image_tag(self, obj):
+		return order_item_image(obj)
+	image_tag.short_description = 'Image'
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):

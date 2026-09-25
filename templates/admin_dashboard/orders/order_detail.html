@@ -427,6 +427,33 @@ textarea.form-control {
     font-size: 0.85rem;
 }
 
+/* Product thumbnails in order line items */
+.item-thumb,
+.item-thumb-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.item-image-cell,
+.item-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 0.25rem;
+}
+
 .text-center {
     text-align: center !important;
 }
@@ -734,6 +761,7 @@ textarea.form-control {
                         <table class="items-table">
                             <thead>
                                 <tr>
+                                    <th></th>
                                     <th>Product</th>
                                     <th>Variant</th>
                                     <th class="text-center">Qty</th>
@@ -744,6 +772,15 @@ textarea.form-control {
                             <tbody>
                                 {% for item in order.items.all %}
                                 <tr>
+                                    <td class="item-image-cell">
+                                        {% if item.product and item.product.image %}
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-thumb">
+                                        {% else %}
+                                            {% if item.product %}
+                                                <span class="item-thumb-placeholder">{{ item.product.name|first|upper }}</span>
+                                            {% else %}<span class="item-thumb-placeholder">—</span>{% endif %}
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <div class="product-name">{{ item.product.name }}</div>
                                     </td>
@@ -763,7 +800,18 @@ textarea.form-control {
                             {% for item in order.items.all %}
                             <div class="item-card">
                                 <div class="item-header">
-                                    <div class="product-name">{{ item.product.name }}</div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="item-image">
+                                            {% if item.product and item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="item-thumb">
+                                            {% else %}
+                                                {% if item.product %}
+                                                    <span class="item-thumb-placeholder">{{ item.product.name|first|upper }}</span>
+                                                {% else %}<span class="item-thumb-placeholder">—</span>{% endif %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="product-name">{{ item.product.name }}</div>
+                                    </div>
                                     <div class="font-bold">₦{{ item.subtotal|floatformat:2 }}</div>
                                 </div>
                                 <div class="item-row">
