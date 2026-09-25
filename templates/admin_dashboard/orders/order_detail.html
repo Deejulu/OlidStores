@@ -964,17 +964,25 @@ textarea.form-control {
 </div>
 
 <script>
-// Lightbox for product thumbnails in order line items.
+// Lightbox for product thumbnails in order line items. Opens a Bootstrap modal
+// when available, and falls back to a new tab otherwise (so the click always
+// works regardless of script/bundle load order).
 (function () {
-    var viewer = document.getElementById('productImageViewer');
-    if (!viewer) return;
-    var viewerImg = viewer.querySelector('img');
-    var modal = new bootstrap.Modal(viewer);
-    document.querySelectorAll('img.thumb-link[data-full]').forEach(function (img) {
+    var items = document.querySelectorAll('img.thumb-link[data-full]');
+    if (!items.length) return;
+    items.forEach(function (img) {
         img.addEventListener('click', function (e) {
-            e.preventDefault();
-            viewerImg.src = img.getAttribute('data-full');
-            modal.show();
+            var url = img.getAttribute('data-full');
+            if (window.bootstrap) {
+                var viewer = document.getElementById('productImageViewer');
+                var viewerImg = viewer && viewer.querySelector('img');
+                if (viewer && viewerImg) {
+                    viewerImg.src = url;
+                    new bootstrap.Modal(viewer).show();
+                    return;
+                }
+            }
+            window.open(url, '_blank');
         });
     });
 })();
