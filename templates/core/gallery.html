@@ -49,6 +49,13 @@
 }
 .gal-hero::before { width: 500px; height: 500px; top: -200px; right: -80px; }
 .gal-hero::after  { width: 350px; height: 350px; bottom: -150px; left: -60px; }
+.gal-hero::after {
+    /* subtle texture overlay for depth */
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.04) 2px, transparent 2px),
+        radial-gradient(circle at 70% 70%, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px, 25px 25px;
+}
 
 .gal-hero-inner {
     position: relative;
@@ -72,13 +79,15 @@
     margin: 0 0 .6rem;
     letter-spacing: -.03em;
     line-height: 1.1;
+    text-shadow: 0 2px 14px rgba(0,0,0,.35);
 }
 .gal-hero p {
     font-size: clamp(.9rem, 2.2vw, 1.1rem);
-    opacity: .88;
+    opacity: .92;
     margin: 0 auto;
     max-width: 500px;
     line-height: 1.65;
+    text-shadow: 0 1px 8px rgba(0,0,0,.25);
 }
 @media (max-width: 480px) {
     .gal-hero-icon { width: 60px; height: 60px; font-size: 1.5rem; }
@@ -96,7 +105,7 @@
 .gal-chip {
     display: inline-flex; align-items: center; gap: .45rem;
     padding: .5rem 1.1rem;
-    background: var(--gal-card-bg);
+    background: linear-gradient(135deg, var(--gal-card-bg) 0%, rgba(255,255,255,.96) 100%);
     border: 1px solid var(--gal-border);
     border-radius: 999px;
     font-size: .84rem;
@@ -104,6 +113,13 @@
     color: var(--gal-primary);
     box-shadow: var(--gal-shadow-sm);
     white-space: nowrap;
+    transition: all var(--gal-transition);
+}
+.gal-chip:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,.98) 0%, var(--gal-card-bg) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--gal-shadow-md);
+    border-color: rgba(139, 115, 85, .18);
 }
 .gal-chip i { font-size: .95rem; }
 
@@ -130,11 +146,18 @@
     box-shadow: var(--gal-shadow-sm);
     cursor: pointer;
     position: relative;
-    transition: transform var(--gal-transition), box-shadow var(--gal-transition);
+    transition: transform var(--gal-transition), box-shadow var(--gal-transition), border-color var(--gal-transition);
     opacity: 0;
     transform: translateY(20px);
     animation: galFadeUp .5s ease forwards;
     animation-play-state: paused;
+    border: 2px solid transparent;
+}
+.gal-card:hover {
+    transform: translateY(-6px) scale(1.018);
+    box-shadow: var(--gal-shadow-lg);
+    border-color: rgba(139, 115, 85, .18);
+    z-index: 5;
 }
 @media (max-width: 767px) {
     .gal-card { margin-bottom: .85rem; border-radius: var(--gal-radius-sm); }
@@ -179,7 +202,7 @@
     object-fit: cover;
     transition: transform .6s cubic-bezier(.4,0,.2,1);
 }
-.gal-card:hover img { transform: scale(1.07); }
+.gal-card:hover img { transform: scale(1.08); }
 
 /* --- Card Overlay --------------------------------------------------------- */
 .gal-card-overlay {
@@ -197,7 +220,7 @@
 .gal-card-zoom {
     width: 42px; height: 42px;
     border-radius: 50%;
-    background: rgba(255,255,255,.92);
+    background: linear-gradient(135deg, var(--gal-primary), var(--gal-primary-dk));
     display: flex; align-items: center; justify-content: center;
     transform: scale(.6);
     opacity: 0;
@@ -205,7 +228,7 @@
     box-shadow: 0 4px 16px rgba(0,0,0,.2);
     flex-shrink: 0;
 }
-.gal-card-zoom i { font-size: 1.15rem; color: var(--gal-primary); }
+.gal-card-zoom i { font-size: 1.15rem; color: #fff; }
 .gal-card:hover .gal-card-zoom { opacity: 1; transform: scale(1); }
 
 .gal-card-label {
@@ -252,9 +275,17 @@
     color: #fff; text-decoration: none;
     border-radius: 999px; font-weight: 600; font-size: .95rem;
     box-shadow: 0 6px 24px rgba(0,0,0,.15);
-    transition: all .3s ease;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
 }
-.gal-empty-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,.2); color: #fff; }
+.gal-empty-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 32px rgba(0,0,0,.25);
+    color: #fff;
+}
+.gal-empty-btn i {
+    transition: transform .3s ease;
+}
+.gal-empty-btn:hover i { transform: translateX(3px); }
 
 /* --- Lightbox ------------------------------------------------------------- */
 .gal-lightbox {
@@ -317,18 +348,18 @@
     backdrop-filter: blur(8px);
     color: #fff; font-size: 1.25rem;
     display: flex; align-items: center; justify-content: center;
-    transition: background .2s ease, transform .2s ease;
+    transition: all .22s ease, transform .22s ease;
     z-index: 100000;
     padding: 0;
 }
-.lb-btn:hover { background: var(--gal-primary); }
+.lb-btn:hover {
+    background: var(--gal-primary);
+    color: #fff;
+    transform: scale(1.12) !important;
+}
 .lb-close { top: 1.1rem; right: 1.1rem; }
 .lb-prev  { top: 50%; left: 1.1rem;  transform: translateY(-50%); }
 .lb-next  { top: 50%; right: 1.1rem; transform: translateY(-50%); }
-.lb-prev:hover { transform: translateY(-50%) scale(1.1) !important; }
-.lb-next:hover { transform: translateY(-50%) scale(1.1) !important; }
-.lb-close:hover { transform: scale(1.1); }
-
 .lb-counter {
     position: fixed; bottom: 1.1rem; left: 50%; transform: translateX(-50%);
     color: rgba(255,255,255,.6);
@@ -337,6 +368,7 @@
     padding: .3rem .9rem;
     border-radius: 999px;
     pointer-events: none;
+    transition: opacity .22s ease;
 }
 
 @media (max-width: 599px) {
