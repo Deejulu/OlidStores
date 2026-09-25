@@ -1819,7 +1819,7 @@ def content_manage(request):
         from django.http import JsonResponse
         about_form = SiteContentForm(request.POST, prefix='about', instance=about)
         contact_form = SiteContentForm(request.POST, prefix='contact', instance=contact)
-        banner_form = SiteContentForm(request.POST, prefix='banner', instance=banner)
+        banner_form = SiteContentForm(request.POST, request.FILES, prefix='banner', instance=banner)
         checkout_form = SiteContentForm(request.POST, prefix='checkout', instance=checkout)
         site_settings_form = SiteContentForm(request.POST, request.FILES, prefix='site_settings', instance=site_settings)
         faq_form = SiteContentForm(request.POST, prefix='faq', instance=faq)
