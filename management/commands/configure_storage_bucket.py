@@ -52,6 +52,7 @@ class Command(BaseCommand):
         supabase_url = getattr(settings, "SUPABASE_URL", "").rstrip("/")
         service_role_key = getattr(settings, "SUPABASE_SERVICE_ROLE_KEY", "")
         bucket_name = getattr(settings, "SUPABASE_STORAGE_BUCKET", "media")
+        max_memory_size = getattr(settings, "DATA_UPLOAD_MAX_MEMORY_SIZE", 50 * 1024 * 1024)
 
         # Skip on local dev where Supabase is configured.
         if not supabase_url or not service_role_key:
@@ -76,8 +77,13 @@ class Command(BaseCommand):
             f"{ALLOWED_MIME_TYPES}"
         )
 
-        # Attempt 1: set an explicit allow-list that includes video types.
-        payload = {"allowed_mime_types": ALLOWED_MIME_TYPES}
+        # Attempt 1: set an explicit allow-list (incl. video types) and a sane
+        # file-size limit (the Django form already caps uploads at 50 MB).
+        payload = {
+            "allowed_mime_types": ALLOWED_MIME_TYPES,
+            "public": True,
+            "file_size_limit": DATA_UPLOAD_MAX_MEMORY_SIZE,
+        }
         try:
             response = self._patch_bucket(admin_url, headers, payload)
         except requests.RequestException as exc:
@@ -99,7 +105,11 @@ class Command(BaseCommand):
             "falling back to permissive bucket.",
             bucket_name, status, text,
         )
-        fallback_payload = {"allowed_mime_types": None}
+        fallback_payload = {
+            "allowed_mime_types": None,
+            "public": True,
+            "file_size_limit": max_memory_size,
+        }
         try:
             response = self._patch_bucket(admin_url, headers, fallback_payload)
         except requests.RequestException as exc:
