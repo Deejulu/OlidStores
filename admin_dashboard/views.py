@@ -1906,8 +1906,7 @@ def content_manage(request):
             if present_contact:
                 _safe_save(contact_form, 'contact')
             if present_banner:
-                if not _safe_save(banner_form, 'banner'):
-                    valid = False
+                _safe_save(banner_form, 'banner')
             if present_checkout:
                 _safe_save(checkout_form, 'checkout')
             if present_site_settings:
@@ -1919,6 +1918,10 @@ def content_manage(request):
             if present_terms:
                 _safe_save(terms_form, 'terms')
 
+        # Only commit (cache clear, formsets, success) if no storage errors
+        # were raised during the saves above. Otherwise we fall through and
+        # re-render the page with the forms (and their bound data + errors).
+        if valid and not storage_errors:
             # Immediately clear cached site content so changes show on the live site right away
             from django.core.cache import cache
             for _cache_key in ['about', 'contact', 'homepage_banner', 'checkout', 'site_settings', 'faq', 'privacy', 'terms']:
