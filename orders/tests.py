@@ -268,7 +268,7 @@ class PaystackIntegrationTests(TestCase):
 		# prepare cart and attach to the authenticated user
 		cart = Cart.objects.create(user=self.user)
 		CartItem.objects.create(cart=cart, product=self.product, quantity=1, price=self.product.price)
-		# submit manual checkout selecting 24h delivery
+		# submit manual checkout selecting 2-3 day delivery
 		r = self.client.post(reverse('orders:checkout'), {
 			'payment_method': 'manual',
 			'full_name': 'Jane',
@@ -846,7 +846,7 @@ class OrderConfirmationTests(TestCase):
 		self.assertContains(response, '08000000000')
 		self.assertContains(response, '123 Street')
 		self.assertContains(response, self.product.name)
-		self.assertContains(response, '2-day')
+		self.assertContains(response, '5 Days')
 		self.assertContains(response, 'Payment Confirmed')
 
 	def test_order_confirmation_pdf_downloads(self):

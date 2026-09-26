@@ -179,8 +179,8 @@ class SiteContent(models.Model):
 	social_links = models.TextField(blank=True, help_text="Comma-separated list of social media links (e.g. https://twitter.com/yourpage, https://facebook.com/yourpage)")
 	# Checkout-specific editable fees
 	from django.core.validators import MinValueValidator
-	delivery_fee_24h = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text='Delivery fee for 24-hour delivery (admin editable)', validators=[MinValueValidator(0)])
-	delivery_fee_2d = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text='Delivery fee for 2-day delivery (admin editable)', validators=[MinValueValidator(0)])
+	delivery_fee_24h = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name='2-3 Day Delivery Fee', help_text='Delivery fee for 2-3 day delivery (admin editable)', validators=[MinValueValidator(0)])
+	delivery_fee_2d = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name='5-Day Delivery Fee', help_text='Delivery fee for 5-day delivery (admin editable)', validators=[MinValueValidator(0)])
 	# Manual Payment / Bank Transfer Details (checkout-specific)
 	bank_name = models.CharField(max_length=100, blank=True, help_text='Bank name for manual transfer payments (e.g. GTBank, Access Bank)')
 	account_name = models.CharField(max_length=200, blank=True, help_text='Account holder name for manual transfers')

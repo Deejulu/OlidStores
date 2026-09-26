@@ -2367,7 +2367,7 @@ def _seed_auto_replies():
             'question': 'How long does delivery take?',
             'keywords': 'how long,delivery time,shipping time,when will i receive,estimated delivery,how many days',
             'response': (
-                'Standard delivery takes 2–5 business days. Express (24h) is available at checkout. '
+                'Delivery takes 2-3 days or 5 days. Choose your preferred option at checkout. '
                 'You will receive a tracking notification once your order is dispatched!'
             ),
         },

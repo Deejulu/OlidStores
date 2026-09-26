@@ -416,10 +416,9 @@ def _ensure_default_auto_replies():
                 'how long shipping, delivery how long, fast delivery, quick delivery'
             ),
             'response': (
-                'Standard delivery typically takes 3 to 5 business days within Lagos '
-                'and 5 to 7 business days for other states. '
+                'Delivery typically takes 2-3 days within Lagos and 5 days nationwide. '
                 'You will receive a tracking number via email once your order ships. '
-                'Express delivery is also available at checkout!'
+                'Choose your delivery option at checkout.'
             ),
         },
         {

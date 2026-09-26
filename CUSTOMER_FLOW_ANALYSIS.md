@@ -16,7 +16,7 @@
 - ✅ Cart view page
 - ✅ Update quantities
 - ✅ Remove items
-- ✅ Delivery options (24h, 2-day)
+- ✅ Delivery options (2-3 days, 5 days)
 - ✅ Floating cart icon with count
 
 ### 3. **Checkout Process**

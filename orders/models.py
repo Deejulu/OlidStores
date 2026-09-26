@@ -74,7 +74,7 @@ class Order(models.Model):
 	email = models.EmailField(blank=True)
 	delivery_address = models.TextField()
 	delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-	delivery_option = models.CharField(max_length=10, choices=(('24h', '24-hour'), ('2d', '2-day')), default='2d')
+	delivery_option = models.CharField(max_length=10, choices=(('24h', '2-3 Days'), ('2d', '5 Days')), default='2d')
 	total = models.DecimalField(max_digits=10, decimal_places=2)
 	payment_method = models.CharField(max_length=50, blank=True, null=True, help_text='Selected payment method for this order (paystack, manual, pay_on_delivery)')
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
@@ -241,8 +241,8 @@ class OrderAuditLog(models.Model):
 		return f"Order {self.order.id} - {self.action} at {self.created_at}"
 
 class CheckoutSettings(models.Model):
-    delivery_fee_24h = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Delivery fee for 24-hour delivery")
-    delivery_fee_2d = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Delivery fee for 2-day delivery")
+    delivery_fee_24h = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name='2-3 Day Delivery Fee', help_text="Delivery fee for 2-3 day delivery")
+    delivery_fee_2d = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name='5-Day Delivery Fee', help_text="Delivery fee for 5-day delivery")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
