@@ -67,9 +67,11 @@ class SupabaseStorage(Storage):
         
         # Read file content
         if hasattr(content, 'read'):
+            if hasattr(content, 'seek'):
+                content.seek(0)  # Reset file pointer to beginning before reading
             file_content = content.read()
             if hasattr(content, 'seek'):
-                content.seek(0)  # Reset file pointer
+                content.seek(0)  # Reset file pointer for potential re-reads
         else:
             file_content = content
         

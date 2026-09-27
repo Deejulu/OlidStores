@@ -15,10 +15,13 @@ def _compress_image_field(instance, field_name, max_size=(1200, 1200), quality=8
     # _committed is False only when a new file has been assigned but not yet saved
     if not field or getattr(field, '_committed', True):
         return
+    img = None
     try:
         from PIL import Image
         from io import BytesIO
         from django.core.files.uploadedfile import InMemoryUploadedFile
+
+        field.seek(0)
 
         img = Image.open(field)
         # Flatten transparency to white background
@@ -48,6 +51,10 @@ def _compress_image_field(instance, field_name, max_size=(1200, 1200), quality=8
         ))
     except Exception:
         pass  # Never break a save due to compression failure
+    finally:
+        if img:
+            img.close()
+        field.seek(0)
 
 
 class Category(models.Model):
