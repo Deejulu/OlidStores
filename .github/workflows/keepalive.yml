@@ -1,0 +1,22 @@
+name: Keep Alive
+
+# Prevents the Render free-tier web service from sleeping after 15 minutes
+# of inactivity by requesting its root path every 13 minutes.
+# (GitHub cron is 1-minute-granular, so 13 minutes is used instead of 13.5;
+#  this stays safely under Render's 15-minute sleep window.)
+on:
+  schedule:
+    - cron: '*/13 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping olidstores.onrender.com
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://olidstores.onrender.com/ || true)
+          echo "Ping returned HTTP ${code}"
