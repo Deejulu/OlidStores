@@ -579,7 +579,8 @@
         height: 48px;
         background: var(--white);
         border: 1px solid var(--gray-300);
-        border-radius: var(--radius-md);
+        /* Circular to match .action-item in the same row */
+        border-radius: var(--radius-full);
         color: var(--gray-700);
         font-size: 1.5rem;
         cursor: pointer;
@@ -599,7 +600,7 @@
         left: -8px;
         right: -8px;
         bottom: -8px;
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-full);
     }
     .mobile-menu-button:hover,
     .mobile-menu-button:active {
@@ -735,7 +736,10 @@
         height: 48px;
         background: var(--white);
         border: 1px solid var(--gray-300);
-        border-radius: var(--radius-md);
+        /* Circular targets: a circle inscribed in the same box carries less
+           visual mass than a square, so the row reads airier at an identical
+           44px/48px footprint. Layout is unchanged. */
+        border-radius: var(--radius-full);
         color: var(--gray-700);
         transition: var(--transition-base);
         font-size: 1.25rem;
@@ -747,6 +751,11 @@
         color: var(--white);
         border-color: var(--accent-color);
         transform: translateY(-2px);
+    }
+    /* Keyboard focus should read as a ring around the circle, not a square. */
+    .action-item:focus-visible {
+        outline: 3px solid rgba(212, 175, 55, 0.45);
+        outline-offset: 2px;
     }
     .notification-badge {
         position: absolute;
