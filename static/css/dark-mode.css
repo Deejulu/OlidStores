@@ -1784,8 +1784,12 @@
     [data-theme="dark"] .form-control,
     [data-theme="dark"] .form-select {
         font-size: 1rem !important;
-        padding: 0.65rem 0.85rem !important;
+        padding-top: 0.65rem !important;
+        padding-right: 0.85rem !important;
+        padding-bottom: 0.65rem !important;
     }
+    [data-theme="dark"] .form-control { padding-right: 1rem !important; }
+    [data-theme="dark"] .form-select  { padding-left: 0.85rem !important; }
     [data-theme="dark"] .form-label { font-size: 0.875rem !important; }
 
     /* Buttons keep inline layout */

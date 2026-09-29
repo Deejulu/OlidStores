@@ -107,10 +107,10 @@ main {
 }
 
 .form-control,
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="password"],
+:where(input[type="text"],
+       input[type="email"],
+       input[type="tel"],
+       input[type="password"]),
 textarea,
 select {
     width: 100%;

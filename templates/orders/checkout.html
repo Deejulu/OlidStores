@@ -305,7 +305,7 @@
         <div class="mb-4">
             <i class="bi bi-cart-x display-1 text-muted"></i>
         </div>
-        <h2 class="h4 mb-3">Your cart is empty</h2>
+        <h2 class="h4 mb-3 text-danger">Your cart is empty</h2>
         <p class="text-muted mb-4">Looks like your cart is empty.<br>Browse our shop to find something you love.</p>
         <a href="{% url 'products:shop' %}" class="btn btn-primary btn-lg rounded-pill px-5">Go to Shop</a>
     </div>
@@ -1297,7 +1297,7 @@
     .ck-input-wrap:focus-within .ck-input-icon {
         color: var(--gold-dark, #B8860B);
     }
-    .ck-input-icon-pad {
+    .checkout-page .ck-input-icon-pad {
         padding-left: 2.8rem !important;
     }
 
@@ -1597,7 +1597,7 @@
             font-size: 16px !important;
             padding: 0.9rem 1rem !important;
         }
-        .ck-input-icon-pad {
+        .checkout-page .ck-input-icon-pad {
             padding-left: 2.75rem !important;
         }
         /* Order summary items */
