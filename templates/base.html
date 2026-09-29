@@ -2691,18 +2691,28 @@
 
     /* ===== RESPONSIVE HEADER SAFETY =====
        Keep the first row stable through tablet widths, then put search on
-       its own row. The logo lockup must never wrap into separate word lines. */
+       its own row. The logo lockup must never wrap into separate word lines.
+
+       Real-device note: on touch devices modern-theme.css pins
+       `a, button { min-width: 44px }` under `(hover:none) and (pointer:coarse)`.
+       Icons therefore occupy 44px each on a real phone even when a narrower
+       width is declared, so the row budget is computed against 44px here.
+       The logo must be sized to FIT the remaining 1fr column; if it does not,
+       `.css-logo { min-width: max-content }` forces the wordmark to overflow
+       and it gets covered by the neighbouring icons. */
     @media (max-width: 767.98px) {
         .header-container {
             grid-template-columns: auto minmax(0, 1fr) auto;
             grid-template-rows: auto auto;
-            column-gap: 0.35rem;
+            column-gap: 0.5rem;
             row-gap: 0.4rem;
         }
 
         .brand-logo {
             min-width: 0;
             max-width: 100%;
+            width: auto;
+            justify-content: center;
         }
 
         .css-logo {
@@ -2726,13 +2736,31 @@
         }
 
         .user-actions {
-            gap: 0.2rem;
+            gap: 0.3rem;
         }
 
+        /* 44px matches the real-device touch-target floor */
         .action-item {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             font-size: 1rem;
+        }
+
+        /* NB: `.brand-logo svg { height: ... !important }` rules elsewhere have
+           specificity (0,1,1) and would beat a bare `.logo-handbag` (0,1,0), so the
+           handbag must be targeted as a descendant to win. */
+        .brand-logo .logo-handbag {
+            width: auto !important;
+            height: 34px !important;
+            margin-right: 0.25rem;
+        }
+
+        .logo-olid {
+            font-size: clamp(1.05rem, 5.6vw, 1.5rem);
+        }
+
+        .logo-stores {
+            font-size: clamp(0.95rem, 5.1vw, 1.35rem);
         }
     }
 
@@ -2740,17 +2768,54 @@
         .logo-tagline {
             display: none;
         }
+    }
+
+    @media (max-width: 430px) {
+        /* Admin-only: the notifications bell adds a 4th 44px touch target to a row
+           that already holds the hamburger, the wordmark and 3 icons. At phone widths
+           there is not enough room for all four plus a legible "Olid Stores", and the
+           overflow pushed the wordmark under the icons (clipped the final "s").
+           Notifications stay reachable via the Dashboard link in the hamburger menu,
+           so the bell is dropped from the top row on phones only. */
+        #adminNotifications {
+            display: none !important;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .brand-logo .logo-handbag {
+            height: 28px !important;
+            margin-right: 0.2rem;
+        }
 
         .logo-olid {
-            font-size: clamp(1.45rem, 7vw, 1.8rem);
+            font-size: clamp(1rem, 5.4vw, 1.45rem);
         }
 
         .logo-stores {
-            font-size: clamp(1.3rem, 6.5vw, 1.65rem);
+            font-size: clamp(0.9rem, 4.9vw, 1.3rem);
+        }
+    }
+
+    @media (max-width: 360px) {
+        /* Very narrow phones (320px class): shrink the whole lockup a little
+           further so the wordmark still fits beside 3 icons + hamburger. */
+        .brand-logo .logo-handbag {
+            height: 22px !important;
+            margin-right: 0.1rem;
         }
 
-        .logo-handbag {
-            width: 36px;
+        .logo-olid {
+            font-size: 0.9rem;
+        }
+
+        .logo-stores {
+            font-size: 0.8rem;
+        }
+
+        /* Reclaim the last pixels so the lockup still fits at 320px */
+        .user-actions {
+            gap: 0.2rem;
         }
     }
 
@@ -2763,8 +2828,9 @@
             font-size: 1.65rem;
         }
 
-        .logo-handbag {
-            width: 40px;
+        .brand-logo .logo-handbag {
+            width: auto !important;
+            height: 40px !important;
         }
     }
 

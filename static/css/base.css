@@ -159,7 +159,11 @@ h6 { font-size: clamp(1rem, 1.5vw, 1.1rem); }
 }
 
 @media (max-width: 768px) {
-    .brand-logo { transform: translateY(12px); max-width: none; width: 100%; justify-content: center; }
+    /* Do NOT set width:100% here. The grid cell sizes the logo (justify-self:center),
+       so a 100%-wide box plus justify-content:center makes oversized logo content
+       overflow symmetrically on BOTH sides, sliding under the hamburger on the left
+       and under the action icons on the right (which clipped the final "s"). */
+    .brand-logo { transform: translateY(12px); max-width: 100%; justify-content: center; }
     /* Mobile: show icon-only logo, hide full wordmark to avoid duplicates */
     .brand-logo svg.logo-svg-full { display: none !important; max-width: 220px !important; height: auto !important; margin: 0 auto; }
     .brand-logo svg.logo-svg-icon { display: block !important; height: 64px !important; width: auto !important; }

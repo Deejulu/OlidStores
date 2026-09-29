@@ -1753,8 +1753,8 @@
         min-height: 60px !important;
         padding: 0.4rem 0.75rem !important;
     }
-    [data-theme="dark"] .logo-olid   { font-size: 1.45rem !important; }
-    [data-theme="dark"] .logo-stores { font-size: 1.3rem !important; }
+    [data-theme="dark"] .logo-olid   { font-size: 1.3rem !important; }
+    [data-theme="dark"] .logo-stores { font-size: 1.15rem !important; }
     [data-theme="dark"] .logo-tagline { display: none !important; }
 
     /* Action icons */
@@ -1803,8 +1803,8 @@
         padding-left: 0.75rem !important;
         padding-right: 0.75rem !important;
     }
-    [data-theme="dark"] .logo-olid   { font-size: 1.25rem !important; }
-    [data-theme="dark"] .logo-stores { font-size: 1.1rem !important; }
+    [data-theme="dark"] .logo-olid   { font-size: 1rem !important; }
+    [data-theme="dark"] .logo-stores { font-size: 0.9rem !important; }
     [data-theme="dark"] .action-item {
         width: 40px !important;
         height: 40px !important;
@@ -1824,8 +1824,8 @@
         padding-left: 0.6rem !important;
         padding-right: 0.6rem !important;
     }
-    [data-theme="dark"] .logo-olid   { font-size: 1.1rem !important; }
-    [data-theme="dark"] .logo-stores { font-size: 0.95rem !important; }
+    [data-theme="dark"] .logo-olid   { font-size: 0.95rem !important; }
+    [data-theme="dark"] .logo-stores { font-size: 0.85rem !important; }
     [data-theme="dark"] .action-item { width: 40px !important; height: 40px !important; }
     [data-theme="dark"] .floating-cart { width: 46px !important; height: 46px !important; }
     [data-theme="dark"] .back-to-top   { width: 36px !important; height: 36px !important; }
