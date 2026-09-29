@@ -7,6 +7,54 @@ from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
 from django.core.paginator import Page
+import re
+
+
+def _search_terms(raw_query):
+	"""Split a raw query into non-empty whitespace-separated terms."""
+	return [t for t in re.split(r'\s+', (raw_query or '').strip()) if t]
+
+
+def _term_q(term):
+	"""Match a single term against every searchable product field."""
+	return (
+		Q(name__icontains=term) |
+		Q(description__icontains=term) |
+		Q(category__name__icontains=term)
+	)
+
+
+def filter_products_by_search(queryset, raw_query):
+	"""
+	Apply free-text product search to `queryset`.
+
+	A plain `name__icontains=query` treats the whole query as ONE literal
+	substring, so "Blue Dress" finds nothing when no single product contains
+	those words back-to-back, and "Running Blue" fails even though the
+	product is called "Blue Running Sneakers". That made search feel random:
+	the same product appeared or vanished depending on word order.
+
+	Every term must now match (AND), in any order and in any searched field.
+	If that returns nothing, fall back to matching ANY term so the shopper
+	gets related products rather than a dead end.
+	"""
+	terms = _search_terms(raw_query)
+	if not terms:
+		return queryset
+
+	all_terms = Q()
+	for term in terms:
+		all_terms &= _term_q(term)
+
+	filtered = queryset.filter(all_terms)
+	if filtered.exists():
+		return filtered
+
+	any_term = Q()
+	for term in terms:
+		any_term |= _term_q(term)
+	return queryset.filter(any_term)
+
 
 class ShopListView(ListView):
 	model = Product
@@ -35,12 +83,7 @@ class ShopListView(ListView):
 		min_rating = self.request.GET.get('min_rating')
 
 		if search:
-			from django.db.models import Q
-			queryset = queryset.filter(
-				Q(name__icontains=search) |
-				Q(description__icontains=search) |
-				Q(category__name__icontains=search)
-			)
+			queryset = filter_products_by_search(queryset, search)
 
 		if category_slug:
 			try:
@@ -258,19 +301,12 @@ def test_products(request):
 
 def search(request):
 	query = request.GET.get('q', '').strip()
-	products = Product.objects.none()
-	if query:
-		products = Product.objects.filter(
-			Q(name__icontains=query) | Q(description__icontains=query) | Q(category__name__icontains=query)
-		).select_related('category').prefetch_related('variants', 'images').annotate(
-			avg_rating=Avg('reviews__rating'),
-			review_count=Count('reviews', distinct=True)
-		).distinct()
-	else:
-		products = Product.objects.all().select_related('category').prefetch_related('variants', 'images').annotate(
-			avg_rating=Avg('reviews__rating'),
-			review_count=Count('reviews', distinct=True)
-		)
+	products = Product.objects.all().select_related('category').prefetch_related('variants', 'images').annotate(
+		avg_rating=Avg('reviews__rating'),
+		review_count=Count('reviews', distinct=True)
+	).distinct()
+	# Same term-matching rules as the shop page, so both entry points agree
+	products = filter_products_by_search(products, query)
 
 	# Apply same filters as ShopListView
 	category_slugs = request.GET.getlist('category')
